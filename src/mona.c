@@ -40,7 +40,7 @@ static void mona_progress_loop(void* uarg) {
         // TODO put a high timeout value to avoid busy-spinning
         // if there is no other ULT in the pool that could run
         na_ret = NA_Progress(mona->na_class, mona->na_context, 0);
-        if (na_ret != NA_SUCCESS) {
+        if (na_ret != NA_SUCCESS && na_ret != NA_TIMEOUT) {
             fprintf(stderr, "WARNING: unexpected return value from NA_Progress (%d)\n", na_ret);
         }
     }

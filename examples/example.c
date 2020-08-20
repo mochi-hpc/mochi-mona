@@ -56,9 +56,13 @@ int main(int argc, char** argv) {
         ret = mona_msg_init_unexpected(mona, buf, msg_len);
         ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not initialize message");
 
+        na_op_id_t op_id = mona_op_create(mona);
+
         ret = mona_msg_send_unexpected(
-                mona, buf, msg_len, plugin_data, addr, 0, 0, NA_OP_ID_IGNORE);
+                mona, buf, msg_len, plugin_data, addr, 0, 0, &op_id);
         ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not send message");
+
+        mona_op_destroy(mona, op_id);
 
         ret = mona_addr_free(mona, addr);
         ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not free address");
@@ -66,9 +70,13 @@ int main(int argc, char** argv) {
     } else {
         MPI_Send(addr_str, 128, MPI_CHAR, 0, 0, MPI_COMM_WORLD);
 
+        na_op_id_t op_id = mona_op_create(mona);
+
         ret = mona_msg_recv_unexpected(
-                mona, buf, msg_len, plugin_data, NA_OP_ID_IGNORE);
+                mona, buf, msg_len, plugin_data, &op_id);
         ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not receive message");
+
+        mona_op_destroy(mona, op_id);
 
         printf("[1] Receiving message from rank 0\n");
 
