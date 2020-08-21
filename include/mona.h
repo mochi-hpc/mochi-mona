@@ -147,8 +147,7 @@ na_return_t mona_msg_send_unexpected(
         void *plugin_data,
         na_addr_t dest_addr,
         na_uint8_t dest_id,
-        na_tag_t tag,
-        na_op_id_t *op_id);
+        na_tag_t tag);
 
 na_return_t mona_msg_isend_unexpected(
         mona_instance_t mona,
@@ -165,8 +164,7 @@ na_return_t mona_msg_recv_unexpected(
         mona_instance_t mona,
         void *buf,
         na_size_t buf_size,
-        void *plugin_data,
-        na_op_id_t *op_id);
+        void *plugin_data);
 
 na_return_t mona_msg_irecv_unexpected(
         mona_instance_t mona,
@@ -188,8 +186,7 @@ na_return_t mona_msg_send_expected(
         void *plugin_data,
         na_addr_t dest_addr,
         na_uint8_t dest_id,
-        na_tag_t tag,
-        na_op_id_t *op_id);
+        na_tag_t tag);
 
 na_return_t mona_msg_isend_expected(
         mona_instance_t mona,
@@ -209,8 +206,7 @@ na_return_t mona_msg_recv_expected(
         void *plugin_data,
         na_addr_t source_addr,
         na_uint8_t source_id,
-        na_tag_t tag,
-        na_op_id_t *op_id);
+        na_tag_t tag);
 
 na_return_t mona_msg_irecv_expected(
         mona_instance_t mona,
@@ -280,8 +276,7 @@ na_return_t mona_put(
         na_offset_t remote_offset,
         na_size_t data_size,
         na_addr_t remote_addr,
-        na_uint8_t remote_id,
-        na_op_id_t *op_id);
+        na_uint8_t remote_id);
 
 na_return_t mona_iput(
         mona_instance_t mona,
@@ -303,8 +298,7 @@ na_return_t mona_get(
         na_offset_t remote_offset,
         na_size_t data_size,
         na_addr_t remote_addr,
-        na_uint8_t remote_id,
-        na_op_id_t *op_id);
+        na_uint8_t remote_id);
 
 na_return_t mona_iget(
         mona_instance_t mona,
