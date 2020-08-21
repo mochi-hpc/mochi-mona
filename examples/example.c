@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
         ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not initialize message");
 
         ret = mona_msg_send_unexpected(
-                mona, buf, msg_len, plugin_data, addr, 0, 0);
+                mona, buf, msg_len, plugin_data, addr, 0, 1234);
         ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not send message");
 
         ret = mona_addr_free(mona, addr);
@@ -65,12 +65,20 @@ int main(int argc, char** argv) {
 
     } else {
         MPI_Send(addr_str, 128, MPI_CHAR, 0, 0, MPI_COMM_WORLD);
+        
+        na_addr_t source_addr = NA_ADDR_NULL;
+        na_tag_t  tag = 0;
+        na_size_t actual_size = 0;
 
         ret = mona_msg_recv_unexpected(
-                mona, buf, msg_len, plugin_data);
+                mona, buf, msg_len, plugin_data,
+                &source_addr, &tag, &actual_size);
         ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not receive message");
 
-        printf("[1] Receiving message from rank 0\n");
+        printf("[1] Receiving message from rank 0 with tag %d and size %ld\n", tag, actual_size);
+
+        ret = mona_addr_free(mona, source_addr);
+        ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not free source address");
 
         for(i = mona_msg_get_unexpected_header_size(mona); i < (int)msg_len; i++) {
             ASSERT_MESSAGE(buf[i] == i % 32, "Incorrect byte received");

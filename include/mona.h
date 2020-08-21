@@ -164,13 +164,19 @@ na_return_t mona_msg_recv_unexpected(
         mona_instance_t mona,
         void *buf,
         na_size_t buf_size,
-        void *plugin_data);
+        void *plugin_data,
+        na_addr_t* source_addr,
+        na_tag_t* tag,
+        na_size_t* size);
 
 na_return_t mona_msg_irecv_unexpected(
         mona_instance_t mona,
         void *buf,
         na_size_t buf_size,
         void *plugin_data,
+        na_addr_t* source_addr,
+        na_tag_t* tag,
+        na_size_t* size,
         na_op_id_t *op_id,
         mona_request_t* req);
 
