@@ -17,10 +17,6 @@ option(ENABLE_EXAMPLES "Build examples" OFF)
 
 add_definitions (-Wall -Wextra)
 
-# add our cmake module directory to the path
-set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-     "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
 # link shared lib with full rpath
 set (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
@@ -42,9 +38,7 @@ pkg_check_modules (ARGOBOTS REQUIRED IMPORTED_TARGET argobots)
 add_subdirectory (src)
 
 if (ENABLE_TESTS)
-    find_package (CppUnit REQUIRED)
     find_package (MPI REQUIRED)
-    include_directories(${CPPUNIT_INCLUDE_DIR})
     enable_testing()
     add_subdirectory (tests)
 endif (ENABLE_TESTS)
