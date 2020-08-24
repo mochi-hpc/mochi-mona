@@ -22,23 +22,68 @@ typedef struct mona_request*  mona_request_t;
 #define MONA_INSTANCE_NULL ((mona_instance_t)NULL)
 #define MONA_REQUEST_NULL  ((mona_request_t)NULL)
 
+/**
+ * @brief Initialize a Mona instance.
+ *
+ * @param info_string [IN]  protocol (e.g. "na+sm", "ofi+tcp", etc.)
+ * @param listen [IN]       whether to listen for messages or not
+ * @param na_init_info [IN] additional information to pass to the NA layer
+ *
+ * @return a valid mona_instance_t or MONA_INSTANCE_NULL in case of an error
+ */
 mona_instance_t mona_init(
         const char *info_string,
         na_bool_t listen,
         const struct na_init_info *na_init_info);
 
+/**
+ * @brief Same as mona_init() but allows users to specify whether
+ * to create a dedicated execution stream for the progress loop.
+ *
+ * @param info_string [IN]      protocol (e.g. "na+sm", "ofi+tcp", etc.)
+ * @param listen [IN]           whether to listen for messages or not
+ * @param na_init_info [IN]     additional information to pass to the NA layer
+ * @param use_progress_es [IN]  whether to create an ES for progress
+ *
+ * @return a valid mona_instance_t or MONA_INSTANCE_NULL in case of an error
+ */
 mona_instance_t mona_init_thread(
         const char *info_string,
         na_bool_t listen,
         const struct na_init_info *na_init_info,
         na_bool_t use_progress_es);
 
+/**
+ * @brief Same as mona_init() but allows users to specify the
+ * Argobots pool in which the progress loop will run.
+ *
+ * @param info_string [IN]      protocol (e.g. "na+sm", "ofi+tcp", etc.)
+ * @param listen [IN]           whether to listen for messages or not
+ * @param na_init_info [IN]     additional information to pass to the NA layer
+ * @param progress_pool [IN]    Argobots pool for the progress loop
+ *
+ * @return a valid mona_instance_t or MONA_INSTANCE_NULL in case of an error
+ */
 mona_instance_t mona_init_pool(
         const char *info_string,
         na_bool_t listen,
         const struct na_init_info *na_init_info,
         ABT_pool progress_pool);
 
+/**
+ * @brief Initialize a Mona instance from existing na_class, na_context,
+ * and Argobots progress pool. Note that the na_context should not be used
+ * by another library (e.g. it is incorrect to extrat an na_context from
+ * an hg_context that is actively being used, and use this na_context with
+ * Mona, since messages sent by Mona will interfere with messages sent by
+ * Mercury, and vice-versa).
+ *
+ * @param na_class [IN]         NA class
+ * @param na_context [IN]       NA context
+ * @param progress_pool [IN]    Argobots pool for the progress thread
+ *
+ * @return  a valid mona_instance_t or MONA_INSTANCE_NULL in case of an error
+ */
 mona_instance_t mona_init_na_pool(
         na_class_t *na_class,
         na_context_t *na_context,
