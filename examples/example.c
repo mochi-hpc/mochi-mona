@@ -70,6 +70,7 @@ int main(int argc, char** argv) {
         na_tag_t  tag = 0;
         na_size_t actual_size = 0;
 
+        sleep(1);
         ret = mona_msg_recv_unexpected(
                 mona, buf, msg_len, plugin_data,
                 &source_addr, &tag, &actual_size);

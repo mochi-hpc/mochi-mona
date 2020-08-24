@@ -7,6 +7,6 @@ Name: mona
 Description: Mochi Messaging over NA
 Version: @MONA_VERSION@
 
-Requires: mercury
+Requires: mercury argobots
 Libs: -L${libdir} @PRIVATE_LIBS@
 Cflags: -I${includedir}

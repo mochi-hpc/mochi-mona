@@ -24,7 +24,7 @@ static MunitResult test_init_finalize(const MunitParameter params[], void* data)
     (void)data;
 
     mona_instance_t mona = mona_init("na+sm", NA_TRUE, NULL);
-    munit_assert_ptr(mona, !=, NULL);
+    munit_assert_not_null(mona);
 
     mona_finalize(mona);
     return MUNIT_OK;

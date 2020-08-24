@@ -467,7 +467,6 @@ static int mona_callback(const struct na_cb_info *info)
             *(req->size) = size;
         }
     }
-
     ABT_eventual_set(req->eventual, &na_ret, sizeof(na_ret));
     return NA_SUCCESS;
 }
