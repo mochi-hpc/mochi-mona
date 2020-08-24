@@ -16,7 +16,14 @@ target_include_directories (test-send-recv-expected PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 target_link_libraries (test-send-recv-expected mona)
 
+add_executable (test-put-get test-put-get.c munit/munit.c)
+target_include_directories (test-put-get PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}/munit
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+target_link_libraries (test-put-get mona)
+
 
 add_test (NAME TestInit COMMAND ./test-init)
 add_test (NAME TestSendRecvUnexpected COMMAND mpirun -np 2 ./test-send-recv-unexpected)
 add_test (NAME TestSendRecvExpected COMMAND mpirun -np 2 ./test-send-recv-expected)
+add_test (NAME TestPutGet COMMAND mpirun -np 2 ./test-put-get)

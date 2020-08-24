@@ -83,7 +83,7 @@ static MunitResult test_send_recv_expected(const MunitParameter params[], void* 
         MPI_Barrier(MPI_COMM_WORLD);
 
         ret = mona_msg_send_expected(
-                mona, buf, msg_len, plugin_data, context->other_addr, 0, 34);
+                mona, buf, msg_len, plugin_data, context->other_addr, 0, 0);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
     } else { // receiver
@@ -93,7 +93,7 @@ static MunitResult test_send_recv_expected(const MunitParameter params[], void* 
 
         ret = mona_msg_irecv_expected(
                 mona, buf, msg_len, plugin_data,
-                context->other_addr, 0, 34, &op, &req);
+                context->other_addr, 0, 0, &op, &req);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
         MPI_Barrier(MPI_COMM_WORLD);
