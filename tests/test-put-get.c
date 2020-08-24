@@ -132,8 +132,13 @@ static MunitResult test_put_get(const MunitParameter params[], void* data)
         ret = mona_get(mona, mem_handle, 0, remote_mem_handle, 0, 1024, context->other_addr, 0);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
-        // modify buffer
+        // check the content of the buffer
         int i;
+        for(i=0; i < 1024; i++) {
+            munit_assert_int(bulk_buf[i], ==, i % 32);
+        }
+
+        // modify buffer
         for(i=0; i < 1024; i++) {
             bulk_buf[i] = (i+1) % 32;
         }
