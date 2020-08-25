@@ -15,7 +15,7 @@ enable_testing ()
 option(ENABLE_TESTS    "Build tests. May require CppUnit_ROOT" OFF)
 option(ENABLE_EXAMPLES "Build examples" OFF)
 
-add_definitions (-Wall -Wextra)
+add_definitions (-Wall -Wextra -g)
 
 # link shared lib with full rpath
 set (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
