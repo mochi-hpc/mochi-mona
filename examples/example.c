@@ -1,5 +1,6 @@
 #include <mpi.h>
 #include <mona.h>
+#include <stdlib.h>
 
 #define ASSERT_MESSAGE(__cond__, __msg__) \
     if(!(__cond__)) { \

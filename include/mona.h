@@ -6,10 +6,7 @@
 #ifndef __MONA_H
 #define __MONA_H
 
-#include <mercury.h>
-#include <mercury_types.h>
-#include <mercury_bulk.h>
-#include <mercury_macros.h>
+#include <na.h>
 #include <abt.h>
 
 #ifdef __cplusplus

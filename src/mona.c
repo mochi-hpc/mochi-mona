@@ -4,6 +4,7 @@
  * See COPYRIGHT in top-level directory.
  */
 #include "mona.h"
+#include <stdlib.h>
 
 typedef struct cached_op_id* cached_op_id_t;
 typedef struct cached_op_id {
