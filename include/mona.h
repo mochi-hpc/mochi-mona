@@ -19,6 +19,9 @@ typedef struct mona_request*  mona_request_t;
 #define MONA_INSTANCE_NULL ((mona_instance_t)NULL)
 #define MONA_REQUEST_NULL  ((mona_request_t)NULL)
 
+#define MONA_ANY_SOURCE NA_ADDR_NULL
+#define MONA_ANY_TAG    0xFFFFFFFF
+
 /**
  * @brief Initialize a Mona instance.
  *
@@ -349,22 +352,31 @@ na_return_t mona_isend(
  * (mona_msg_*) functions may lead to undefined behaviors and should
  * be avoided.
  *
+ * Because the called may use MONA_ANY_SOURCE and/or MONA_ANY_TAG,
+ * the actual_src and actual_tag can be used to get the actual sender
+ * and tag. These parameters, as well as actual_size, may be set to
+ * NULL to be ignored.
+ *
  * @param mona [IN/OUT]     Mona instance
  * @param buf [OUT]         buffer in which to place the received data
- * @param buf_size [IN]     buffer size
+ * @param size [IN]         buffer size
  * @param dest [IN]         source address
  * @param tag [IN]          tag
  * @param actual_size [OUT] actual received size
+ * @param actual_src [OUT]  actual source
+ * @param actual_tag [OUT]  actual tag
  *
  * @return NA_SUCCESS or corresponding NA error code
  */
 na_return_t mona_recv(
         mona_instance_t mona,
         void* buf,
-        na_size_t buf_size,
+        na_size_t size,
         na_addr_t src,
         na_tag_t tag,
-        na_size_t* actual_size);
+        na_size_t* actual_size,
+        na_addr_t* actual_src,
+        na_tag_t*  actual_tag);
 
 /**
  * @brief Non-blocking equivalent of mona_recv. The resulting mona_request_t
@@ -376,6 +388,8 @@ na_return_t mona_recv(
  * @param dest [IN]         source address
  * @param tag [IN]          tag
  * @param actual_size [OUT] actual received size
+ * @param actual_src [OUT]  actual source
+ * @param actual_tag [OUT]  actual tag
  * @param req [OUT]         request
  *
  * @return NA_SUCCESS or corresponding NA error code
@@ -387,6 +401,8 @@ na_return_t mona_irecv(
         na_addr_t src,
         na_tag_t tag,
         na_size_t* actual_size,
+        na_addr_t* actual_src,
+        na_tag_t*  actual_tag,
         mona_request_t* req);
 
 /**

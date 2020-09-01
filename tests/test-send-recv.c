@@ -78,7 +78,7 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
         munit_assert_int(ret, ==, NA_SUCCESS);
 
         na_size_t recv_size;
-        ret = mona_recv(mona, buf, 64, context->other_addr, 1234, &recv_size);
+        ret = mona_recv(mona, buf, 64, context->other_addr, 1234, &recv_size, NULL, NULL);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
         for(i = 0; i < 64; i++) {
@@ -89,7 +89,7 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
         int i;
 
         na_size_t recv_size;
-        ret = mona_recv(mona, buf, msg_len, context->other_addr, 1234, &recv_size);
+        ret = mona_recv(mona, buf, msg_len, context->other_addr, 1234, &recv_size, NULL, NULL);
         munit_assert_int(ret, ==, NA_SUCCESS);
         for(i = 0; i < (int)msg_len; i++) {
             munit_assert_int(buf[i], ==, i % 32);

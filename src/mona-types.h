@@ -17,10 +17,18 @@ typedef struct cached_op_id {
 
 typedef struct cached_msg* cached_msg_t;
 typedef struct cached_msg {
-    char*        buffer;
-    void*        plugin_data;
-    cached_msg_t next;
+    char* buffer;
+    void* plugin_data;
+    void* next; // may point to a cached_msg or to a pending_msg depending on context
 } cached_msg;
+
+typedef struct pending_msg* pending_msg_t;
+typedef struct pending_msg {
+    cached_msg_t  cached_msg;
+    na_size_t     recv_size;
+    na_addr_t     recv_addr;
+    na_tag_t      recv_tag;
+} pending_msg;
 
 typedef struct mona_instance {
     // NA structures
@@ -45,6 +53,12 @@ typedef struct mona_instance {
     // message cache for high-level functions
     cached_msg_t   msg_cache;
     ABT_mutex      msg_cache_mtx;
+    // pending messages received in high-level mona_recv
+    pending_msg_t  pending_msg_oldest; // head of the queue
+    pending_msg_t  pending_msg_newest; // last of the queue
+    ABT_mutex      pending_msg_mtx;
+    ABT_cond       pending_msg_cv;
+    na_bool_t      pending_msg_queue_active; // a thread is queuing messages
 } mona_instance;
 
 typedef struct mona_request {
