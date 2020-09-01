@@ -80,121 +80,23 @@ static void run_mona_benchmark(options_t* options) {
     ret = mona_addr_lookup(mona, other_addr_str, &addr);
     ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not lookup address");
 
+    char* buf = malloc(options->msg_size);
 
-    size_t max_msg_len = mona_msg_get_max_unexpected_size(mona);
+    MPI_Barrier(MPI_COMM_WORLD);
+    t_start = MPI_Wtime();
 
-    if(max_msg_len >=  options->msg_size + mona_msg_get_unexpected_header_size(mona)) {
-    // Small message case, using unexpected messages only
-
-        size_t msg_len = options->msg_size + mona_msg_get_unexpected_header_size(mona);
-
-        void* plugin_data = NULL;
-        char* buf = (char*)mona_msg_buf_alloc(mona, msg_len, &plugin_data);
-        ASSERT_MESSAGE(buf != NULL, "Could not allocate message buffer");
-
-        ret = mona_msg_init_unexpected(mona, buf, msg_len);
-        ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not initialize message");
-
-
-        MPI_Barrier(MPI_COMM_WORLD);
-        t_start = MPI_Wtime();
-
-        for(i = 0; i < options->iterations; i++) {
-            if(i % 2 == (unsigned)rank) {
-                ret = mona_msg_send_unexpected(
-                        mona, buf, msg_len, plugin_data, addr, 0, 0);
-                ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not send message");
-            } else {
-                ret = mona_msg_recv_unexpected(
-                        mona, buf, msg_len, plugin_data,
-                        NULL, NULL, NULL);
-                ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not receive message");
-            }
+    for(i = 0; i < options->iterations; i++) {
+        if(i % 2 == (unsigned)rank) {
+            mona_send(mona, buf, options->msg_size, addr, 0, 0);
+        } else {
+            mona_recv(mona, buf, options->msg_size, addr, 0, NULL, NULL, NULL);
         }
-
-        MPI_Barrier(MPI_COMM_WORLD);
-        t_end = MPI_Wtime();
-
-        ret = mona_msg_buf_free(mona, buf, plugin_data);
-        ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not free buffer");
-
-    } else {
-    // Large messages, using a combination of unexpected messages and RDMA
-
-        char* buf = malloc(options->msg_size);
-        na_mem_handle_t local_mem_handle, remote_mem_handle;
-        ret = mona_mem_handle_create(mona, buf, options->msg_size, NA_MEM_READWRITE, &local_mem_handle);
-        ret = mona_mem_register(mona, local_mem_handle);
-
-        na_size_t mem_handle_size = mona_mem_handle_get_serialize_size(mona, local_mem_handle);
-
-        void* plugin_data = NULL;
-        char* msg = (char*)mona_msg_buf_alloc(mona, mem_handle_size, &plugin_data);
-        ASSERT_MESSAGE(buf != NULL, "Could not allocate message buffer");
-
-        ret = mona_msg_init_unexpected(mona, msg, mem_handle_size);
-        ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not initialize message");
-
-        MPI_Barrier(MPI_COMM_WORLD);
-        t_start = MPI_Wtime();
-
-        for(i = 0; i < options->iterations; i++) {
-            if(i % 2 == (unsigned)rank) {
-                ret = mona_mem_handle_serialize(mona,
-                        msg + mona_msg_get_unexpected_header_size(mona),
-                        mem_handle_size,
-                        local_mem_handle);
-                ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not serialize local memory handle");
-
-                ret = mona_msg_send_unexpected(
-                        mona, msg, mem_handle_size + mona_msg_get_unexpected_header_size(mona),
-                        plugin_data, addr, 0, 0);
-                ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not send message");
-
-                ret = mona_msg_recv_unexpected(
-                        mona, msg, mona_msg_get_unexpected_header_size(mona), plugin_data,
-                        NULL, NULL, NULL);
-
-                ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not receive message");
-
-            } else {
-                ret = mona_msg_recv_unexpected(
-                        mona, msg, mem_handle_size + mona_msg_get_unexpected_header_size(mona),
-                        plugin_data, NULL, NULL, NULL);
-                ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not receive message");
-
-                ret = mona_mem_handle_deserialize(mona, &remote_mem_handle,
-                        msg + mona_msg_get_unexpected_header_size(mona),
-                        mem_handle_size);
-                ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not deserialize remote memory handle");
-
-                ret = mona_get(mona, local_mem_handle, 0, remote_mem_handle, 0,
-                        options->msg_size, addr, 0);
-                ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not issue RDMA operation");
-
-                ret = mona_msg_send_unexpected(
-                        mona, msg, mona_msg_get_unexpected_header_size(mona),
-                        plugin_data, addr, 0, 0);
-                ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not send message");
-
-                ret = mona_mem_handle_free(mona, remote_mem_handle);
-                ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not free remote memory handle");
-            }
-        }
-
-        MPI_Barrier(MPI_COMM_WORLD);
-        t_end = MPI_Wtime();
-
-        ret = mona_msg_buf_free(mona, msg, plugin_data);
-        ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not free message");
-
-        ret = mona_mem_deregister(mona, local_mem_handle);
-        ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not unregister local memory handle");
-
-        ret = mona_mem_handle_free(mona, local_mem_handle);
-        ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not free local memory handle");
     }
 
+    MPI_Barrier(MPI_COMM_WORLD);
+    t_end = MPI_Wtime();
+
+    free(buf);
     ret = mona_addr_free(mona, addr);
     ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not free address");
 
