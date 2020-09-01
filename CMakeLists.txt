@@ -12,8 +12,9 @@ cmake_minimum_required (VERSION 3.14)
 project (mona C)
 enable_testing ()
 
-option(ENABLE_TESTS    "Build tests. May require CppUnit_ROOT" OFF)
-option(ENABLE_EXAMPLES "Build examples" OFF)
+option(ENABLE_TESTS     "Build tests. May require CppUnit_ROOT" OFF)
+option(ENABLE_EXAMPLES  "Build examples" OFF)
+option(ENABLE_BENCHMARK "Build benchmark" OFF)
 
 add_definitions (-Wall -Wextra -g)
 
@@ -46,3 +47,7 @@ endif (ENABLE_TESTS)
 if(${ENABLE_EXAMPLES})
   add_subdirectory (examples)
 endif(${ENABLE_EXAMPLES})
+
+if(${ENABLE_BENCHMARK})
+  add_subdirectory (benchmark)
+endif(${ENABLE_BENCHMARK})
