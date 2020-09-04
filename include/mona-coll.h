@@ -12,9 +12,11 @@
 extern "C" {
 #endif
 
+#define MONA_IN_PLACE  ((void *) -1)
+
 typedef struct mona_comm* mona_comm_t;
 
-typedef void (*mona_op_t)(const void*, void*, na_size_t, void*);
+typedef void (*mona_op_t)(const void*, void*, na_size_t, na_size_t, void*);
 
 na_return_t mona_comm_create(
         mona_instance_t mona,
@@ -213,7 +215,8 @@ na_return_t mona_comm_reduce(
         mona_comm_t comm,
         const void *sendbuf,
         void *recvbuf,
-        na_size_t size,
+        na_size_t typesize,
+        na_size_t count,
         mona_op_t op,
         void* uargs,
         int root,
@@ -223,7 +226,8 @@ na_return_t mona_comm_ireduce(
         mona_comm_t comm,
         const void *sendbuf,
         void *recvbuf,
-        na_size_t size,
+        na_size_t typesize,
+        na_size_t count,
         mona_op_t op,
         void* uargs,
         int root,
@@ -234,20 +238,20 @@ na_return_t mona_comm_allreduce(
         mona_comm_t comm,
         const void *sendbuf,
         void *recvbuf,
-        na_size_t size,
+        na_size_t typesize,
+        na_size_t count,
         mona_op_t op,
         void* uargs,
-        int root,
         na_tag_t tag);
 
 na_return_t mona_comm_iallreduce(
         mona_comm_t comm,
         const void *sendbuf,
         void *recvbuf,
-        na_size_t size,
+        na_size_t typesize,
+        na_size_t count,
         mona_op_t op,
         void* uargs,
-        int root,
         na_tag_t tag,
         mona_request_t* req);
 
