@@ -16,7 +16,7 @@ option(ENABLE_TESTS     "Build tests. May require CppUnit_ROOT" OFF)
 option(ENABLE_EXAMPLES  "Build examples" OFF)
 option(ENABLE_BENCHMARK "Build benchmark" OFF)
 
-add_definitions (-Wall -Wextra -g)
+add_definitions (-Wall -Wextra -Wno-unused-parameter -Wno-return-type -g)
 
 # link shared lib with full rpath
 set (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")

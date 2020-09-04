@@ -13,7 +13,9 @@ set (MONA_VERSION_PATCH 0)
 set (mona-vers "${MONA_VERSION_MAJOR}.${MONA_VERSION_MINOR}")
 set (MONA_VERSION "${mona-vers}.${MONA_VERSION_PATCH}")
 
-add_library(mona ${CMAKE_CURRENT_SOURCE_DIR}/mona.c)
+add_library(mona
+            ${CMAKE_CURRENT_SOURCE_DIR}/mona.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/mona-coll.c)
 target_link_libraries (mona mercury PkgConfig::ARGOBOTS)
 target_include_directories (mona PUBLIC $<INSTALL_INTERFACE:include>)
 
