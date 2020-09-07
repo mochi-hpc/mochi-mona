@@ -298,7 +298,16 @@ na_bool_t mona_addr_cmp(
         na_addr_t addr1,
         na_addr_t addr2)
 {
-    return NA_Addr_cmp(mona->na_class, addr1, addr2);
+    if(addr1 == NA_ADDR_NULL && addr2 == NA_ADDR_NULL)
+        return NA_TRUE;
+    if(addr1 == NA_ADDR_NULL || addr2 == NA_ADDR_NULL)
+        return NA_FALSE;
+    char str1[256], str2[256];
+    na_size_t s = 256;
+    mona_addr_to_string(mona, str1, &s, addr1);
+    s = 256;
+    mona_addr_to_string(mona, str2, &s, addr2);
+    return strcmp(str1, str2) == 0 ? NA_TRUE : NA_FALSE;
 }
 
 na_bool_t mona_addr_is_self(
@@ -774,7 +783,6 @@ na_return_t mona_recv(
     na_tag_t  recv_tag            = 0;
 
     // wait for a matching unexpected message to come around
-
     msg = wait_for_matching_unexpected_message(mona, src, tag, &recv_size, &recv_addr, &recv_tag);
     if(!msg) return NA_PROTOCOL_ERROR;
 

@@ -52,13 +52,20 @@ target_include_directories (test-na PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 target_link_libraries (test-na mona)
 
+add_executable (test-send-recv-coll test-send-recv-coll.c munit/munit.c)
+target_include_directories (test-send-recv-coll PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}/munit
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+target_link_libraries (test-send-recv-coll mona)
+
 
 add_test (NAME TestInit COMMAND ./test-init)
-add_test (NAME TestSendRecv COMMAND mpirun -np 2 ./test-send-recv)
-add_test (NAME TestSendRecvSelf COMMAND mpirun -np 2 ./test-send-recv-self)
-add_test (NAME TestISendIRecv COMMAND mpirun -np 2 ./test-isend-irecv)
-add_test (NAME TestISendIRecvMulti COMMAND mpirun -np 2 ./test-isend-irecv-multi)
-add_test (NAME TestSendRecvUnexpected COMMAND mpirun -np 2 ./test-send-recv-unexpected)
-add_test (NAME TestSendRecvExpected COMMAND mpirun -np 2 ./test-send-recv-expected)
-add_test (NAME TestPutGet COMMAND mpirun -np 2 ./test-put-get)
-add_test (NAME TestNA COMMAND mpirun -np 2 ./test-na)
+add_test (NAME TestSendRecv COMMAND mpirun -np 2 ./test-send-recv --no-fork)
+add_test (NAME TestSendRecvSelf COMMAND mpirun -np 2 ./test-send-recv-self --no-fork)
+add_test (NAME TestISendIRecv COMMAND mpirun -np 2 ./test-isend-irecv --no-fork)
+add_test (NAME TestISendIRecvMulti COMMAND mpirun -np 2 ./test-isend-irecv-multi --no-fork)
+add_test (NAME TestSendRecvUnexpected COMMAND mpirun -np 2 ./test-send-recv-unexpected --no-fork)
+add_test (NAME TestSendRecvExpected COMMAND mpirun -np 2 ./test-send-recv-expected --no-fork)
+add_test (NAME TestPutGet COMMAND mpirun -np 2 ./test-put-get --no-fork)
+add_test (NAME TestNA COMMAND mpirun -np 2 ./test-na --no-fork)
+add_test (NAME TestSendRecvColl COMMAND mpirun -np 2 ./test-send-recv-coll --no-fork)

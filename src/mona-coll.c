@@ -11,7 +11,7 @@ typedef struct mona_comm {
     mona_instance_t mona;
     na_size_t       size;
     na_size_t       rank;
-    na_addr_t       addrs[1];
+    na_addr_t*      addrs;
 } mona_comm;
 
 #define NB_OP_INIT(__argtype__) \
@@ -44,15 +44,20 @@ na_return_t mona_comm_create(
 {
     na_return_t na_ret;
     unsigned i = 0, j = 0, k = 0;
-    if(count == 0)
+    if(count == 0) {
         return NA_INVALID_ARG;
-    na_size_t s = sizeof(mona_comm) - 1 + count*sizeof(na_addr_t);
-    mona_comm_t tmp = calloc(1, s);
+    }
+    mona_comm_t tmp = calloc(1, sizeof(mona_comm));
     if(!tmp)
         return NA_NOMEM;
     tmp->mona   = mona;
     tmp->size   = count;
     tmp->rank   = count;
+    tmp->addrs  = calloc(sizeof(na_addr_t), count);
+    if(!tmp->addrs) {
+        na_ret = NA_NOMEM;
+        goto error;
+    }
     // copy array of addresses and find rank of self
     for(i = 0; i < count; i++) {
         na_ret = mona_addr_dup(mona, peers[i], tmp->addrs + i);
@@ -89,6 +94,7 @@ error:
     for(j = 0; j < i; j++) {
         mona_addr_free(mona, tmp->addrs[i]);
     }
+    free(tmp->addrs);
     free(tmp);
     goto finish;
 }
@@ -102,6 +108,7 @@ na_return_t mona_comm_free(mona_comm_t comm)
         if(na_ret != NA_SUCCESS)
             return na_ret;
     }
+    free(comm->addrs);
     free(comm);
     return na_ret;
 }
