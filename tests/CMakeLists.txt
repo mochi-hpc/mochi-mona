@@ -1,71 +1,40 @@
-add_executable (test-init test-init.c munit/munit.c)
-target_include_directories (test-init PUBLIC 
+function (add_munit_test)
+    set(prefix MUNIT_TEST)
+    set(flags MPI)
+    set(singleValues NAME NUM_PROCS)
+    set(multiValues SOURCES)
+
+    include(CMakeParseArguments)
+    cmake_parse_arguments(${prefix}
+                         "${flags}"
+                         "${singleValues}"
+                         "${multiValues}"
+                         ${ARGN})
+
+  add_executable (${MUNIT_TEST_NAME} ${MUNIT_TEST_SOURCES} munit/munit.c)
+  target_include_directories (${MUNIT_TEST_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/munit
     ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries (test-init mona)
+  target_link_libraries (${MUNIT_TEST_NAME} mona)
+  if(${MUNIT_TEST_MPI})
+    add_test(NAME ${MUNIT_TEST_NAME} COMMAND mpirun -np ${MUNIT_TEST_NUM_PROCS} ${CMAKE_CURRENT_BINARY_DIR}/${MUNIT_TEST_NAME} --no-fork)
+  else()
+    add_test(NAME ${MUNIT_TEST_NAME} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${MUNIT_TEST_NAME} --no-fork)
+  endif()
+endfunction ()
 
-add_executable (test-send-recv test-send-recv.c munit/munit.c)
-target_include_directories (test-send-recv PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/munit
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries (test-send-recv mona)
+# Base API tests
+add_munit_test (NAME TestNA MPI NUM_PROCS 2 SOURCES test-na.c)
+add_munit_test (NAME TestInit SOURCES test-init.c)
+add_munit_test (NAME TestSendRecv MPI NUM_PROCS 2 SOURCES test-send-recv.c)
+add_munit_test (NAME TestISendIRecv MPI NUM_PROCS 2 SOURCES test-isend-irecv.c)
+add_munit_test (NAME TestISendIRecvMulti MPI NUM_PROCS 2 SOURCES test-isend-irecv-multi.c)
+#add_munit_test (NAME TestSendRecvSelf MPI NUM_PROCS 2 SOURCES test-send-recv-self.c)
+add_munit_test (NAME TestSendRecvUnexpected MPI NUM_PROCS 2 SOURCES test-send-recv-unexpected.c)
+add_munit_test (NAME TestSendRecvExpected MPI NUM_PROCS 2 SOURCES test-send-recv-expected.c)
+add_munit_test (NAME TestPutGet MPI NUM_PROCS 2 SOURCES test-put-get.c)
 
-add_executable (test-send-recv-self test-send-recv-self.c munit/munit.c)
-target_include_directories (test-send-recv-self PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/munit
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries (test-send-recv-self mona)
-
-add_executable (test-isend-irecv test-isend-irecv.c munit/munit.c)
-target_include_directories (test-isend-irecv PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/munit
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries (test-isend-irecv mona)
-
-add_executable (test-isend-irecv-multi test-isend-irecv-multi.c munit/munit.c)
-target_include_directories (test-isend-irecv-multi PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/munit
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries (test-isend-irecv-multi mona)
-
-add_executable (test-send-recv-unexpected test-send-recv-unexpected.c munit/munit.c)
-target_include_directories (test-send-recv-unexpected PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/munit
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries (test-send-recv-unexpected mona)
-
-add_executable (test-send-recv-expected test-send-recv-expected.c munit/munit.c)
-target_include_directories (test-send-recv-expected PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/munit
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries (test-send-recv-expected mona)
-
-add_executable (test-put-get test-put-get.c munit/munit.c)
-target_include_directories (test-put-get PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/munit
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries (test-put-get mona)
-
-add_executable (test-na test-na.c munit/munit.c)
-target_include_directories (test-na PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/munit
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries (test-na mona)
-
-add_executable (test-send-recv-coll test-send-recv-coll.c munit/munit.c)
-target_include_directories (test-send-recv-coll PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/munit
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries (test-send-recv-coll mona)
-
-
-add_test (NAME TestInit COMMAND ./test-init)
-add_test (NAME TestSendRecv COMMAND mpirun -np 2 ./test-send-recv --no-fork)
-add_test (NAME TestSendRecvSelf COMMAND mpirun -np 2 ./test-send-recv-self --no-fork)
-add_test (NAME TestISendIRecv COMMAND mpirun -np 2 ./test-isend-irecv --no-fork)
-add_test (NAME TestISendIRecvMulti COMMAND mpirun -np 2 ./test-isend-irecv-multi --no-fork)
-add_test (NAME TestSendRecvUnexpected COMMAND mpirun -np 2 ./test-send-recv-unexpected --no-fork)
-add_test (NAME TestSendRecvExpected COMMAND mpirun -np 2 ./test-send-recv-expected --no-fork)
-add_test (NAME TestPutGet COMMAND mpirun -np 2 ./test-put-get --no-fork)
-add_test (NAME TestNA COMMAND mpirun -np 2 ./test-na --no-fork)
-add_test (NAME TestSendRecvColl COMMAND mpirun -np 2 ./test-send-recv-coll --no-fork)
+# Collective API tests
+add_munit_test (NAME TestSendRecvColl MPI NUM_PROCS 2 SOURCES test-send-recv-coll.c)
+add_munit_test (NAME TestBarrier MPI NUM_PROCS 5 SOURCES test-barrier.c)
+add_munit_test (NAME TestBcast MPI NUM_PROCS 5 SOURCES test-bcast.c)

@@ -66,6 +66,7 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
     na_return_t ret;
     mona_instance_t mona = context->mona;
 
+    int i;
     char* buf = malloc(8192);
     na_size_t msg_len = 8192;
     mona_comm_t comm;
@@ -77,7 +78,6 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
     munit_assert_int(ret, ==, NA_SUCCESS);
 
     if(context->rank == 0) { // sender
-        int i;
         for(i = 0; i < (int)msg_len; i++) {
             buf[i] = i % 32;
         }
@@ -94,7 +94,6 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
         }
 
     } else { // receiver
-        int i;
 
         na_size_t recv_size;
         ret = mona_comm_recv(comm, buf, msg_len, 0, 1234, &recv_size, NULL, NULL);
@@ -109,6 +108,30 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
 
         ret = mona_comm_send(comm, buf, 64, 0, 1234);
         munit_assert_int(ret, ==, NA_SUCCESS);
+    }
+
+    // test sendrecv function
+    memset(buf, 0, msg_len);
+    for(i = 0; i < (int)msg_len/2; i++) {
+        int j = i + context->rank*msg_len/2;
+        buf[j] = 'A' + context->rank;
+    }
+
+    ret = mona_comm_sendrecv(comm,
+            buf + context->rank*msg_len/2,
+            msg_len/2,
+            (context->rank + 1) % 2,
+            1234,
+            buf + ((context->rank + 1)%2)*msg_len/2,
+            msg_len/2,
+            (context->rank + 1) % 2,
+            1234,
+            NULL, NULL, NULL);
+    munit_assert_int(ret, ==, NA_SUCCESS);
+
+    for(i = 0; i < (int)msg_len; i++) {
+        char expected = i < (int)msg_len/2 ? 'A' : 'B';
+        munit_assert_int(buf[i], ==, expected);
     }
 
     ret = mona_comm_free(comm);
