@@ -644,7 +644,7 @@ na_return_t mona_comm_gatherv(
             if(recvsizes[i] != 0) {
                 na_ret = mona_comm_irecv(
                         comm, (char*)recvbuf + offsets[i],
-                        sendsize, i, tag, NULL, NULL, NULL, reqs+i);
+                        recvsizes[i], i, tag, NULL, NULL, NULL, reqs+i);
                 if(na_ret != NA_SUCCESS) {
                     goto finish;
                 }
