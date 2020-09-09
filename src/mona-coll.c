@@ -1312,3 +1312,190 @@ na_return_t mona_comm_ialltoall(
     args->tag      = tag;
     NB_OP_POST(ialltoall_thread);
 }
+
+#define DEFINE_MAX_OPERATOR(__name__, __type__) \
+    void __name__(const void* in, void* inout, na_size_t typesize, na_size_t count, void* uargs) \
+    { \
+        (void)uargs; \
+        const __type__* in_t = (const __type__*)in; \
+        __type__* inout_t = (__type__*)inout; \
+        na_size_t i; \
+        for(i = 0; i < count; i++) { \
+            inout_t[i] = inout_t[i] < in_t[i] ? in_t[i] : inout_t[i]; \
+        } \
+    }
+
+DEFINE_MAX_OPERATOR(mona_op_max_u64, uint64_t)
+DEFINE_MAX_OPERATOR(mona_op_max_u32, uint32_t)
+DEFINE_MAX_OPERATOR(mona_op_max_u16, uint16_t)
+DEFINE_MAX_OPERATOR(mona_op_max_u8,  uint8_t)
+DEFINE_MAX_OPERATOR(mona_op_max_i64, int64_t)
+DEFINE_MAX_OPERATOR(mona_op_max_i32, int32_t)
+DEFINE_MAX_OPERATOR(mona_op_max_i16, int16_t)
+DEFINE_MAX_OPERATOR(mona_op_max_i8,  int8_t)
+DEFINE_MAX_OPERATOR(mona_op_max_f32, float)
+DEFINE_MAX_OPERATOR(mona_op_max_f64, double)
+
+#define DEFINE_MIN_OPERATOR(__name__, __type__) \
+    void __name__(const void* in, void* inout, na_size_t typesize, na_size_t count, void* uargs) \
+    { \
+        (void)uargs; \
+        const __type__* in_t = (const __type__*)in; \
+        __type__* inout_t = (__type__*)inout; \
+        na_size_t i; \
+        for(i = 0; i < count; i++) { \
+            inout_t[i] = inout_t[i] > in_t[i] ? in_t[i] : inout_t[i]; \
+        } \
+    }
+
+DEFINE_MIN_OPERATOR(mona_op_min_u64, uint64_t) 
+DEFINE_MIN_OPERATOR(mona_op_min_u32, uint32_t) 
+DEFINE_MIN_OPERATOR(mona_op_min_u16, uint16_t) 
+DEFINE_MIN_OPERATOR(mona_op_min_u8,  uint8_t) 
+DEFINE_MIN_OPERATOR(mona_op_min_i64, int64_t) 
+DEFINE_MIN_OPERATOR(mona_op_min_i32, int32_t) 
+DEFINE_MIN_OPERATOR(mona_op_min_i16, int16_t) 
+DEFINE_MIN_OPERATOR(mona_op_min_i8,  int8_t) 
+DEFINE_MIN_OPERATOR(mona_op_min_f32, float) 
+DEFINE_MIN_OPERATOR(mona_op_min_f64, double) 
+
+#define DEFINE_SUM_OPERATOR(__name__, __type__) \
+    void __name__(const void* in, void* inout, na_size_t typesize, na_size_t count, void* uargs) \
+    { \
+        (void)uargs; \
+        const __type__* in_t = (const __type__*)in; \
+        __type__* inout_t = (__type__*)inout; \
+        na_size_t i; \
+        for(i = 0; i < count; i++) { \
+            inout_t[i] = inout_t[i] + in_t[i]; \
+        } \
+    }
+
+DEFINE_SUM_OPERATOR(mona_op_sum_u64, uint64_t)
+DEFINE_SUM_OPERATOR(mona_op_sum_u32, uint32_t)
+DEFINE_SUM_OPERATOR(mona_op_sum_u16, uint16_t)
+DEFINE_SUM_OPERATOR(mona_op_sum_u8,  uint8_t)
+DEFINE_SUM_OPERATOR(mona_op_sum_i64, int64_t)
+DEFINE_SUM_OPERATOR(mona_op_sum_i32, int32_t)
+DEFINE_SUM_OPERATOR(mona_op_sum_i16, int16_t)
+DEFINE_SUM_OPERATOR(mona_op_sum_i8,  int8_t)
+DEFINE_SUM_OPERATOR(mona_op_sum_f32, float)
+DEFINE_SUM_OPERATOR(mona_op_sum_f64, double)
+
+#define DEFINE_PROD_OPERATOR(__name__, __type__) \
+    void __name__(const void* in, void* inout, na_size_t typesize, na_size_t count, void* uargs) \
+    { \
+        (void)uargs; \
+        const __type__* in_t = (const __type__*)in; \
+        __type__* inout_t = (__type__*)inout; \
+        na_size_t i; \
+        for(i = 0; i < count; i++) { \
+            inout_t[i] = inout_t[i] * in_t[i]; \
+        } \
+    }
+
+DEFINE_PROD_OPERATOR(mona_op_prod_u64, uint64_t)
+DEFINE_PROD_OPERATOR(mona_op_prod_u32, uint32_t)
+DEFINE_PROD_OPERATOR(mona_op_prod_u16, uint16_t)
+DEFINE_PROD_OPERATOR(mona_op_prod_u8,  uint8_t)
+DEFINE_PROD_OPERATOR(mona_op_prod_i64, int64_t)
+DEFINE_PROD_OPERATOR(mona_op_prod_i32, int32_t)
+DEFINE_PROD_OPERATOR(mona_op_prod_i16, int16_t)
+DEFINE_PROD_OPERATOR(mona_op_prod_i8,  int8_t)
+DEFINE_PROD_OPERATOR(mona_op_prod_f32, float)
+DEFINE_PROD_OPERATOR(mona_op_prod_f64, double)
+
+#define DEFINE_LAND_OPERATOR(__name__, __type__) \
+    void __name__(const void* in, void* inout, na_size_t typesize, na_size_t count, void* uargs) \
+    { \
+        (void)uargs; \
+        const __type__* in_t = (const __type__*)in; \
+        __type__* inout_t = (__type__*)inout; \
+        na_size_t i; \
+        for(i = 0; i < count; i++) { \
+            inout_t[i] = inout_t[i] && in_t[i]; \
+        } \
+    }
+
+DEFINE_LAND_OPERATOR(mona_op_land_u64, uint64_t)
+DEFINE_LAND_OPERATOR(mona_op_land_u32, uint32_t)
+DEFINE_LAND_OPERATOR(mona_op_land_u16, uint16_t)
+DEFINE_LAND_OPERATOR(mona_op_land_u8,  uint8_t)
+DEFINE_LAND_OPERATOR(mona_op_land_i64, int64_t)
+DEFINE_LAND_OPERATOR(mona_op_land_i32, int32_t)
+DEFINE_LAND_OPERATOR(mona_op_land_i16, int16_t)
+DEFINE_LAND_OPERATOR(mona_op_land_i8,  int8_t)
+DEFINE_LAND_OPERATOR(mona_op_land_f32, float)
+DEFINE_LAND_OPERATOR(mona_op_land_f64, double)
+
+#define DEFINE_LOR_OPERATOR(__name__, __type__) \
+    void __name__(const void* in, void* inout, na_size_t typesize, na_size_t count, void* uargs) \
+    { \
+        (void)uargs; \
+        const __type__* in_t = (const __type__*)in; \
+        __type__* inout_t = (__type__*)inout; \
+        na_size_t i; \
+        for(i = 0; i < count; i++) { \
+            inout_t[i] = inout_t[i] || in_t[i]; \
+        } \
+    }
+
+DEFINE_LOR_OPERATOR(mona_op_lor_u64, uint64_t)
+DEFINE_LOR_OPERATOR(mona_op_lor_u32, uint32_t)
+DEFINE_LOR_OPERATOR(mona_op_lor_u16, uint16_t)
+DEFINE_LOR_OPERATOR(mona_op_lor_u8,  uint8_t)
+DEFINE_LOR_OPERATOR(mona_op_lor_i64, int64_t)
+DEFINE_LOR_OPERATOR(mona_op_lor_i32, int32_t)
+DEFINE_LOR_OPERATOR(mona_op_lor_i16, int16_t)
+DEFINE_LOR_OPERATOR(mona_op_lor_i8,  int8_t)
+DEFINE_LOR_OPERATOR(mona_op_lor_f32, float)
+DEFINE_LOR_OPERATOR(mona_op_lor_f64, double)
+
+#define DEFINE_OPERATOR(__name__, __base__, __typesize__) \
+    void __name__(const void* in, void* inout, na_size_t typesize, na_size_t count, void* uargs) { \
+        __base__(in, inout, __typesize__, count, uargs); \
+    }
+
+static inline void mona_op_band(const void* in, void* inout, na_size_t typesize, na_size_t count, void* uargs)
+{
+    (void)uargs;
+    const char* in_char = (const char*)in;
+    char* inout_char = (char*)inout;
+    na_size_t i;
+    for(i = 0; i < typesize*count; i++) {
+        inout_char[i] = inout_char[i] & in_char[i];
+    }
+}
+
+DEFINE_OPERATOR(mona_op_band_u64, mona_op_band, 8)
+DEFINE_OPERATOR(mona_op_band_u32, mona_op_band, 4)
+DEFINE_OPERATOR(mona_op_band_u16, mona_op_band, 3)
+DEFINE_OPERATOR(mona_op_band_u8,  mona_op_band, 1)
+DEFINE_OPERATOR(mona_op_band_i64, mona_op_band, 8)
+DEFINE_OPERATOR(mona_op_band_i32, mona_op_band, 4)
+DEFINE_OPERATOR(mona_op_band_i16, mona_op_band, 2)
+DEFINE_OPERATOR(mona_op_band_i8,  mona_op_band, 1)
+DEFINE_OPERATOR(mona_op_band_f32, mona_op_band, 4)
+DEFINE_OPERATOR(mona_op_band_f64, mona_op_band, 8)
+
+static inline void mona_op_bor(const void* in, void* inout, na_size_t typesize, na_size_t count, void* uargs)
+{
+    (void)uargs;
+    const char* in_char = (const char*)in;
+    char* inout_char = (char*)inout;
+    na_size_t i;
+    for(i = 0; i < typesize*count; i++) {
+        inout_char[i] = inout_char[i] | in_char[i];
+    }
+}
+
+DEFINE_OPERATOR(mona_op_bor_u64, mona_op_bor, 8)
+DEFINE_OPERATOR(mona_op_bor_u32, mona_op_bor, 4)
+DEFINE_OPERATOR(mona_op_bor_u16, mona_op_bor, 3)
+DEFINE_OPERATOR(mona_op_bor_u8,  mona_op_bor, 1)
+DEFINE_OPERATOR(mona_op_bor_i64, mona_op_bor, 8)
+DEFINE_OPERATOR(mona_op_bor_i32, mona_op_bor, 4)
+DEFINE_OPERATOR(mona_op_bor_i16, mona_op_bor, 2)
+DEFINE_OPERATOR(mona_op_bor_i8,  mona_op_bor, 1)
+DEFINE_OPERATOR(mona_op_bor_f32, mona_op_bor, 4)
+DEFINE_OPERATOR(mona_op_bor_f64, mona_op_bor, 8)
