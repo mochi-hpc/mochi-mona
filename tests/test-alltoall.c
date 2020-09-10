@@ -97,7 +97,7 @@ static MunitResult test_alltoall(const MunitParameter params[], void* data)
         send_buf[i] = rank + size*(i/8096);
     }
 
-    ret = mona_comm_alltoall(context->comm, send_buf, 8096, recv_buf, 8096, 1234);
+    ret = mona_comm_alltoall(context->comm, send_buf, 8096, recv_buf, 1234);
     munit_assert_int(ret, ==, NA_SUCCESS);
 
     int r;

@@ -146,7 +146,7 @@ na_return_t mona_comm_dup(
 
 na_return_t mona_comm_subset(
         mona_comm_t comm,
-        int* ranks,
+        const int* ranks,
         na_size_t size,
         mona_comm_t* new_comm)
 {
@@ -1218,9 +1218,8 @@ na_return_t mona_comm_iallreduce(
 na_return_t mona_comm_alltoall(
         mona_comm_t comm,
         const void *sendbuf,
-        na_size_t sendsize,
+        na_size_t blocksize,
         void *recvbuf,
-        na_size_t recvsize,
         na_tag_t tag)
 {
     na_return_t na_ret = NA_SUCCESS;
@@ -1236,22 +1235,22 @@ na_return_t mona_comm_alltoall(
             reqs[i] = MONA_REQUEST_NULL;
             continue;
         }
-        sendaddr = (char*)sendbuf + i * sendsize;
+        sendaddr = (char*)sendbuf + i * blocksize;
         na_ret = mona_comm_isend(
-                comm, sendaddr, sendsize, i, tag, reqs + i);
+                comm, sendaddr, blocksize, i, tag, reqs + i);
         if(na_ret != NA_SUCCESS)
             goto finish;
     }
 
     for(int i = 0; i < comm_size; i++) {
-        recvaddr = (char*)recvbuf + i * recvsize;
+        recvaddr = (char*)recvbuf + i * blocksize;
         if(i == rank) {
-            sendaddr = (char*)sendbuf + i * sendsize;
-            memcpy(recvaddr, sendaddr, recvsize < sendsize ? recvsize : sendsize);
+            sendaddr = (char*)sendbuf + i * blocksize;
+            memcpy(recvaddr, sendaddr, blocksize);
             continue;
         }
         na_ret = mona_comm_recv(
-                comm, recvaddr, recvsize, i, tag,
+                comm, recvaddr, blocksize, i, tag,
                 NULL, NULL, NULL);
         if(na_ret != NA_SUCCESS)
             goto finish;
@@ -1273,9 +1272,8 @@ finish:
 typedef struct ialltoall_args {
     mona_comm_t    comm;
     const void*    sendbuf;
-    na_size_t      sendsize;
+    na_size_t      blocksize;
     void*          recvbuf;
-    na_size_t      recvsize;
     na_tag_t       tag;
     mona_request_t req;
 } ialltoall_args;
@@ -1286,9 +1284,8 @@ static void ialltoall_thread(void* x)
     na_return_t na_ret = mona_comm_alltoall(
             args->comm,
             args->sendbuf,
-            args->sendsize,
+            args->blocksize,
             args->recvbuf,
-            args->recvsize,
             args->tag);
     ABT_eventual_set(args->req->eventual, &na_ret, sizeof(na_ret));
     free(args);
@@ -1297,19 +1294,17 @@ static void ialltoall_thread(void* x)
 na_return_t mona_comm_ialltoall(
         mona_comm_t comm,
         const void *sendbuf,
-        na_size_t sendsize,
+        na_size_t blocksize,
         void *recvbuf,
-        na_size_t recvsize,
         na_tag_t tag,
         mona_request_t* req)
 {
     NB_OP_INIT(ialltoall_args);
-    args->comm     = comm;
-    args->sendbuf  = sendbuf;
-    args->sendsize = sendsize;
-    args->recvbuf  = recvbuf;
-    args->recvsize = recvsize;
-    args->tag      = tag;
+    args->comm      = comm;
+    args->sendbuf   = sendbuf;
+    args->blocksize = blocksize;
+    args->recvbuf   = recvbuf;
+    args->tag       = tag;
     NB_OP_POST(ialltoall_thread);
 }
 
