@@ -343,6 +343,72 @@ na_return_t mona_isend(
         mona_request_t* req);
 
 /**
+ * @see Same as mona_send but for non-contiguous data.
+ * A mon_send_nc can be matched by a mona_recv or a mona_recv_nc
+ * on the destination.
+ */
+na_return_t mona_send_nc(
+        mona_instance_t mona,
+        na_size_t count,
+        const void * const* buffers,
+        const na_size_t* buf_sizes,
+        na_addr_t dest,
+        na_uint8_t dest_id,
+        na_tag_t tag);
+
+/**
+ * @see Same as mona_isend but for non-contiguous data.
+ * A mon_send_nc can be matched by a mona_recv or a mona_recv_nc
+ * on the destination.
+ */
+na_return_t mona_isend_nc(
+        mona_instance_t mona,
+        na_size_t count,
+        const void * const* buffers,
+        const na_size_t* buf_sizes,
+        na_addr_t dest,
+        na_uint8_t dest_id,
+        na_tag_t tag,
+        mona_request_t* req);
+
+/**
+ * @brief Send data using a memory handle.
+ * This operation should be matched by a mona_recv_mem
+ * on the destination.
+ *
+ * @param mona [IN] Mona instance
+ * @param mem [IN] Memory handle to send
+ * @param size [IN] Size of the data to send
+ * @param offset [IN] Offset of the data in the memory handle
+ * @param dest [IN] Destination address
+ * @param dest_id [IN] Destination id
+ * @param tag [IN] Tag
+ *
+ * @return NA_SUCCESS or corresponding NA error code
+ */
+na_return_t mona_send_mem(
+        mona_instance_t mona,
+        na_mem_handle_t mem,
+        na_size_t size,
+        na_size_t offset,
+        na_addr_t dest,
+        na_uint8_t dest_id,
+        na_tag_t tag);
+
+/**
+ * @see Non-blocking version of mona_send_mem.
+ */
+na_return_t mona_isend_mem(
+        mona_instance_t mona,
+        na_mem_handle_t mem,
+        na_size_t size,
+        na_size_t offset,
+        na_addr_t dest,
+        na_uint8_t dest_id,
+        na_tag_t tag,
+        mona_request_t* req);
+
+/**
  * @brief High-level blocking recv function. This function will
  * appropriatly use unexpected messages or combinations of unexpected,
  * expected, and RDMA message depending on data size, to match a
@@ -398,6 +464,78 @@ na_return_t mona_irecv(
         mona_instance_t mona,
         void* buf,
         na_size_t buf_size,
+        na_addr_t src,
+        na_tag_t tag,
+        na_size_t* actual_size,
+        na_addr_t* actual_src,
+        na_tag_t*  actual_tag,
+        mona_request_t* req);
+
+/**
+ * @see Non-contiguous version of mona_recv.
+ * This function can match a mona_send or a mona_send_nc.
+ */
+na_return_t mona_recv_nc(
+        mona_instance_t mona,
+        na_size_t count,
+        void** buffers,
+        const na_size_t* buf_sizes,
+        na_addr_t src,
+        na_tag_t tag,
+        na_size_t* actual_size,
+        na_addr_t* actual_src,
+        na_tag_t*  actual_tag);
+
+/**
+ * @see Non-blocking version of mona_recv_nc. 
+ */
+na_return_t mona_irecv_nc(
+        mona_instance_t mona,
+        na_size_t count,
+        void** buffers,
+        const na_size_t* buf_sizes,
+        na_addr_t src,
+        na_tag_t tag,
+        na_size_t* actual_size,
+        na_addr_t* actual_src,
+        na_tag_t*  actual_tag,
+        mona_request_t* req);
+
+/**
+ * @brief Receives data directly into a memory handle.
+ * This function should match a mona_send_mem.
+ *
+ * @param mona [IN] Mona instance
+ * @param mem [IN] Memory handle to receive data
+ * @param size [IN] Size of the data to receive
+ * @param offset [IN] Offset at which to place the data in the memory handle
+ * @param src [IN] Source address
+ * @param tag [IN] Tag
+ * @param actual_size [OUT] Actual size received
+ * @param actual_src [OUT] Actual source
+ * @param actual_tag [OUT] Actual tag
+ *
+ * @return NA_SUCCESS or corresponding NA error code
+ */
+na_return_t mona_recv_mem(
+        mona_instance_t mona,
+        na_mem_handle_t mem,
+        na_size_t size,
+        na_size_t offset,
+        na_addr_t src,
+        na_tag_t tag,
+        na_size_t* actual_size,
+        na_addr_t* actual_src,
+        na_tag_t*  actual_tag);
+
+/**
+ * @see Non-blocking version of mona_recv_mem.
+ */
+na_return_t mona_irecv_mem(
+        mona_instance_t mona,
+        na_mem_handle_t mem,
+        na_size_t size,
+        na_size_t offset,
         na_addr_t src,
         na_tag_t tag,
         na_size_t* actual_size,
