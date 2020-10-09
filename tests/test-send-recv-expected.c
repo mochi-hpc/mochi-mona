@@ -89,11 +89,11 @@ static MunitResult test_send_recv_expected(const MunitParameter params[], void* 
     } else { // receiver
 
         mona_request_t req;
-        na_op_id_t op = mona_op_create(mona);
+        na_op_id_t* op = mona_op_create(mona);
 
         ret = mona_msg_irecv_expected(
                 mona, buf, msg_len, plugin_data,
-                context->other_addr, 0, 0, &op, &req);
+                context->other_addr, 0, 0, op, &req);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
         MPI_Barrier(MPI_COMM_WORLD);

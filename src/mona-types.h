@@ -11,7 +11,7 @@
 
 typedef struct cached_op_id* cached_op_id_t;
 typedef struct cached_op_id {
-    na_op_id_t     op_id;
+    na_op_id_t*    op_id;
     cached_op_id_t next;
 } cached_op_id;
 
@@ -88,7 +88,7 @@ static inline cached_op_id_t get_op_id_from_cache(mona_instance_t mona)
         mona->op_id_cache = id->next;
         id->next = NULL;
     } else {
-        na_op_id_t op_id = NA_Op_create(mona->na_class);
+        na_op_id_t* op_id = NA_Op_create(mona->na_class);
         id = (cached_op_id_t)calloc(1, sizeof(*id));
         id->op_id = op_id;
     }

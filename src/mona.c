@@ -388,14 +388,14 @@ na_tag_t mona_msg_get_max_tag(mona_instance_t mona)
 // Mona operation logic
 // ------------------------------------------------------------------------------------
 
-na_op_id_t mona_op_create(mona_instance_t mona)
+na_op_id_t* mona_op_create(mona_instance_t mona)
 {
     return NA_Op_create(mona->na_class);
 }
 
 na_return_t mona_op_destroy(
         mona_instance_t mona,
-        na_op_id_t op_id)
+        na_op_id_t* op_id)
 {
     return NA_Op_destroy(mona->na_class, op_id);
 }
@@ -591,8 +591,8 @@ na_return_t mona_send_nc(
         } else {
             struct na_segment* segments = alloca(sizeof(*segments)*count);
             for(i = 0; i < count; i++) {
-                segments[i].address = (na_ptr_t)buffers[i];
-                segments[i].size = buf_sizes[i];
+                segments[i].base = (na_ptr_t)buffers[i];
+                segments[i].len = buf_sizes[i];
             }
             na_ret = mona_mem_handle_create_segments(mona, segments, count, NA_MEM_READ_ONLY, &mem_handle);
         }
@@ -728,11 +728,11 @@ na_return_t mona_send_mem(
     na_size_t      ack_msg_size = mona_msg_get_unexpected_header_size(mona) + 1;
     mona_request_t ack_req      = MONA_REQUEST_NULL;
     cached_op_id_t ack_cache_id = get_op_id_from_cache(mona);
-    na_op_id_t     ack_op_id    = ack_cache_id->op_id;
+    na_op_id_t*    ack_op_id    = ack_cache_id->op_id;
 
     // Issue non-blocking receive for ACK
     na_ret = mona_msg_irecv_expected(mona, ack_msg->buffer, ack_msg_size,
-            ack_msg->plugin_data, dest, dest_id, tag, &ack_op_id, &ack_req);
+            ack_msg->plugin_data, dest, dest_id, tag, ack_op_id, &ack_req);
     if(na_ret != NA_SUCCESS) {
         return_op_id_to_cache(mona, ack_cache_id);
         goto finish;
@@ -1100,8 +1100,8 @@ na_return_t mona_recv_nc(
         } else {
             struct na_segment* segments = alloca(sizeof(*segments)*count);
             for(i = 0; i < count; i++) {
-                segments[i].address = (na_ptr_t)buffers[i];
-                segments[i].size = buf_sizes[i];
+                segments[i].base = (na_ptr_t)buffers[i];
+                segments[i].len = buf_sizes[i];
             }
             na_ret = mona_mem_handle_create_segments(mona, segments, count, NA_MEM_WRITE_ONLY, &mem_handle); 
         }
@@ -1429,10 +1429,10 @@ na_return_t mona_msg_send_unexpected(
         na_tag_t tag)
 {
     cached_op_id_t id = get_op_id_from_cache(mona);
-    na_op_id_t op_id = id->op_id;
+    na_op_id_t* op_id = id->op_id;
     mona_request req = MONA_REQUEST_INITIALIZER;
     na_return_t na_ret = mona_msg_isend_unexpected_internal(
-            mona, buf, buf_size, plugin_data, dest_addr, dest_id, tag, &op_id, &req);
+            mona, buf, buf_size, plugin_data, dest_addr, dest_id, tag, op_id, &req);
     if(na_ret != NA_SUCCESS) goto finish;
     na_ret = mona_wait_internal(&req);
 finish:
@@ -1505,10 +1505,10 @@ na_return_t mona_msg_recv_unexpected(
 {
     mona_request req = MONA_REQUEST_INITIALIZER;
     cached_op_id_t id = get_op_id_from_cache(mona);
-    na_op_id_t op_id = id->op_id;
+    na_op_id_t* op_id = id->op_id;
     na_return_t na_ret = mona_msg_irecv_unexpected_internal(
             mona, buf, buf_size, plugin_data,
-            source_addr, tag, size, &op_id, &req);
+            source_addr, tag, size, op_id, &req);
     if(na_ret != NA_SUCCESS) goto finish;
     na_ret = mona_wait_internal(&req);
 finish:
@@ -1594,9 +1594,9 @@ na_return_t mona_msg_send_expected(
 {
     mona_request req = MONA_REQUEST_INITIALIZER;
     cached_op_id_t id = get_op_id_from_cache(mona);
-    na_op_id_t op_id = id->op_id;
+    na_op_id_t* op_id = id->op_id;
     na_return_t na_ret = mona_msg_isend_expected_internal(
-            mona, buf, buf_size, plugin_data, dest_addr, dest_id, tag, &op_id, &req);
+            mona, buf, buf_size, plugin_data, dest_addr, dest_id, tag, op_id, &req);
     if(na_ret != NA_SUCCESS) goto finish;
     na_ret = mona_wait_internal(&req);
 finish:
@@ -1669,9 +1669,9 @@ na_return_t mona_msg_recv_expected(
 {
     mona_request req = MONA_REQUEST_INITIALIZER;
     cached_op_id_t id = get_op_id_from_cache(mona);
-    na_op_id_t op_id = id->op_id;
+    na_op_id_t* op_id = id->op_id;
     na_return_t na_ret = mona_msg_irecv_expected_internal(
-            mona, buf, buf_size, plugin_data, source_addr, source_id, tag, &op_id, &req);
+            mona, buf, buf_size, plugin_data, source_addr, source_id, tag, op_id, &req);
     if(na_ret != NA_SUCCESS) goto finish;
     na_ret = mona_wait_internal(&req);
 finish:
@@ -1752,20 +1752,6 @@ na_return_t mona_mem_deregister(
     return NA_Mem_deregister(mona->na_class, mem_handle);
 }
 
-na_return_t mona_mem_publish(
-        mona_instance_t mona,
-        na_mem_handle_t mem_handle)
-{
-    return NA_Mem_publish(mona->na_class, mem_handle);
-}
-
-na_return_t mona_mem_unpublish(
-        mona_instance_t mona,
-        na_mem_handle_t mem_handle)
-{
-    return NA_Mem_unpublish(mona->na_class, mem_handle);
-}
-
 na_size_t mona_mem_handle_get_serialize_size(
         mona_instance_t mona,
         na_mem_handle_t mem_handle)
@@ -1842,11 +1828,11 @@ na_return_t mona_put(
 {
     mona_request req = MONA_REQUEST_INITIALIZER;
     cached_op_id_t id = get_op_id_from_cache(mona);
-    na_op_id_t op_id = id->op_id;
+    na_op_id_t* op_id = id->op_id;
     na_return_t na_ret = mona_iput_internal(
             mona, local_mem_handle, local_offset,
             remote_mem_handle, remote_offset,
-            data_size, remote_addr, remote_id, &op_id, &req);
+            data_size, remote_addr, remote_id, op_id, &req);
     if(na_ret != NA_SUCCESS) goto finish;
     na_ret = mona_wait_internal(&req);
 finish:
@@ -1926,13 +1912,13 @@ na_return_t mona_get(
 {
     mona_request req = MONA_REQUEST_INITIALIZER;
     cached_op_id_t id = get_op_id_from_cache(mona);
-    na_op_id_t op_id = id->op_id;
+    na_op_id_t* op_id = id->op_id;
     na_return_t na_ret = mona_iget_internal(
             mona, local_mem_handle,
             local_offset, remote_mem_handle,
             remote_offset, data_size,
             remote_addr, remote_id,
-            &op_id, &req);
+            op_id, &req);
     if(na_ret != NA_SUCCESS) goto finish;
     na_ret = mona_wait_internal(&req);
 finish:
@@ -1984,7 +1970,7 @@ na_bool_t mona_poll_try_wait(mona_instance_t mona)
 
 na_return_t mona_cancel(
         mona_instance_t mona,
-        na_op_id_t op_id)
+        na_op_id_t* op_id)
 {
     return NA_Cancel(mona->na_class, mona->na_context, op_id);
 }

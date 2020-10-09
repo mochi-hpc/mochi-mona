@@ -11,7 +11,7 @@ typedef struct {
     int           rank;
     na_addr_t     self_addr;
     na_addr_t     other_addr;
-    na_op_id_t    op_id;
+    na_op_id_t*   op_id;
     na_size_t     msg_len;
     char*         buf;
     void*         plugin_data;
@@ -117,7 +117,7 @@ static MunitResult test_send_recv_expected(const MunitParameter params[], void* 
                 context->msg_len,
                 context->plugin_data,
                 context->other_addr,
-                0, 0, &(context->op_id));
+                0, 0, context->op_id);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
     } else { // receiver
@@ -131,7 +131,7 @@ static MunitResult test_send_recv_expected(const MunitParameter params[], void* 
                 context->msg_len,
                 context->plugin_data,
                 context->other_addr,
-                0, 0, &(context->op_id));
+                0, 0, context->op_id);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
         MPI_Barrier(MPI_COMM_WORLD);

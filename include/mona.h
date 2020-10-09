@@ -607,7 +607,7 @@ na_tag_t mona_msg_get_max_tag(mona_instance_t mona);
  *
  * \return valid operation ID or NA_OP_ID_NULL
  */
-na_op_id_t mona_op_create(mona_instance_t mona);
+na_op_id_t* mona_op_create(mona_instance_t mona);
 
 /**
  * Destroy operation ID created with mona_op_create().
@@ -620,7 +620,7 @@ na_op_id_t mona_op_create(mona_instance_t mona);
  */
 na_return_t mona_op_destroy(
         mona_instance_t mona,
-        na_op_id_t op_id);
+        na_op_id_t* op_id);
 /**
  * Allocate buf_size bytes and return a pointer to the allocated memory.
  * If size is 0, mona_msg_buf_alloc() returns NULL. The plugin_data output
@@ -1028,32 +1028,6 @@ na_return_t mona_mem_deregister(
         na_mem_handle_t mem_handle);
 
 /**
- * Expose memory for RMA operations.
- * Memory pieces must be registered before one-sided transfers can be
- * initiated.
- *
- * \param mona [IN/OUT]         Mona instance
- * \param mem_handle [IN]       pointer to abstract memory handle
- *
- * \return NA_SUCCESS or corresponding NA error code
- */
-na_return_t mona_mem_publish(
-        mona_instance_t mona,
-        na_mem_handle_t mem_handle);
-
-/**
- * Unpublish memory.
- *
- * \param mona [IN/OUT]         Mona instance
- * \param mem_handle [IN]       abstract memory handle
- *
- * \return NA_SUCCESS or corresponding NA error code
- */
-na_return_t mona_mem_unpublish(
-        mona_instance_t mona,
-        na_mem_handle_t mem_handle);
-
-/**
  * Get size required to serialize handle.
  *
  * \param mona [IN/OUT]         Mona instance
@@ -1246,7 +1220,7 @@ na_bool_t mona_poll_try_wait(mona_instance_t mona);
  */
 na_return_t mona_cancel(
         mona_instance_t mona,
-        na_op_id_t op_id);
+        na_op_id_t* op_id);
 
 /**
  * Convert error return code to string (null terminated).
