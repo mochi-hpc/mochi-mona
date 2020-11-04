@@ -56,8 +56,8 @@ install (EXPORT mona-targets
 install (FILES "${CMAKE_CURRENT_BINARY_DIR}/mona-config.cmake"
                "${CMAKE_CURRENT_BINARY_DIR}/mona-config-version.cmake"
          DESTINATION ${mona-pkg} )
-install (DIRECTORY ../include
-         DESTINATION include
-         FILES_MATCHING PATTERN "*.h")
+install (FILES "${CMAKE_CURRENT_SOURCE_DIR}/../include/mona.h"
+               "${CMAKE_CURRENT_SOURCE_DIR}/../include/mona-coll.h"
+         DESTINATION include)
 install (FILES "${CMAKE_CURRENT_BINARY_DIR}/mona.pc"
          DESTINATION "lib/pkgconfig/")
