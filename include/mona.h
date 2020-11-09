@@ -1,6 +1,6 @@
 /*
  * (C) 2020 The University of Chicago
- * 
+ *
  * See COPYRIGHT in top-level directory.
  */
 #ifndef __MONA_H
@@ -31,10 +31,9 @@ typedef struct mona_request*  mona_request_t;
  *
  * @return a valid mona_instance_t or MONA_INSTANCE_NULL in case of an error
  */
-mona_instance_t mona_init(
-        const char *info_string,
-        na_bool_t listen,
-        const struct na_init_info *na_init_info);
+mona_instance_t mona_init(const char*                info_string,
+                          na_bool_t                  listen,
+                          const struct na_init_info* na_init_info);
 
 /**
  * @brief Same as mona_init() but allows users to specify whether
@@ -47,11 +46,10 @@ mona_instance_t mona_init(
  *
  * @return a valid mona_instance_t or MONA_INSTANCE_NULL in case of an error
  */
-mona_instance_t mona_init_thread(
-        const char *info_string,
-        na_bool_t listen,
-        const struct na_init_info *na_init_info,
-        na_bool_t use_progress_es);
+mona_instance_t mona_init_thread(const char*                info_string,
+                                 na_bool_t                  listen,
+                                 const struct na_init_info* na_init_info,
+                                 na_bool_t                  use_progress_es);
 
 /**
  * @brief Same as mona_init() but allows users to specify the
@@ -64,11 +62,10 @@ mona_instance_t mona_init_thread(
  *
  * @return a valid mona_instance_t or MONA_INSTANCE_NULL in case of an error
  */
-mona_instance_t mona_init_pool(
-        const char *info_string,
-        na_bool_t listen,
-        const struct na_init_info *na_init_info,
-        ABT_pool progress_pool);
+mona_instance_t mona_init_pool(const char*                info_string,
+                               na_bool_t                  listen,
+                               const struct na_init_info* na_init_info,
+                               ABT_pool                   progress_pool);
 
 /**
  * @brief Initialize a Mona instance from existing na_class, na_context,
@@ -84,10 +81,9 @@ mona_instance_t mona_init_pool(
  *
  * @return  a valid mona_instance_t or MONA_INSTANCE_NULL in case of an error
  */
-mona_instance_t mona_init_na_pool(
-        na_class_t *na_class,
-        na_context_t *na_context,
-        ABT_pool progress_pool);
+mona_instance_t mona_init_na_pool(na_class_t*   na_class,
+                                  na_context_t* na_context,
+                                  ABT_pool      progress_pool);
 
 /**
  * Finalize the Mona instance. If operations are still
@@ -108,7 +104,6 @@ na_return_t mona_finalize(mona_instance_t mona);
  * \return Pointer to NA class name or NULL in case of failure
  */
 const char* mona_get_class_name(mona_instance_t mona);
-
 
 /**
  * Return the protocol of the Mona instance's underlying NA class.
@@ -138,10 +133,8 @@ na_bool_t mona_is_listening(mona_instance_t mona);
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_addr_lookup(
-        mona_instance_t mona,
-        const char *name,
-        na_addr_t *addr);
+na_return_t
+mona_addr_lookup(mona_instance_t mona, const char* name, na_addr_t* addr);
 
 /**
  * Free the addr from the list of peers.
@@ -151,9 +144,7 @@ na_return_t mona_addr_lookup(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_addr_free(
-        mona_instance_t mona,
-        na_addr_t addr);
+na_return_t mona_addr_free(mona_instance_t mona, na_addr_t addr);
 
 /**
  * Hint that the address is no longer valid. This may happen if the peer is
@@ -166,21 +157,17 @@ na_return_t mona_addr_free(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_addr_set_remove(
-        mona_instance_t mona,
-        na_addr_t addr);
+na_return_t mona_addr_set_remove(mona_instance_t mona, na_addr_t addr);
 
 /**
  * Access self address.
  *
- * \param mona [IN/OUT] Mona instance 
+ * \param mona [IN/OUT] Mona instance
  * \param addr [OUT]    pointer to abstract address
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_addr_self(
-        mona_instance_t mona,
-        na_addr_t* addr);
+na_return_t mona_addr_self(mona_instance_t mona, na_addr_t* addr);
 
 /**
  * Duplicate an existing NA abstract address. The duplicated address can be
@@ -193,10 +180,8 @@ na_return_t mona_addr_self(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_addr_dup(
-        mona_instance_t mona,
-        na_addr_t addr,
-        na_addr_t* dup_addr);
+na_return_t
+mona_addr_dup(mona_instance_t mona, na_addr_t addr, na_addr_t* dup_addr);
 
 /**
  * Compare two addresses.
@@ -207,10 +192,7 @@ na_return_t mona_addr_dup(
  *
  * \return NA_TRUE if addresses are determined to be equal, NA_FALSE otherwise
  */
-na_bool_t mona_addr_cmp(
-        mona_instance_t mona,
-        na_addr_t addr1,
-        na_addr_t addr2);
+na_bool_t mona_addr_cmp(mona_instance_t mona, na_addr_t addr1, na_addr_t addr2);
 
 /**
  * Test whether address is self or not.
@@ -220,9 +202,7 @@ na_bool_t mona_addr_cmp(
  *
  * \return NA_TRUE if self or NA_FALSE if not
  */
-na_bool_t mona_addr_is_self(
-        mona_instance_t mona,
-        na_addr_t addr);
+na_bool_t mona_addr_is_self(mona_instance_t mona, na_addr_t addr);
 
 /**
  * Convert an addr to a string (returned string includes the terminating
@@ -231,18 +211,17 @@ na_bool_t mona_addr_is_self(
  * through buf_size is too small, NA_SIZE_ERROR is returned and the buf_size
  * output is set to the minimum size required.
  *
- * \param mona [IN/OUT]         Mona instance 
+ * \param mona [IN/OUT]         Mona instance
  * \param buf [IN/OUT]          pointer to destination buffer
  * \param buf_size [IN/OUT]     pointer to buffer size
  * \param addr [IN]             abstract address
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_addr_to_string(
-        mona_instance_t mona,
-        char *buf,
-        na_size_t *buf_size,
-        na_addr_t addr);
+na_return_t mona_addr_to_string(mona_instance_t mona,
+                                char*           buf,
+                                na_size_t*      buf_size,
+                                na_addr_t       addr);
 
 /**
  * Get size required to serialize address.
@@ -252,9 +231,7 @@ na_return_t mona_addr_to_string(
  *
  * \return Non-negative value
  */
-na_size_t mona_addr_get_serialize_size(
-        mona_instance_t mona,
-        na_addr_t addr);
+na_size_t mona_addr_get_serialize_size(mona_instance_t mona, na_addr_t addr);
 
 /**
  * Serialize address into a buffer.
@@ -266,11 +243,10 @@ na_size_t mona_addr_get_serialize_size(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_addr_serialize(
-        mona_instance_t mona,
-        void *buf,
-        na_size_t buf_size,
-        na_addr_t addr);
+na_return_t mona_addr_serialize(mona_instance_t mona,
+                                void*           buf,
+                                na_size_t       buf_size,
+                                na_addr_t       addr);
 
 /**
  * Deserialize address from a buffer. The returned address must be freed with
@@ -283,11 +259,10 @@ na_return_t mona_addr_serialize(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_addr_deserialize(
-        mona_instance_t mona,
-        na_addr_t *addr,
-        const void *buf,
-        na_size_t buf_size);
+na_return_t mona_addr_deserialize(mona_instance_t mona,
+                                  na_addr_t*      addr,
+                                  const void*     buf,
+                                  na_size_t       buf_size);
 
 /**
  * @brief High-level blocking send function. This function will
@@ -307,13 +282,12 @@ na_return_t mona_addr_deserialize(
  *
  * @return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_send(
-        mona_instance_t mona,
-        const void *buf,
-        na_size_t buf_size,
-        na_addr_t dest,
-        na_uint8_t dest_id,
-        na_tag_t tag);
+na_return_t mona_send(mona_instance_t mona,
+                      const void*     buf,
+                      na_size_t       buf_size,
+                      na_addr_t       dest,
+                      na_uint8_t      dest_id,
+                      na_tag_t        tag);
 
 /**
  * @brief Non-blocking version of mona_send. The resulting mona_request_t
@@ -333,43 +307,40 @@ na_return_t mona_send(
  *
  * @return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_isend(
-        mona_instance_t mona,
-        const void *buf,
-        na_size_t buf_size,
-        na_addr_t dest,
-        na_uint8_t dest_id,
-        na_tag_t tag,
-        mona_request_t* req);
+na_return_t mona_isend(mona_instance_t mona,
+                       const void*     buf,
+                       na_size_t       buf_size,
+                       na_addr_t       dest,
+                       na_uint8_t      dest_id,
+                       na_tag_t        tag,
+                       mona_request_t* req);
 
 /**
  * @see Same as mona_send but for non-contiguous data.
  * A mon_send_nc can be matched by a mona_recv or a mona_recv_nc
  * on the destination.
  */
-na_return_t mona_send_nc(
-        mona_instance_t mona,
-        na_size_t count,
-        const void * const* buffers,
-        const na_size_t* buf_sizes,
-        na_addr_t dest,
-        na_uint8_t dest_id,
-        na_tag_t tag);
+na_return_t mona_send_nc(mona_instance_t    mona,
+                         na_size_t          count,
+                         const void* const* buffers,
+                         const na_size_t*   buf_sizes,
+                         na_addr_t          dest,
+                         na_uint8_t         dest_id,
+                         na_tag_t           tag);
 
 /**
  * @see Same as mona_isend but for non-contiguous data.
  * A mon_send_nc can be matched by a mona_recv or a mona_recv_nc
  * on the destination.
  */
-na_return_t mona_isend_nc(
-        mona_instance_t mona,
-        na_size_t count,
-        const void * const* buffers,
-        const na_size_t* buf_sizes,
-        na_addr_t dest,
-        na_uint8_t dest_id,
-        na_tag_t tag,
-        mona_request_t* req);
+na_return_t mona_isend_nc(mona_instance_t    mona,
+                          na_size_t          count,
+                          const void* const* buffers,
+                          const na_size_t*   buf_sizes,
+                          na_addr_t          dest,
+                          na_uint8_t         dest_id,
+                          na_tag_t           tag,
+                          mona_request_t*    req);
 
 /**
  * @brief Send data using a memory handle.
@@ -386,27 +357,25 @@ na_return_t mona_isend_nc(
  *
  * @return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_send_mem(
-        mona_instance_t mona,
-        na_mem_handle_t mem,
-        na_size_t size,
-        na_size_t offset,
-        na_addr_t dest,
-        na_uint8_t dest_id,
-        na_tag_t tag);
+na_return_t mona_send_mem(mona_instance_t mona,
+                          na_mem_handle_t mem,
+                          na_size_t       size,
+                          na_size_t       offset,
+                          na_addr_t       dest,
+                          na_uint8_t      dest_id,
+                          na_tag_t        tag);
 
 /**
  * @see Non-blocking version of mona_send_mem.
  */
-na_return_t mona_isend_mem(
-        mona_instance_t mona,
-        na_mem_handle_t mem,
-        na_size_t size,
-        na_size_t offset,
-        na_addr_t dest,
-        na_uint8_t dest_id,
-        na_tag_t tag,
-        mona_request_t* req);
+na_return_t mona_isend_mem(mona_instance_t mona,
+                           na_mem_handle_t mem,
+                           na_size_t       size,
+                           na_size_t       offset,
+                           na_addr_t       dest,
+                           na_uint8_t      dest_id,
+                           na_tag_t        tag,
+                           mona_request_t* req);
 
 /**
  * @brief High-level blocking recv function. This function will
@@ -434,15 +403,14 @@ na_return_t mona_isend_mem(
  *
  * @return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_recv(
-        mona_instance_t mona,
-        void* buf,
-        na_size_t size,
-        na_addr_t src,
-        na_tag_t tag,
-        na_size_t* actual_size,
-        na_addr_t* actual_src,
-        na_tag_t*  actual_tag);
+na_return_t mona_recv(mona_instance_t mona,
+                      void*           buf,
+                      na_size_t       size,
+                      na_addr_t       src,
+                      na_tag_t        tag,
+                      na_size_t*      actual_size,
+                      na_addr_t*      actual_src,
+                      na_tag_t*       actual_tag);
 
 /**
  * @brief Non-blocking equivalent of mona_recv. The resulting mona_request_t
@@ -460,46 +428,43 @@ na_return_t mona_recv(
  *
  * @return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_irecv(
-        mona_instance_t mona,
-        void* buf,
-        na_size_t buf_size,
-        na_addr_t src,
-        na_tag_t tag,
-        na_size_t* actual_size,
-        na_addr_t* actual_src,
-        na_tag_t*  actual_tag,
-        mona_request_t* req);
+na_return_t mona_irecv(mona_instance_t mona,
+                       void*           buf,
+                       na_size_t       buf_size,
+                       na_addr_t       src,
+                       na_tag_t        tag,
+                       na_size_t*      actual_size,
+                       na_addr_t*      actual_src,
+                       na_tag_t*       actual_tag,
+                       mona_request_t* req);
 
 /**
  * @see Non-contiguous version of mona_recv.
  * This function can match a mona_send or a mona_send_nc.
  */
-na_return_t mona_recv_nc(
-        mona_instance_t mona,
-        na_size_t count,
-        void** buffers,
-        const na_size_t* buf_sizes,
-        na_addr_t src,
-        na_tag_t tag,
-        na_size_t* actual_size,
-        na_addr_t* actual_src,
-        na_tag_t*  actual_tag);
+na_return_t mona_recv_nc(mona_instance_t  mona,
+                         na_size_t        count,
+                         void**           buffers,
+                         const na_size_t* buf_sizes,
+                         na_addr_t        src,
+                         na_tag_t         tag,
+                         na_size_t*       actual_size,
+                         na_addr_t*       actual_src,
+                         na_tag_t*        actual_tag);
 
 /**
- * @see Non-blocking version of mona_recv_nc. 
+ * @see Non-blocking version of mona_recv_nc.
  */
-na_return_t mona_irecv_nc(
-        mona_instance_t mona,
-        na_size_t count,
-        void** buffers,
-        const na_size_t* buf_sizes,
-        na_addr_t src,
-        na_tag_t tag,
-        na_size_t* actual_size,
-        na_addr_t* actual_src,
-        na_tag_t*  actual_tag,
-        mona_request_t* req);
+na_return_t mona_irecv_nc(mona_instance_t  mona,
+                          na_size_t        count,
+                          void**           buffers,
+                          const na_size_t* buf_sizes,
+                          na_addr_t        src,
+                          na_tag_t         tag,
+                          na_size_t*       actual_size,
+                          na_addr_t*       actual_src,
+                          na_tag_t*        actual_tag,
+                          mona_request_t*  req);
 
 /**
  * @brief Receives data directly into a memory handle.
@@ -517,31 +482,29 @@ na_return_t mona_irecv_nc(
  *
  * @return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_recv_mem(
-        mona_instance_t mona,
-        na_mem_handle_t mem,
-        na_size_t size,
-        na_size_t offset,
-        na_addr_t src,
-        na_tag_t tag,
-        na_size_t* actual_size,
-        na_addr_t* actual_src,
-        na_tag_t*  actual_tag);
+na_return_t mona_recv_mem(mona_instance_t mona,
+                          na_mem_handle_t mem,
+                          na_size_t       size,
+                          na_size_t       offset,
+                          na_addr_t       src,
+                          na_tag_t        tag,
+                          na_size_t*      actual_size,
+                          na_addr_t*      actual_src,
+                          na_tag_t*       actual_tag);
 
 /**
  * @see Non-blocking version of mona_recv_mem.
  */
-na_return_t mona_irecv_mem(
-        mona_instance_t mona,
-        na_mem_handle_t mem,
-        na_size_t size,
-        na_size_t offset,
-        na_addr_t src,
-        na_tag_t tag,
-        na_size_t* actual_size,
-        na_addr_t* actual_src,
-        na_tag_t*  actual_tag,
-        mona_request_t* req);
+na_return_t mona_irecv_mem(mona_instance_t mona,
+                           na_mem_handle_t mem,
+                           na_size_t       size,
+                           na_size_t       offset,
+                           na_addr_t       src,
+                           na_tag_t        tag,
+                           na_size_t*      actual_size,
+                           na_addr_t*      actual_src,
+                           na_tag_t*       actual_tag,
+                           mona_request_t* req);
 
 /**
  * Get the maximum size of messages supported by unexpected send/recv.
@@ -551,8 +514,7 @@ na_return_t mona_irecv_mem(
  *
  * \return Non-negative value
  */
-na_size_t mona_msg_get_max_unexpected_size(
-        mona_instance_t mona);
+na_size_t mona_msg_get_max_unexpected_size(mona_instance_t mona);
 
 /**
  * Get the maximum size of messages supported by expected send/recv.
@@ -562,8 +524,7 @@ na_size_t mona_msg_get_max_unexpected_size(
  *
  * \return Non-negative value
  */
-na_size_t mona_msg_get_max_expected_size(
-        mona_instance_t mona);
+na_size_t mona_msg_get_max_expected_size(mona_instance_t mona);
 
 /**
  * Get the header size for unexpected messages. Plugins may use that header
@@ -573,8 +534,7 @@ na_size_t mona_msg_get_max_expected_size(
  *
  * \return Non-negative value
  */
-na_size_t mona_msg_get_unexpected_header_size(
-        mona_instance_t mona);
+na_size_t mona_msg_get_unexpected_header_size(mona_instance_t mona);
 
 /**
  * Get the header size for expected messages. Plugins may use that header
@@ -584,8 +544,7 @@ na_size_t mona_msg_get_unexpected_header_size(
  *
  * \return Non-negative value
  */
-na_size_t mona_msg_get_expected_header_size(
-        mona_instance_t mona);
+na_size_t mona_msg_get_expected_header_size(mona_instance_t mona);
 
 /**
  * Get the maximum tag value that can be used by send/recv (both expected and
@@ -598,10 +557,10 @@ na_size_t mona_msg_get_expected_header_size(
 na_tag_t mona_msg_get_max_tag(mona_instance_t mona);
 
 /**
- * Allocate an operation ID to be used for isend, irecv, iput, and iget operations.
- * Allocating an operation ID gives ownership of that ID to the higher level
- * layer, hence it must be explicitly released with mona_op_destroy() when it
- * is no longer needed.
+ * Allocate an operation ID to be used for isend, irecv, iput, and iget
+ * operations. Allocating an operation ID gives ownership of that ID to the
+ * higher level layer, hence it must be explicitly released with
+ * mona_op_destroy() when it is no longer needed.
  *
  * \param mona [IN/OUT] Mona instance
  *
@@ -618,9 +577,7 @@ na_op_id_t* mona_op_create(mona_instance_t mona);
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_op_destroy(
-        mona_instance_t mona,
-        na_op_id_t* op_id);
+na_return_t mona_op_destroy(mona_instance_t mona, na_op_id_t* op_id);
 /**
  * Allocate buf_size bytes and return a pointer to the allocated memory.
  * If size is 0, mona_msg_buf_alloc() returns NULL. The plugin_data output
@@ -633,10 +590,9 @@ na_return_t mona_op_destroy(
  *
  * \return Pointer to allocated memory or NULL in case of failure
  */
-void* mona_msg_buf_alloc(
-        mona_instance_t mona,
-        na_size_t buf_size,
-        void **plugin_data);
+void* mona_msg_buf_alloc(mona_instance_t mona,
+                         na_size_t       buf_size,
+                         void**          plugin_data);
 
 /**
  * The mona_msg_buf_free() function releases the memory space pointed to by buf,
@@ -649,10 +605,8 @@ void* mona_msg_buf_alloc(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_msg_buf_free(
-        mona_instance_t mona,
-        void *buf,
-        void *plugin_data);
+na_return_t
+mona_msg_buf_free(mona_instance_t mona, void* buf, void* plugin_data);
 
 /**
  * Initialize a buffer so that it can be safely passed to the
@@ -666,10 +620,8 @@ na_return_t mona_msg_buf_free(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_msg_init_unexpected(
-        mona_instance_t mona,
-        void *buf,
-        na_size_t buf_size);
+na_return_t
+mona_msg_init_unexpected(mona_instance_t mona, void* buf, na_size_t buf_size);
 
 /**
  * Send an unexpected message to dest_addr. Unexpected sends do not require a
@@ -691,14 +643,13 @@ na_return_t mona_msg_init_unexpected(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_msg_send_unexpected(
-        mona_instance_t mona,
-        const void *buf,
-        na_size_t buf_size,
-        void *plugin_data,
-        na_addr_t dest_addr,
-        na_uint8_t dest_id,
-        na_tag_t tag);
+na_return_t mona_msg_send_unexpected(mona_instance_t mona,
+                                     const void*     buf,
+                                     na_size_t       buf_size,
+                                     void*           plugin_data,
+                                     na_addr_t       dest_addr,
+                                     na_uint8_t      dest_id,
+                                     na_tag_t        tag);
 
 /**
  * Send an unexpected message to dest_addr, without blocking. Unexpected
@@ -711,8 +662,9 @@ na_return_t mona_msg_send_unexpected(
  * receive to be posted at the destination before sending the message and the
  * destination is allowed to drop the message without notification.
  *
- * The user is responsible for creating a new operation id using mona_op_create()
- * before calling this function, and destroy it after using mona_op_destroy.
+ * The user is responsible for creating a new operation id using
+ * mona_op_create() before calling this function, and destroy it after using
+ * mona_op_destroy.
  *
  * \param mona [IN/OUT]         Mona instance
  * \param buf [IN]              pointer to send buffer
@@ -726,16 +678,15 @@ na_return_t mona_msg_send_unexpected(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_msg_isend_unexpected(
-        mona_instance_t mona,
-        const void *buf,
-        na_size_t buf_size,
-        void *plugin_data,
-        na_addr_t dest_addr,
-        na_uint8_t dest_id,
-        na_tag_t tag,
-        na_op_id_t* op_id,
-        mona_request_t* req);
+na_return_t mona_msg_isend_unexpected(mona_instance_t mona,
+                                      const void*     buf,
+                                      na_size_t       buf_size,
+                                      void*           plugin_data,
+                                      na_addr_t       dest_addr,
+                                      na_uint8_t      dest_id,
+                                      na_tag_t        tag,
+                                      na_op_id_t*     op_id,
+                                      mona_request_t* req);
 
 /**
  * Receive an unexpected message. Unexpected receives may wait on any tag and
@@ -758,14 +709,13 @@ na_return_t mona_msg_isend_unexpected(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_msg_recv_unexpected(
-        mona_instance_t mona,
-        void *buf,
-        na_size_t buf_size,
-        void *plugin_data,
-        na_addr_t* source_addr,
-        na_tag_t* tag,
-        na_size_t* size);
+na_return_t mona_msg_recv_unexpected(mona_instance_t mona,
+                                     void*           buf,
+                                     na_size_t       buf_size,
+                                     void*           plugin_data,
+                                     na_addr_t*      source_addr,
+                                     na_tag_t*       tag,
+                                     na_size_t*      size);
 /**
  * Receive an unexpected message in an non-blocking manner. Unexpected receives
  * may wait on any tag and any source depending on the implementation.
@@ -773,8 +723,9 @@ na_return_t mona_msg_recv_unexpected(
  * be passed along with the buffer, it allows plugins to store and retrieve
  * additional buffer information such as memory descriptors.
  *
- * The user is responsible for creating a new operation id using mona_op_create()
- * before calling this function, and destroy it after using mona_op_destroy.
+ * The user is responsible for creating a new operation id using
+ * mona_op_create() before calling this function, and destroy it after using
+ * mona_op_destroy.
  *
  * \param mona [IN/OUT]         Mona instance
  * \param callback [IN]         pointer to function callback
@@ -790,17 +741,15 @@ na_return_t mona_msg_recv_unexpected(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_msg_irecv_unexpected(
-        mona_instance_t mona,
-        void *buf,
-        na_size_t buf_size,
-        void *plugin_data,
-        na_addr_t* source_addr,
-        na_tag_t* tag,
-        na_size_t* size,
-        na_op_id_t* op_id,
-        mona_request_t* req);
-
+na_return_t mona_msg_irecv_unexpected(mona_instance_t mona,
+                                      void*           buf,
+                                      na_size_t       buf_size,
+                                      void*           plugin_data,
+                                      na_addr_t*      source_addr,
+                                      na_tag_t*       tag,
+                                      na_size_t*      size,
+                                      na_op_id_t*     op_id,
+                                      mona_request_t* req);
 
 /**
  * Initialize a buffer so that it can be safely passed to the
@@ -814,10 +763,8 @@ na_return_t mona_msg_irecv_unexpected(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_msg_init_expected(
-        mona_instance_t mona,
-        void *buf,
-        na_size_t buf_size);
+na_return_t
+mona_msg_init_expected(mona_instance_t mona, void* buf, na_size_t buf_size);
 
 /**
  * Send an expected message to dest_addr.
@@ -838,14 +785,13 @@ na_return_t mona_msg_init_expected(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_msg_send_expected(
-        mona_instance_t mona,
-        const void *buf,
-        na_size_t buf_size,
-        void *plugin_data,
-        na_addr_t dest_addr,
-        na_uint8_t dest_id,
-        na_tag_t tag);
+na_return_t mona_msg_send_expected(mona_instance_t mona,
+                                   const void*     buf,
+                                   na_size_t       buf_size,
+                                   void*           plugin_data,
+                                   na_addr_t       dest_addr,
+                                   na_uint8_t      dest_id,
+                                   na_tag_t        tag);
 
 /**
  * Send an expected message to dest_addr in a non-blocking manner.
@@ -856,8 +802,9 @@ na_return_t mona_msg_send_expected(
  * at the destination before sending the message, otherwise the destination is
  * allowed to drop the message without notification.
  *
- * The user is responsible for creating a new operation id using mona_op_create()
- * before calling this function, and destroy it after using mona_op_destroy.
+ * The user is responsible for creating a new operation id using
+ * mona_op_create() before calling this function, and destroy it after using
+ * mona_op_destroy.
  *
  * \param mona [IN/OUT]         Mona instance
  * \param buf [IN]              pointer to send buffer
@@ -871,16 +818,15 @@ na_return_t mona_msg_send_expected(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_msg_isend_expected(
-        mona_instance_t mona,
-        const void *buf,
-        na_size_t buf_size,
-        void *plugin_data,
-        na_addr_t dest_addr,
-        na_uint8_t dest_id,
-        na_tag_t tag,
-        na_op_id_t* op_id,
-        mona_request_t* req);
+na_return_t mona_msg_isend_expected(mona_instance_t mona,
+                                    const void*     buf,
+                                    na_size_t       buf_size,
+                                    void*           plugin_data,
+                                    na_addr_t       dest_addr,
+                                    na_uint8_t      dest_id,
+                                    na_tag_t        tag,
+                                    na_op_id_t*     op_id,
+                                    mona_request_t* req);
 
 /**
  * Receive an expected message from source_addr.
@@ -898,14 +844,13 @@ na_return_t mona_msg_isend_expected(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_msg_recv_expected(
-        mona_instance_t mona,
-        void *buf,
-        na_size_t buf_size,
-        void *plugin_data,
-        na_addr_t source_addr,
-        na_uint8_t source_id,
-        na_tag_t tag);
+na_return_t mona_msg_recv_expected(mona_instance_t mona,
+                                   void*           buf,
+                                   na_size_t       buf_size,
+                                   void*           plugin_data,
+                                   na_addr_t       source_addr,
+                                   na_uint8_t      source_id,
+                                   na_tag_t        tag);
 
 /**
  * Receive an expected message from source_addr in a non-blocking mannger.
@@ -913,8 +858,9 @@ na_return_t mona_msg_recv_expected(
  * be passed along with the buffer, it allows plugins to store and retrieve
  * additional buffer information such as memory descriptors.
  *
- * The user is responsible for creating a new operation id using mona_op_create()
- * before calling this function, and destroy it after using mona_op_destroy.
+ * The user is responsible for creating a new operation id using
+ * mona_op_create() before calling this function, and destroy it after using
+ * mona_op_destroy.
  *
  * \param mona [IN/OUT]         Mona instance
  * \param buf [IN]              pointer to receive buffer
@@ -928,16 +874,15 @@ na_return_t mona_msg_recv_expected(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_msg_irecv_expected(
-        mona_instance_t mona,
-        void *buf,
-        na_size_t buf_size,
-        void *plugin_data,
-        na_addr_t source_addr,
-        na_uint8_t source_id,
-        na_tag_t tag,
-        na_op_id_t* op_id,
-        mona_request_t* req);
+na_return_t mona_msg_irecv_expected(mona_instance_t mona,
+                                    void*           buf,
+                                    na_size_t       buf_size,
+                                    void*           plugin_data,
+                                    na_addr_t       source_addr,
+                                    na_uint8_t      source_id,
+                                    na_tag_t        tag,
+                                    na_op_id_t*     op_id,
+                                    mona_request_t* req);
 
 /**
  * Create memory handle for RMA operations.
@@ -956,12 +901,11 @@ na_return_t mona_msg_irecv_expected(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_mem_handle_create(
-        mona_instance_t mona,
-        void *buf,
-        na_size_t buf_size,
-        unsigned long flags,
-        na_mem_handle_t *mem_handle);
+na_return_t mona_mem_handle_create(mona_instance_t  mona,
+                                   void*            buf,
+                                   na_size_t        buf_size,
+                                   unsigned long    flags,
+                                   na_mem_handle_t* mem_handle);
 
 /**
  * Create memory handle for RMA operations.
@@ -982,12 +926,11 @@ na_return_t mona_mem_handle_create(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_mem_handle_create_segments(
-        mona_instance_t mona,
-        struct na_segment *segments,
-        na_size_t segment_count,
-        unsigned long flags,
-        na_mem_handle_t *mem_handle);
+na_return_t mona_mem_handle_create_segments(mona_instance_t    mona,
+                                            struct na_segment* segments,
+                                            na_size_t          segment_count,
+                                            unsigned long      flags,
+                                            na_mem_handle_t*   mem_handle);
 
 /**
  * Free memory handle.
@@ -997,9 +940,8 @@ na_return_t mona_mem_handle_create_segments(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_mem_handle_free(
-        mona_instance_t mona,
-        na_mem_handle_t mem_handle);
+na_return_t mona_mem_handle_free(mona_instance_t mona,
+                                 na_mem_handle_t mem_handle);
 
 /**
  * Register memory for RMA operations.
@@ -1011,9 +953,7 @@ na_return_t mona_mem_handle_free(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_mem_register(
-        mona_instance_t mona,
-        na_mem_handle_t mem_handle);
+na_return_t mona_mem_register(mona_instance_t mona, na_mem_handle_t mem_handle);
 
 /**
  * Unregister memory.
@@ -1023,9 +963,8 @@ na_return_t mona_mem_register(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_mem_deregister(
-        mona_instance_t mona,
-        na_mem_handle_t mem_handle);
+na_return_t mona_mem_deregister(mona_instance_t mona,
+                                na_mem_handle_t mem_handle);
 
 /**
  * Get size required to serialize handle.
@@ -1035,9 +974,8 @@ na_return_t mona_mem_deregister(
  *
  * \return Non-negative value
  */
-na_size_t mona_mem_handle_get_serialize_size(
-        mona_instance_t mona,
-        na_mem_handle_t mem_handle);
+na_size_t mona_mem_handle_get_serialize_size(mona_instance_t mona,
+                                             na_mem_handle_t mem_handle);
 
 /**
  * Serialize memory handle into a buffer.
@@ -1055,10 +993,10 @@ na_size_t mona_mem_handle_get_serialize_size(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_mem_handle_serialize(
-        mona_instance_t mona,
-        void *buf, na_size_t buf_size,
-        na_mem_handle_t mem_handle);
+na_return_t mona_mem_handle_serialize(mona_instance_t mona,
+                                      void*           buf,
+                                      na_size_t       buf_size,
+                                      na_mem_handle_t mem_handle);
 
 /**
  * Deserialize memory handle from buffer.
@@ -1070,11 +1008,10 @@ na_return_t mona_mem_handle_serialize(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_mem_handle_deserialize(
-        mona_instance_t mona,
-        na_mem_handle_t *mem_handle,
-        const void *buf,
-        na_size_t buf_size);
+na_return_t mona_mem_handle_deserialize(mona_instance_t  mona,
+                                        na_mem_handle_t* mem_handle,
+                                        const void*      buf,
+                                        na_size_t        buf_size);
 
 /**
  * Put data to remote address.
@@ -1091,15 +1028,14 @@ na_return_t mona_mem_handle_deserialize(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_put(
-        mona_instance_t mona,
-        na_mem_handle_t local_mem_handle,
-        na_offset_t local_offset,
-        na_mem_handle_t remote_mem_handle,
-        na_offset_t remote_offset,
-        na_size_t data_size,
-        na_addr_t remote_addr,
-        na_uint8_t remote_id);
+na_return_t mona_put(mona_instance_t mona,
+                     na_mem_handle_t local_mem_handle,
+                     na_offset_t     local_offset,
+                     na_mem_handle_t remote_mem_handle,
+                     na_offset_t     remote_offset,
+                     na_size_t       data_size,
+                     na_addr_t       remote_addr,
+                     na_uint8_t      remote_id);
 
 /**
  * Put data to remote address in a non-blocking mannger.
@@ -1121,17 +1057,16 @@ na_return_t mona_put(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_iput(
-        mona_instance_t mona,
-        na_mem_handle_t local_mem_handle,
-        na_offset_t local_offset,
-        na_mem_handle_t remote_mem_handle,
-        na_offset_t remote_offset,
-        na_size_t data_size,
-        na_addr_t remote_addr,
-        na_uint8_t remote_id,
-        na_op_id_t* op_id,
-        mona_request_t* req);
+na_return_t mona_iput(mona_instance_t mona,
+                      na_mem_handle_t local_mem_handle,
+                      na_offset_t     local_offset,
+                      na_mem_handle_t remote_mem_handle,
+                      na_offset_t     remote_offset,
+                      na_size_t       data_size,
+                      na_addr_t       remote_addr,
+                      na_uint8_t      remote_id,
+                      na_op_id_t*     op_id,
+                      mona_request_t* req);
 
 /**
  * Get data from remote address.
@@ -1147,15 +1082,14 @@ na_return_t mona_iput(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_get(
-        mona_instance_t mona,
-        na_mem_handle_t local_mem_handle,
-        na_offset_t local_offset,
-        na_mem_handle_t remote_mem_handle,
-        na_offset_t remote_offset,
-        na_size_t data_size,
-        na_addr_t remote_addr,
-        na_uint8_t remote_id);
+na_return_t mona_get(mona_instance_t mona,
+                     na_mem_handle_t local_mem_handle,
+                     na_offset_t     local_offset,
+                     na_mem_handle_t remote_mem_handle,
+                     na_offset_t     remote_offset,
+                     na_size_t       data_size,
+                     na_addr_t       remote_addr,
+                     na_uint8_t      remote_id);
 
 /**
  * Get data from remote address in a non-blocking mannger.
@@ -1176,17 +1110,16 @@ na_return_t mona_get(
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_iget(
-        mona_instance_t mona,
-        na_mem_handle_t local_mem_handle,
-        na_offset_t local_offset,
-        na_mem_handle_t remote_mem_handle,
-        na_offset_t remote_offset,
-        na_size_t data_size,
-        na_addr_t remote_addr,
-        na_uint8_t remote_id,
-        na_op_id_t* op_id,
-        mona_request_t* req);
+na_return_t mona_iget(mona_instance_t mona,
+                      na_mem_handle_t local_mem_handle,
+                      na_offset_t     local_offset,
+                      na_mem_handle_t remote_mem_handle,
+                      na_offset_t     remote_offset,
+                      na_size_t       data_size,
+                      na_addr_t       remote_addr,
+                      na_uint8_t      remote_id,
+                      na_op_id_t*     op_id,
+                      mona_request_t* req);
 
 /**
  * Retrieve file descriptor from NA plugin when supported. The descriptor
@@ -1218,9 +1151,7 @@ na_bool_t mona_poll_try_wait(mona_instance_t mona);
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_cancel(
-        mona_instance_t mona,
-        na_op_id_t* op_id);
+na_return_t mona_cancel(mona_instance_t mona, na_op_id_t* op_id);
 
 /**
  * Convert error return code to string (null terminated).
