@@ -1241,7 +1241,7 @@ const char* mona_error_to_string(int errnum);
 na_return_t mona_wait(mona_request_t req);
 
 /**
- * Test ifthe provided request has completed.
+ * Test if the provided request has completed.
  *
  * \param req [IN] request to test
  * \param flag [OUT] 1 if request completed, 0 otherwise
@@ -1249,6 +1249,24 @@ na_return_t mona_wait(mona_request_t req);
  * \return NA_SUCCESS or corresponding NA error code
  */
 int mona_test(mona_request_t req, int* flag);
+
+/**
+ * Block until one of the provided requests completes.
+ * When a request completes, index is set to the corresponding
+ * index in the array of requests. The completed request will be freed
+ * and reqs[index] will be changed to MONA_REQUEST_NULL.
+ *
+ * The provided array may safely contain MONA_REQUEST_NULL objects,
+ * which will be ignored. If all the requests are MONA_REQUEST_NULL,
+ * index will be set to count and the function will return immediately.
+ *
+ * @param count Number of requests in the array
+ * @param reqs Array of requests
+ * @param index Index of the request that completed
+ *
+ * @return NA_SUCCESS or corresponding NA error code
+ */
+na_return_t mona_wait_any(size_t count, mona_request_t* reqs, size_t* index);
 
 #ifdef __cplusplus
 }

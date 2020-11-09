@@ -115,6 +115,7 @@ static void parse_options(int argc, char** argv, options_t* options) {
     options->iterations = 1024;
     options->msg_size = 128;
     options->transport = (char*)default_transport;
+    options->method = NULL;
 
     while((c = getopt(argc, argv, "i:s:m:t:")) != -1) {
         switch (c)
@@ -151,7 +152,7 @@ int main(int argc, char** argv) {
 
     int rank, size;
 
-    options_t options;
+    options_t options = { 0 };
     parse_options(argc, argv, &options);
 
     MPI_Init(&argc, &argv);
@@ -164,10 +165,10 @@ int main(int argc, char** argv) {
         MPI_Abort(MPI_COMM_WORLD, -1);
     }
 
-    if(strcmp(options.method, "mpi") == 0) {
+    if(options.method && strcmp(options.method, "mpi") == 0) {
         run_mpi_benchmark(&options);
-    } else if(strcmp(options.method, "mona") == 0) {
-        run_mona_benchmark(&options); 
+    } else if(options.method && strcmp(options.method, "mona") == 0) {
+        run_mona_benchmark(&options);
     } else {
         if(rank == 0) {
             fprintf(stderr, "Unknown benchmark method %s\n", options.method);

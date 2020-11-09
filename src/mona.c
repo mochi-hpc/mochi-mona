@@ -1,6 +1,6 @@
 /*
  * (C) 2020 The University of Chicago
- * 
+ *
  * See COPYRIGHT in top-level directory.
  */
 #include "mona-types.h"
@@ -442,6 +442,40 @@ na_return_t mona_wait(mona_request_t req)
 int mona_test(mona_request_t req, int* flag)
 {
     return ABT_eventual_test(req->eventual, NULL, flag);
+}
+
+na_return_t mona_wait_any(size_t count, mona_request_t* reqs, size_t* index)
+{
+    // XXX this is an active loop, we should change it
+    // when Argobots provide an ABT_eventual_wait_any
+    size_t i;
+    int ret;
+    int flag = 0;
+    int has_pending_requests;
+try_again:
+    has_pending_requests = 0;
+    for(i = 0; i < count; i++) {
+        if(reqs[i] == MONA_REQUEST_NULL)
+            continue;
+        else
+            has_pending_requests = 1;
+        ret = mona_test(reqs[i], &flag);
+        if(ret != ABT_SUCCESS) {
+            *index = i;
+            return NA_RETURN_MAX;
+        }
+        if(flag) {
+            *index = i;
+            mona_request_t req = reqs[i];
+            reqs[i] = MONA_REQUEST_NULL;
+            return mona_wait(req);
+        }
+    }
+    ABT_thread_yield();
+    if(has_pending_requests)
+        goto try_again;
+    *index = count;
+    return NA_SUCCESS;
 }
 
 static int mona_callback(const struct na_cb_info *info)
@@ -1066,7 +1100,7 @@ na_return_t mona_recv_nc(
     char* p = msg->buffer + header_size;
 
     if(*p == HL_MSG_SMALL) { // small message, embedded data
-        
+
         p += 1;
         recv_size -= header_size + 1;
         na_size_t remaining_size = recv_size;
@@ -1258,7 +1292,7 @@ na_return_t mona_recv_mem(
     // and the attributes are recv_size, recv_tag, and recv_addr
 
     char* p = msg->buffer + header_size + 1;
-    
+
     na_size_t mem_handle_size;
     na_size_t remote_data_size;
     na_size_t remote_offset;
@@ -1529,7 +1563,7 @@ na_return_t mona_msg_irecv_unexpected(
 {
     mona_request_t tmp_req = get_req_from_cache(mona);
     na_return_t na_ret = mona_msg_irecv_unexpected_internal(
-            mona, buf, buf_size, plugin_data, 
+            mona, buf, buf_size, plugin_data,
             source_addr, tag, size, op_id, tmp_req);
     if(na_ret != NA_SUCCESS) {
         return_req_to_cache(mona, tmp_req);
@@ -1690,7 +1724,7 @@ na_return_t mona_msg_irecv_expected(
         na_op_id_t *op_id,
         mona_request_t* req)
 {
-    mona_request_t tmp_req = get_req_from_cache(mona); 
+    mona_request_t tmp_req = get_req_from_cache(mona);
     na_return_t na_ret = mona_msg_irecv_expected_internal(
             mona, buf, buf_size, plugin_data, source_addr, source_id, tag, op_id, tmp_req);
     if(na_ret != NA_SUCCESS) {
@@ -1955,7 +1989,7 @@ na_return_t mona_iget(
 }
 
 // ------------------------------------------------------------------------------------
-// Other functions 
+// Other functions
 // ------------------------------------------------------------------------------------
 
 int mona_poll_get_fd(mona_instance_t mona)
