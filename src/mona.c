@@ -401,7 +401,7 @@ na_return_t mona_wait(mona_request_t req)
 
 int mona_test(mona_request_t req, int* flag)
 {
-    if(req == MONA_REQUEST_NULL) return ABT_ERR_INV_ARG;
+    if(req == MONA_REQUEST_NULL) return ABT_ERR_OTHER;
     return ABT_eventual_test(req->eventual, NULL, flag);
 }
 
