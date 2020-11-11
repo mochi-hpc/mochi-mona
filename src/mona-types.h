@@ -213,6 +213,8 @@ static inline na_return_t mona_wait_internal(mona_request_t req)
     na_return_t* waited_na_ret = NULL;
     na_return_t  na_ret        = NA_SUCCESS;
 
+    if(req == MONA_REQUEST_NULL) return NA_INVALID_ARG;
+
     ABT_eventual_wait(req->eventual, (void**)&waited_na_ret);
     na_ret = *waited_na_ret;
     ABT_eventual_free(&(req->eventual));

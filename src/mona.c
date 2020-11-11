@@ -394,12 +394,14 @@ mona_msg_init_unexpected(mona_instance_t mona, void* buf, na_size_t buf_size)
 na_return_t mona_wait(mona_request_t req)
 {
     na_return_t na_ret = mona_wait_internal(req);
-    free(req);
+    if(na_ret == NA_SUCCESS)
+        free(req);
     return na_ret;
 }
 
 int mona_test(mona_request_t req, int* flag)
 {
+    if(req == MONA_REQUEST_NULL) return ABT_ERR_INV_ARG;
     return ABT_eventual_test(req->eventual, NULL, flag);
 }
 
