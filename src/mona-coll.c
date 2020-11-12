@@ -560,9 +560,9 @@ na_return_t mona_comm_gatherv(mona_comm_t      comm,
     if (rank == root) {
         reqs = malloc(comm_size * sizeof(*reqs));
         for (i = 0; i < comm_size; i++) {
+            reqs[i] = MONA_REQUEST_NULL;
             // recv from other process
             if (i == rank) {
-                reqs[i] = MONA_REQUEST_NULL;
                 // do the local copy for the root process
                 // offset[i] represents the number of the element relative to
                 // the recvBuffer for rank i
@@ -581,8 +581,10 @@ na_return_t mona_comm_gatherv(mona_comm_t      comm,
         }
         for (i = 0; i < comm_size; i++) {
             if (i == rank) continue;
-            na_ret = mona_wait(reqs[i]);
-            if (na_ret != NA_SUCCESS) { goto finish; }
+            if (reqs[i] != MONA_REQUEST_NULL) {
+                na_ret = mona_wait(reqs[i]);
+                if (na_ret != NA_SUCCESS) { goto finish; }
+            }
         }
     } else {
         // send to the root process
