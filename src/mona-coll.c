@@ -887,14 +887,14 @@ na_return_t mona_comm_reduce(mona_comm_t comm,
     // We should try implementing the reduce_scatter_gather algorithm,
     // for large data sizes, and also enable n-ary trees instead of
     // binomial.
-    na_return_t na_ret;
+    na_return_t na_ret = NA_SUCCESS;
     int         comm_size, rank, lroot, relrank;
     int         mask, source;
     // the temp is to store the intermediate results recieved from the source
     void* tempSrc         = NULL;
     int   mallocRcvbuffer = 0;
 
-    if (count == 0) return 0;
+    if (count == 0) return na_ret;
 
     comm_size = comm->size;
     rank      = comm->rank;
