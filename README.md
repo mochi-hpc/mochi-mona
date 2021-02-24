@@ -1,5 +1,5 @@
-MoNA -- Mochi over NA
-=====================
+MoNA - Messaging over NA
+=========================
 
 MoNA is a Mochi library combining the NA layer of Mercury with
 the Argobots threading library, in a way similar to how Margo
