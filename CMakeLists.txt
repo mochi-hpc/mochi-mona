@@ -49,5 +49,6 @@ if(${ENABLE_EXAMPLES})
 endif(${ENABLE_EXAMPLES})
 
 if(${ENABLE_BENCHMARK})
+    find_package (MPI REQUIRED)
   add_subdirectory (benchmark)
 endif(${ENABLE_BENCHMARK})
