@@ -30,6 +30,16 @@ static void run_mpi_benchmark(options_t* options) {
 
     char* buf = malloc(options->msg_size);
 
+    // warm up
+    if(rank % 2 == 0) {
+        MPI_Send(buf, options->msg_size, MPI_BYTE, (rank+1)%2, 0, MPI_COMM_WORLD);
+        MPI_Recv(buf, options->msg_size, MPI_BYTE, (rank+1)%2, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(buf, options->msg_size, MPI_BYTE, (rank+1)%2, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(buf, options->msg_size, MPI_BYTE, (rank+1)%2, 0, MPI_COMM_WORLD);
+    }
+
+    // benchmark
     MPI_Barrier(MPI_COMM_WORLD);
     t_start = MPI_Wtime();
 
@@ -76,13 +86,23 @@ static void run_mona_benchmark(options_t* options) {
     char other_addr_str[128];
     MPI_Sendrecv(addr_str, 128, MPI_BYTE, (rank+1)%2, 0,
                  other_addr_str, 128, MPI_BYTE, (rank+1)%2, 0,
-                 MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
     ret = mona_addr_lookup(mona, other_addr_str, &addr);
     ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not lookup address");
 
     char* buf = malloc(options->msg_size);
 
+    // warm up
+    if(rank % 2 == 0) {
+        mona_send(mona, buf, options->msg_size, addr, 0, 0);
+        mona_recv(mona, buf, options->msg_size, addr, 0, NULL, NULL, NULL);
+    } else {
+        mona_recv(mona, buf, options->msg_size, addr, 0, NULL, NULL, NULL);
+        mona_send(mona, buf, options->msg_size, addr, 0, 0);
+    }
+
+    // benchmark
     MPI_Barrier(MPI_COMM_WORLD);
     t_start = MPI_Wtime();
 

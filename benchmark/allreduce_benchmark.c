@@ -32,6 +32,11 @@ static void run_mpi_benchmark(options_t* options) {
     char* send_buf = malloc(options->msg_size);
     char* recv_buf = malloc(options->msg_size);
 
+    // warm up
+    MPI_Allreduce(send_buf, recv_buf, options->msg_size,
+                  MPI_BYTE, MPI_BXOR, MPI_COMM_WORLD);
+
+    // benchmark
     MPI_Barrier(MPI_COMM_WORLD);
     t_start = MPI_Wtime();
 
@@ -102,6 +107,10 @@ static void run_mona_benchmark(options_t* options) {
     char* send_buf = malloc(options->msg_size);
     char* recv_buf = malloc(options->msg_size);
 
+    // warm up
+    mona_comm_allreduce(comm, send_buf, recv_buf, 1, options->msg_size,
+                        bxor, NULL, 0);
+    // benchmark
     MPI_Barrier(MPI_COMM_WORLD);
     t_start = MPI_Wtime();
 
