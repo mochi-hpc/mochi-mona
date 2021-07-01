@@ -17,6 +17,7 @@ typedef struct options_t {
     char*    transport;
     unsigned iterations;
     unsigned msg_size;
+    na_bool_t use_progress_thread;
 } options_t;
 
 static void run_mpi_benchmark(options_t* options) {
@@ -56,7 +57,7 @@ static void run_mona_benchmark(options_t* options) {
     unsigned i;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    mona_instance_t mona = mona_init_thread(options->transport, NA_TRUE, NULL, NA_FALSE);
+    mona_instance_t mona = mona_init_thread(options->transport, NA_TRUE, NULL, options->use_progress_thread);
     ASSERT_MESSAGE(mona != MONA_INSTANCE_NULL, "Could not initialize Mona instance");
 
     char addr_str[128];
@@ -116,8 +117,9 @@ static void parse_options(int argc, char** argv, options_t* options) {
     options->msg_size = 128;
     options->transport = (char*)default_transport;
     options->method = NULL;
+    options->use_progress_thread = NA_FALSE;
 
-    while((c = getopt(argc, argv, "i:s:m:t:")) != -1) {
+    while((c = getopt(argc, argv, "i:s:m:t:p")) != -1) {
         switch (c)
         {
             case 'i':
@@ -131,6 +133,9 @@ static void parse_options(int argc, char** argv, options_t* options) {
                 break;
             case 't':
                 options->transport = optarg;
+                break;
+            case 'p':
+                options->use_progress_thread = NA_TRUE;
                 break;
             case '?':
                 if(optopt == 'i' || optopt == 's' || optopt == 'm')
