@@ -15,7 +15,7 @@ function (add_munit_test)
   target_include_directories (${MUNIT_TEST_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/munit
     ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-  target_link_libraries (${MUNIT_TEST_NAME} mona)
+  target_link_libraries (${MUNIT_TEST_NAME} mona MPI::MPI_C)
   if(${MUNIT_TEST_MPI})
     add_test(NAME ${MUNIT_TEST_NAME} COMMAND mpirun -np ${MUNIT_TEST_NUM_PROCS} ${CMAKE_CURRENT_BINARY_DIR}/${MUNIT_TEST_NAME} --no-fork)
   else()
