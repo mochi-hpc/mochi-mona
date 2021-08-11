@@ -95,11 +95,11 @@ static void run_mona_benchmark(options_t* options) {
 
     // warm up
     if(rank % 2 == 0) {
-        mona_send(mona, buf, options->msg_size, addr, 0, 0);
-        mona_recv(mona, buf, options->msg_size, addr, 0, NULL, NULL, NULL);
+        mona_usend(mona, buf, options->msg_size, addr, 0, 0);
+        mona_urecv(mona, buf, options->msg_size, addr, 0, NULL, NULL, NULL);
     } else {
-        mona_recv(mona, buf, options->msg_size, addr, 0, NULL, NULL, NULL);
-        mona_send(mona, buf, options->msg_size, addr, 0, 0);
+        mona_urecv(mona, buf, options->msg_size, addr, 0, NULL, NULL, NULL);
+        mona_usend(mona, buf, options->msg_size, addr, 0, 0);
     }
 
     // benchmark
@@ -108,9 +108,9 @@ static void run_mona_benchmark(options_t* options) {
 
     for(i = 0; i < options->iterations; i++) {
         if(i % 2 == (unsigned)rank) {
-            mona_send(mona, buf, options->msg_size, addr, 0, 0);
+            mona_usend(mona, buf, options->msg_size, addr, 0, 0);
         } else {
-            mona_recv(mona, buf, options->msg_size, addr, 0, NULL, NULL, NULL);
+            mona_urecv(mona, buf, options->msg_size, addr, 0, NULL, NULL, NULL);
         }
     }
 

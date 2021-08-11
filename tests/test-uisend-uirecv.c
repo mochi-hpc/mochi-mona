@@ -58,7 +58,7 @@ static void test_context_tear_down(void* fixture)
     MPI_Finalize();
 }
 
-static MunitResult test_isend_irecv(const MunitParameter params[], void* data)
+static MunitResult test_uisend_uirecv(const MunitParameter params[], void* data)
 {
     (void)params;
     test_context* context = (test_context*)data;
@@ -76,14 +76,14 @@ static MunitResult test_isend_irecv(const MunitParameter params[], void* data)
 
         mona_request_t req;
 
-        ret = mona_isend(mona, buf, msg_len, context->other_addr, 0, 1234, &req);
+        ret = mona_uisend(mona, buf, msg_len, context->other_addr, 0, 1234, &req);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
         ret = mona_wait(req);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
         na_size_t recv_size;
-        ret = mona_irecv(mona, buf, 64, context->other_addr, 1234, &recv_size, NULL, NULL, &req);
+        ret = mona_uirecv(mona, buf, 64, context->other_addr, 1234, &recv_size, NULL, NULL, &req);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
         ret = mona_wait(req);
@@ -98,7 +98,7 @@ static MunitResult test_isend_irecv(const MunitParameter params[], void* data)
 
         mona_request_t req;
         na_size_t recv_size;
-        ret = mona_irecv(mona, buf, msg_len, context->other_addr, 1234, &recv_size, NULL, NULL, &req);
+        ret = mona_uirecv(mona, buf, msg_len, context->other_addr, 1234, &recv_size, NULL, NULL, &req);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
         ret = mona_wait(req);
@@ -112,7 +112,7 @@ static MunitResult test_isend_irecv(const MunitParameter params[], void* data)
             buf[i] = (i+1) % 32;
         }
 
-        ret = mona_isend(mona, buf, 64, context->other_addr, 0, 1234, &req);
+        ret = mona_uisend(mona, buf, 64, context->other_addr, 0, 1234, &req);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
         ret = mona_wait(req);
@@ -123,12 +123,12 @@ static MunitResult test_isend_irecv(const MunitParameter params[], void* data)
 }
 
 static MunitTest test_suite_tests[] = {
-    { (char*) "/hl", test_isend_irecv, test_context_setup, test_context_tear_down, MUNIT_TEST_OPTION_NONE, NULL },
+    { (char*) "/hl", test_uisend_uirecv, test_context_setup, test_context_tear_down, MUNIT_TEST_OPTION_NONE, NULL },
     { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL }
 };
 
-static const MunitSuite test_suite = { 
-    (char*) "/mona/isend-irecv", test_suite_tests, NULL, 1, MUNIT_SUITE_OPTION_NONE
+static const MunitSuite test_suite = {
+    (char*) "/mona/uisend-uirecv", test_suite_tests, NULL, 1, MUNIT_SUITE_OPTION_NONE
 };
 
 int main(int argc, char* argv[MUNIT_ARRAY_PARAM(argc + 1)]) {

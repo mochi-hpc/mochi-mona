@@ -154,7 +154,7 @@ na_return_t mona_comm_send(
     mona_comm_t comm, const void* buf, na_size_t size, int dest, na_tag_t tag)
 {
     if (dest < 0 || (unsigned)dest >= comm->size) return NA_INVALID_ARG;
-    return mona_send(comm->mona, buf, size, comm->addrs[dest], 0, tag);
+    return mona_usend(comm->mona, buf, size, comm->addrs[dest], 0, tag);
 }
 
 na_return_t mona_comm_isend(mona_comm_t     comm,
@@ -165,7 +165,7 @@ na_return_t mona_comm_isend(mona_comm_t     comm,
                             mona_request_t* req)
 {
     if (dest < 0 || (unsigned)dest >= comm->size) return NA_INVALID_ARG;
-    return mona_isend(comm->mona, buf, size, comm->addrs[dest], 0, tag, req);
+    return mona_uisend(comm->mona, buf, size, comm->addrs[dest], 0, tag, req);
 }
 
 na_return_t mona_comm_recv(mona_comm_t comm,
@@ -179,8 +179,8 @@ na_return_t mona_comm_recv(mona_comm_t comm,
 {
     if (src < 0 || (unsigned)src >= comm->size) return NA_INVALID_ARG;
     na_addr_t   actual_src_addr;
-    na_return_t na_ret = mona_recv(comm->mona, buf, size, comm->addrs[src], tag,
-                                   actual_size, &actual_src_addr, actual_tag);
+    na_return_t na_ret = mona_urecv(comm->mona, buf, size, comm->addrs[src], tag,
+                                    actual_size, &actual_src_addr, actual_tag);
     if (na_ret != NA_SUCCESS) return na_ret;
     unsigned i;
     for (i = 0; i < comm->size; i++) {

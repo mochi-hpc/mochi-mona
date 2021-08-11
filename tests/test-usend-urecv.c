@@ -58,7 +58,7 @@ static void test_context_tear_down(void* fixture)
     MPI_Finalize();
 }
 
-static MunitResult test_send_recv(const MunitParameter params[], void* data)
+static MunitResult test_usend_urecv(const MunitParameter params[], void* data)
 {
     (void)params;
     test_context* context = (test_context*)data;
@@ -74,11 +74,11 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
             buf[i] = i % 32;
         }
 
-        ret = mona_send(mona, buf, msg_len, context->other_addr, 0, 1234);
+        ret = mona_usend(mona, buf, msg_len, context->other_addr, 0, 1234);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
         na_size_t recv_size;
-        ret = mona_recv(mona, buf, 64, context->other_addr, 1234, &recv_size, NULL, NULL);
+        ret = mona_urecv(mona, buf, 64, context->other_addr, 1234, &recv_size, NULL, NULL);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
         for(i = 0; i < 64; i++) {
@@ -89,7 +89,7 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
         int i;
 
         na_size_t recv_size;
-        ret = mona_recv(mona, buf, msg_len, context->other_addr, 1234, &recv_size, NULL, NULL);
+        ret = mona_urecv(mona, buf, msg_len, context->other_addr, 1234, &recv_size, NULL, NULL);
         munit_assert_int(ret, ==, NA_SUCCESS);
         for(i = 0; i < (int)msg_len; i++) {
             munit_assert_int(buf[i], ==, i % 32);
@@ -99,7 +99,7 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
             buf[i] = (i+1) % 32;
         }
 
-        ret = mona_send(mona, buf, 64, context->other_addr, 0, 1234);
+        ret = mona_usend(mona, buf, 64, context->other_addr, 0, 1234);
         munit_assert_int(ret, ==, NA_SUCCESS);
     }
 
@@ -107,11 +107,11 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
 }
 
 static MunitTest test_suite_tests[] = {
-    { (char*) "/hl", test_send_recv, test_context_setup, test_context_tear_down, MUNIT_TEST_OPTION_NONE, NULL },
+    { (char*) "/hl", test_usend_urecv, test_context_setup, test_context_tear_down, MUNIT_TEST_OPTION_NONE, NULL },
     { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL }
 };
 
-static const MunitSuite test_suite = { 
+static const MunitSuite test_suite = {
     (char*) "/mona/send-recv", test_suite_tests, NULL, 1, MUNIT_SUITE_OPTION_NONE
 };
 

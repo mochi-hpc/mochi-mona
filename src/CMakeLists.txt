@@ -8,13 +8,14 @@ set (mona-pkg "share/cmake/mona")
 # library version set here (e.g. for shared libs).
 #
 set (MONA_VERSION_MAJOR 0)
-set (MONA_VERSION_MINOR 1)
+set (MONA_VERSION_MINOR 2)
 set (MONA_VERSION_PATCH 0)
 set (mona-vers "${MONA_VERSION_MAJOR}.${MONA_VERSION_MINOR}")
 set (MONA_VERSION "${mona-vers}.${MONA_VERSION_PATCH}")
 
 add_library(mona
             ${CMAKE_CURRENT_SOURCE_DIR}/mona.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/mona-unexpected.c
             ${CMAKE_CURRENT_SOURCE_DIR}/mona-coll.c)
 target_link_libraries (mona mercury PkgConfig::ARGOBOTS)
 target_include_directories (mona PUBLIC $<INSTALL_INTERFACE:include>)

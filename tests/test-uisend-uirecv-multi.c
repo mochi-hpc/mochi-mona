@@ -58,7 +58,7 @@ static void test_context_tear_down(void* fixture)
     MPI_Finalize();
 }
 
-static MunitResult test_isend_irecv_multi(const MunitParameter params[], void* data)
+static MunitResult test_uisend_uirecv_multi(const MunitParameter params[], void* data)
 {
     (void)params;
     test_context* context = (test_context*)data;
@@ -74,16 +74,16 @@ static MunitResult test_isend_irecv_multi(const MunitParameter params[], void* d
             buf[i] = i % 32;
         }
 
-        ret = mona_send(mona, buf, msg_len, context->other_addr, 0, 1);
+        ret = mona_usend(mona, buf, msg_len, context->other_addr, 0, 1);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
-        ret = mona_send(mona, buf+msg_len, msg_len, context->other_addr, 0, 2);
+        ret = mona_usend(mona, buf+msg_len, msg_len, context->other_addr, 0, 2);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
-        ret = mona_send(mona, buf+msg_len*2, msg_len, context->other_addr, 0, 3);
+        ret = mona_usend(mona, buf+msg_len*2, msg_len, context->other_addr, 0, 3);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
-        ret = mona_send(mona, buf+msg_len*3, msg_len, context->other_addr, 0, 4);
+        ret = mona_usend(mona, buf+msg_len*3, msg_len, context->other_addr, 0, 4);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
     } else { // receiver
@@ -92,16 +92,16 @@ static MunitResult test_isend_irecv_multi(const MunitParameter params[], void* d
         mona_request_t req[4];
         na_size_t recv_size[4];
 
-        ret = mona_irecv(mona, buf, msg_len, context->other_addr, 4, recv_size, NULL, NULL, req);
+        ret = mona_uirecv(mona, buf, msg_len, context->other_addr, 4, recv_size, NULL, NULL, req);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
-        ret = mona_irecv(mona, buf+msg_len*2, msg_len, context->other_addr, 2, recv_size+1, NULL, NULL, req+1);
+        ret = mona_uirecv(mona, buf+msg_len*2, msg_len, context->other_addr, 2, recv_size+1, NULL, NULL, req+1);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
-        ret = mona_irecv(mona, buf+msg_len*3, msg_len, context->other_addr, 3, recv_size+2, NULL, NULL, req+2);
+        ret = mona_uirecv(mona, buf+msg_len*3, msg_len, context->other_addr, 3, recv_size+2, NULL, NULL, req+2);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
-        ret = mona_irecv(mona, buf+msg_len, msg_len, context->other_addr, 1, recv_size+3, NULL, NULL, req+3);
+        ret = mona_uirecv(mona, buf+msg_len, msg_len, context->other_addr, 1, recv_size+3, NULL, NULL, req+3);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
         for(i=0 ; i < 4; i++) {
@@ -114,7 +114,7 @@ static MunitResult test_isend_irecv_multi(const MunitParameter params[], void* d
 }
 
 static MunitTest test_suite_tests[] = {
-    { (char*) "/hl", test_isend_irecv_multi, test_context_setup, test_context_tear_down, MUNIT_TEST_OPTION_NONE, NULL },
+    { (char*) "/hl", test_uisend_uirecv_multi, test_context_setup, test_context_tear_down, MUNIT_TEST_OPTION_NONE, NULL },
     { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL }
 };
 
