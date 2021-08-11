@@ -15,6 +15,9 @@ typedef struct cached_op_id {
     cached_op_id_t next;
 } cached_op_id;
 
+// cached_msg and pending_msg are used in the message queue
+// used by unexpected send/recv
+
 typedef struct cached_msg* cached_msg_t;
 typedef struct cached_msg {
     char* buffer;
@@ -51,15 +54,23 @@ typedef struct mona_instance {
     // request cache
     mona_request_t req_cache;
     ABT_mutex      req_cache_mtx;
-    // message cache for high-level functions
-    cached_msg_t msg_cache;
-    ABT_mutex    msg_cache_mtx;
-    // pending messages received in high-level mona_recv
-    pending_msg_t pending_msg_oldest; // head of the queue
-    pending_msg_t pending_msg_newest; // last of the queue
-    ABT_mutex     pending_msg_mtx;
-    ABT_cond      pending_msg_cv;
-    na_bool_t     pending_msg_queue_active; // a thread is queuing messages
+    // unexpected send/recv data
+    struct {
+        // message cache for high-level functions
+        cached_msg_t msg_cache;
+        ABT_mutex    msg_cache_mtx;
+        // pending messages received in high-level mona_urecv
+        pending_msg_t pending_msg_oldest; // head of the queue
+        pending_msg_t pending_msg_newest; // last of the queue
+        ABT_mutex     pending_msg_mtx;
+        ABT_cond      pending_msg_cv;
+        na_bool_t     pending_msg_queue_active; // a thread is queuing messages
+    } unexpected;
+    struct {
+        // message cache for high-level functions
+        cached_msg_t msg_cache;
+        ABT_mutex    msg_cache_mtx;
+    } expected;
 } mona_instance;
 
 typedef struct mona_request {
@@ -166,44 +177,76 @@ static inline void clear_req_cache(mona_instance_t mona)
 
 // Message cache -------------------------------------------------------
 
-static inline cached_msg_t get_msg_from_cache(mona_instance_t mona)
+static inline cached_msg_t get_msg_from_cache(mona_instance_t mona, na_bool_t expected)
 {
     cached_msg_t msg;
-    ABT_mutex_lock(mona->msg_cache_mtx);
-    if (mona->msg_cache) {
-        msg             = mona->msg_cache;
-        mona->msg_cache = msg->next;
-        msg->next       = NULL;
+    if(expected) {
+        ABT_mutex_lock(mona->expected.msg_cache_mtx);
+        if (mona->expected.msg_cache) {
+            msg                      = mona->expected.msg_cache;
+            mona->expected.msg_cache = msg->next;
+            msg->next                = NULL;
+        } else {
+            msg         = (cached_msg_t)calloc(1, sizeof(*msg));
+            msg->buffer = (char*)mona_msg_buf_alloc(
+                mona, mona_msg_get_max_expected_size(mona), &(msg->plugin_data));
+        }
+        ABT_mutex_unlock(mona->expected.msg_cache_mtx);
     } else {
-        msg         = (cached_msg_t)calloc(1, sizeof(*msg));
-        msg->buffer = (char*)mona_msg_buf_alloc(
-            mona, mona_msg_get_max_unexpected_size(mona), &(msg->plugin_data));
+        ABT_mutex_lock(mona->unexpected.msg_cache_mtx);
+        if (mona->unexpected.msg_cache) {
+            msg                        = mona->unexpected.msg_cache;
+            mona->unexpected.msg_cache = msg->next;
+            msg->next                  = NULL;
+        } else {
+            msg         = (cached_msg_t)calloc(1, sizeof(*msg));
+            msg->buffer = (char*)mona_msg_buf_alloc(
+                mona, mona_msg_get_max_unexpected_size(mona), &(msg->plugin_data));
+        }
+        ABT_mutex_unlock(mona->unexpected.msg_cache_mtx);
     }
-    ABT_mutex_unlock(mona->msg_cache_mtx);
     return msg;
 }
 
-static inline void return_msg_to_cache(mona_instance_t mona, cached_msg_t msg)
+static inline void return_msg_to_cache(mona_instance_t mona, cached_msg_t msg, na_bool_t expected)
 {
-    ABT_mutex_lock(mona->msg_cache_mtx);
-    cached_msg_t head = mona->msg_cache;
-    msg->next         = head;
-    mona->msg_cache   = msg;
-    ABT_mutex_unlock(mona->msg_cache_mtx);
+    if(expected) {
+        ABT_mutex_lock(mona->expected.msg_cache_mtx);
+        cached_msg_t head = mona->expected.msg_cache;
+        msg->next         = head;
+        mona->expected.msg_cache   = msg;
+        ABT_mutex_unlock(mona->expected.msg_cache_mtx);
+    } else {
+        ABT_mutex_lock(mona->unexpected.msg_cache_mtx);
+        cached_msg_t head = mona->unexpected.msg_cache;
+        msg->next         = head;
+        mona->unexpected.msg_cache   = msg;
+        ABT_mutex_unlock(mona->unexpected.msg_cache_mtx);
+    }
 }
 
 static inline void clear_msg_cache(mona_instance_t mona)
 {
-    ABT_mutex_lock(mona->msg_cache_mtx);
-    cached_msg_t msg = mona->msg_cache;
-    mona->msg_cache  = NULL;
+    ABT_mutex_lock(mona->unexpected.msg_cache_mtx);
+    cached_msg_t msg = mona->unexpected.msg_cache;
+    mona->unexpected.msg_cache  = NULL;
     while (msg) {
         cached_msg_t tmp = msg->next;
         mona_msg_buf_free(mona, msg->buffer, msg->plugin_data);
         free(msg);
         msg = tmp;
     }
-    ABT_mutex_unlock(mona->msg_cache_mtx);
+    ABT_mutex_unlock(mona->unexpected.msg_cache_mtx);
+    ABT_mutex_lock(mona->expected.msg_cache_mtx);
+    msg = mona->expected.msg_cache;
+    mona->expected.msg_cache  = NULL;
+    while (msg) {
+        cached_msg_t tmp = msg->next;
+        mona_msg_buf_free(mona, msg->buffer, msg->plugin_data);
+        free(msg);
+        msg = tmp;
+    }
+    ABT_mutex_unlock(mona->expected.msg_cache_mtx);
 }
 
 // Wait --------------------------------------------------------------

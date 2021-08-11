@@ -266,8 +266,8 @@ na_return_t mona_addr_deserialize(mona_instance_t mona,
 
 /**
  * @brief High-level blocking send function. This function will
- * appropriatly use unexpected messages or combinations of unexpected,
- * expected, and RDMA message depending on data size.
+ * appropriatly use expected messages or combinations of expected
+ * and RDMA message depending on data size.
  *
  * Note: using a high-level function in conjunction with low-level
  * (mona_msg_*) functions may lead to undefined behaviors and should
@@ -379,15 +379,234 @@ na_return_t mona_isend_mem(mona_instance_t mona,
 
 /**
  * @brief High-level blocking recv function. This function will
- * appropriatly use unexpected messages or combinations of unexpected,
- * expected, and RDMA message depending on data size, to match a
+ * appropriatly use expected messages or combinations of expected
+ * and RDMA messages depending on data size, to match a
  * call to mona_send or mona_isend from the source.
  *
  * Note: using a high-level function in conjunction with low-level
  * (mona_msg_*) functions may lead to undefined behaviors and should
  * be avoided.
  *
- * Because the called may use MONA_ANY_SOURCE and/or MONA_ANY_TAG,
+ * @param mona [IN/OUT]     Mona instance
+ * @param buf [OUT]         buffer in which to place the received data
+ * @param size [IN]         buffer size
+ * @param dest [IN]         source address
+ * @param tag [IN]          tag
+ * @param actual_size [OUT] actual size received
+ *
+ * @return NA_SUCCESS or corresponding NA error code
+ */
+na_return_t mona_recv(mona_instance_t mona,
+                      void*           buf,
+                      na_size_t       size,
+                      na_addr_t       src,
+                      na_tag_t        tag,
+                      na_size_t*      actual_size);
+
+/**
+ * @brief Non-blocking equivalent of mona_recv. The resulting mona_request_t
+ * can be used in mona_wait() and mona_test.
+ *
+ * @param mona [IN/OUT]     Mona instance
+ * @param buf [OUT]         buffer in which to place the received data
+ * @param buf_size [IN]     buffer size
+ * @param dest [IN]         source address
+ * @param tag [IN]          tag
+ * @param actual_size [OUT] actual size received
+ * @param req [OUT]         request
+ *
+ * @return NA_SUCCESS or corresponding NA error code
+ */
+na_return_t mona_irecv(mona_instance_t mona,
+                       void*           buf,
+                       na_size_t       buf_size,
+                       na_addr_t       src,
+                       na_tag_t        tag,
+                       na_size_t*      actual_size,
+                       mona_request_t* req);
+
+/**
+ * @see Non-contiguous version of mona_recv.
+ * This function can match a mona_send or a mona_send_nc.
+ */
+na_return_t mona_recv_nc(mona_instance_t  mona,
+                         na_size_t        count,
+                         void**           buffers,
+                         const na_size_t* buf_sizes,
+                         na_addr_t        src,
+                         na_size_t*       actual_size,
+                         na_tag_t*        actual_tag);
+
+/**
+ * @see Non-blocking version of mona_recv_nc.
+ */
+na_return_t mona_irecv_nc(mona_instance_t  mona,
+                          na_size_t        count,
+                          void**           buffers,
+                          const na_size_t* buf_sizes,
+                          na_addr_t        src,
+                          na_tag_t         tag,
+                          na_size_t*       actual_size,
+                          mona_request_t*  req);
+
+/**
+ * @brief Receives data directly into a memory handle.
+ * This function should match a mona_send_mem.
+ *
+ * @param mona [IN] Mona instance
+ * @param mem [IN] Memory handle to receive data
+ * @param size [IN] Size of the data to receive
+ * @param offset [IN] Offset at which to place the data in the memory handle
+ * @param src [IN] Source address
+ * @param tag [IN] Tag
+ * @param actual_size [OUT] Actual size received
+ *
+ * @return NA_SUCCESS or corresponding NA error code
+ */
+na_return_t mona_recv_mem(mona_instance_t mona,
+                           na_mem_handle_t mem,
+                           na_size_t       size,
+                           na_size_t       offset,
+                           na_addr_t       src,
+                           na_tag_t        tag,
+                           na_size_t*      actual_size);
+
+/**
+ * @see Non-blocking version of mona_recv_mem.
+ */
+na_return_t mona_irecv_mem(mona_instance_t mona,
+                           na_mem_handle_t mem,
+                           na_size_t       size,
+                           na_size_t       offset,
+                           na_addr_t       src,
+                           na_tag_t        tag,
+                           na_size_t*      actual_size,
+                           mona_request_t* req);
+
+/**
+ * @brief High-level blocking send function. This function will
+ * appropriatly use unexpected messages or combinations of unexpected
+ * and RDMA message depending on data size.
+ *
+ * Note: using a high-level function in conjunction with low-level
+ * (mona_msg_*) functions may lead to undefined behaviors and should
+ * be avoided.
+ *
+ * @param mona [IN/OUT]     Mona instance
+ * @param buf [IN]          data to send
+ * @param buf_size [IN]     buffer size
+ * @param dest [IN]         destination address
+ * @param dest_id [IN]      destination context id
+ * @param tag [IN]          tag
+ *
+ * @return NA_SUCCESS or corresponding NA error code
+ */
+na_return_t mona_usend(mona_instance_t mona,
+                       const void*     buf,
+                       na_size_t       buf_size,
+                       na_addr_t       dest,
+                       na_uint8_t      dest_id,
+                       na_tag_t        tag);
+
+/**
+ * @brief Non-blocking version of mona_usend. The resulting mona_request_t
+ * can be used in mona_wait() and mona_test.
+ *
+ * Note: using a high-level function in conjunction with low-level
+ * (mona_msg_*) functions may lead to undefined behaviors and should
+ * be avoided.
+ *
+ * @param mona [IN/OUT]     Mona instance
+ * @param buf [IN]          data to send
+ * @param buf_size [IN]     buffer size
+ * @param dest [IN]         destination address
+ * @param dest_id [IN]      destination context id
+ * @param tag [IN]          tag
+ * @param req [OUT]         request
+ *
+ * @return NA_SUCCESS or corresponding NA error code
+ */
+na_return_t mona_uisend(mona_instance_t mona,
+                        const void*     buf,
+                        na_size_t       buf_size,
+                        na_addr_t       dest,
+                        na_uint8_t      dest_id,
+                        na_tag_t        tag,
+                        mona_request_t* req);
+
+/**
+ * @see Same as mona_usend but for non-contiguous data.
+ * A mon_usend_nc can be matched by a mona_urecv or a mona_urecv_nc
+ * on the destination.
+ */
+na_return_t mona_usend_nc(mona_instance_t    mona,
+                          na_size_t          count,
+                          const void* const* buffers,
+                          const na_size_t*   buf_sizes,
+                          na_addr_t          dest,
+                          na_uint8_t         dest_id,
+                          na_tag_t           tag);
+
+/**
+ * @see Same as mona_uisend but for non-contiguous data.
+ * A mon_usend_nc can be matched by a mona_urecv or a mona_urecv_nc
+ * on the destination.
+ */
+na_return_t mona_uisend_nc(mona_instance_t    mona,
+                           na_size_t          count,
+                           const void* const* buffers,
+                           const na_size_t*   buf_sizes,
+                           na_addr_t          dest,
+                           na_uint8_t         dest_id,
+                           na_tag_t           tag,
+                           mona_request_t*    req);
+
+/**
+ * @brief Send data using a memory handle.
+ * This operation should be matched by a mona_urecv_mem
+ * on the destination.
+ *
+ * @param mona [IN] Mona instance
+ * @param mem [IN] Memory handle to send
+ * @param size [IN] Size of the data to send
+ * @param offset [IN] Offset of the data in the memory handle
+ * @param dest [IN] Destination address
+ * @param dest_id [IN] Destination id
+ * @param tag [IN] Tag
+ *
+ * @return NA_SUCCESS or corresponding NA error code
+ */
+na_return_t mona_usend_mem(mona_instance_t mona,
+                           na_mem_handle_t mem,
+                           na_size_t       size,
+                           na_size_t       offset,
+                           na_addr_t       dest,
+                           na_uint8_t      dest_id,
+                           na_tag_t        tag);
+
+/**
+ * @see Non-blocking version of mona_usend_mem.
+ */
+na_return_t mona_uisend_mem(mona_instance_t mona,
+                            na_mem_handle_t mem,
+                            na_size_t       size,
+                            na_size_t       offset,
+                            na_addr_t       dest,
+                            na_uint8_t      dest_id,
+                            na_tag_t        tag,
+                            mona_request_t* req);
+
+/**
+ * @brief High-level blocking urecv function. This function will
+ * appropriatly use unexpected messages or combinations of unexpected
+ * and RDMA messages depending on data size, to match a
+ * call to mona_usend or mona_uisend from the source.
+ *
+ * Note: using a high-level function in conjunction with low-level
+ * (mona_msg_*) functions may lead to undefined behaviors and should
+ * be avoided.
+ *
+ * Because the caller may use MONA_ANY_SOURCE and/or MONA_ANY_TAG,
  * the actual_src and actual_tag can be used to get the actual sender
  * and tag. These parameters, as well as actual_size, may be set to
  * NULL to be ignored.
@@ -403,17 +622,17 @@ na_return_t mona_isend_mem(mona_instance_t mona,
  *
  * @return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_recv(mona_instance_t mona,
-                      void*           buf,
-                      na_size_t       size,
-                      na_addr_t       src,
-                      na_tag_t        tag,
-                      na_size_t*      actual_size,
-                      na_addr_t*      actual_src,
-                      na_tag_t*       actual_tag);
+na_return_t mona_urecv(mona_instance_t mona,
+                       void*           buf,
+                       na_size_t       size,
+                       na_addr_t       src,
+                       na_tag_t        tag,
+                       na_size_t*      actual_size,
+                       na_addr_t*      actual_src,
+                       na_tag_t*       actual_tag);
 
 /**
- * @brief Non-blocking equivalent of mona_recv. The resulting mona_request_t
+ * @brief Non-blocking equivalent of mona_urecv. The resulting mona_request_t
  * can be used in mona_wait() and mona_test.
  *
  * @param mona [IN/OUT]     Mona instance
@@ -428,34 +647,21 @@ na_return_t mona_recv(mona_instance_t mona,
  *
  * @return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_irecv(mona_instance_t mona,
-                       void*           buf,
-                       na_size_t       buf_size,
-                       na_addr_t       src,
-                       na_tag_t        tag,
-                       na_size_t*      actual_size,
-                       na_addr_t*      actual_src,
-                       na_tag_t*       actual_tag,
-                       mona_request_t* req);
+na_return_t mona_uirecv(mona_instance_t mona,
+                        void*           buf,
+                        na_size_t       buf_size,
+                        na_addr_t       src,
+                        na_tag_t        tag,
+                        na_size_t*      actual_size,
+                        na_addr_t*      actual_src,
+                        na_tag_t*       actual_tag,
+                        mona_request_t* req);
 
 /**
- * @see Non-contiguous version of mona_recv.
- * This function can match a mona_send or a mona_send_nc.
+ * @see Non-contiguous version of mona_urecv.
+ * This function can match a mona_usend or a mona_usend_nc.
  */
-na_return_t mona_recv_nc(mona_instance_t  mona,
-                         na_size_t        count,
-                         void**           buffers,
-                         const na_size_t* buf_sizes,
-                         na_addr_t        src,
-                         na_tag_t         tag,
-                         na_size_t*       actual_size,
-                         na_addr_t*       actual_src,
-                         na_tag_t*        actual_tag);
-
-/**
- * @see Non-blocking version of mona_recv_nc.
- */
-na_return_t mona_irecv_nc(mona_instance_t  mona,
+na_return_t mona_urecv_nc(mona_instance_t  mona,
                           na_size_t        count,
                           void**           buffers,
                           const na_size_t* buf_sizes,
@@ -463,12 +669,25 @@ na_return_t mona_irecv_nc(mona_instance_t  mona,
                           na_tag_t         tag,
                           na_size_t*       actual_size,
                           na_addr_t*       actual_src,
-                          na_tag_t*        actual_tag,
-                          mona_request_t*  req);
+                          na_tag_t*        actual_tag);
+
+/**
+ * @see Non-blocking version of mona_urecv_nc.
+ */
+na_return_t mona_uirecv_nc(mona_instance_t  mona,
+                           na_size_t        count,
+                           void**           buffers,
+                           const na_size_t* buf_sizes,
+                           na_addr_t        src,
+                           na_tag_t         tag,
+                           na_size_t*       actual_size,
+                           na_addr_t*       actual_src,
+                           na_tag_t*        actual_tag,
+                           mona_request_t*  req);
 
 /**
  * @brief Receives data directly into a memory handle.
- * This function should match a mona_send_mem.
+ * This function should match a mona_usend_mem.
  *
  * @param mona [IN] Mona instance
  * @param mem [IN] Memory handle to receive data
@@ -482,20 +701,7 @@ na_return_t mona_irecv_nc(mona_instance_t  mona,
  *
  * @return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_recv_mem(mona_instance_t mona,
-                          na_mem_handle_t mem,
-                          na_size_t       size,
-                          na_size_t       offset,
-                          na_addr_t       src,
-                          na_tag_t        tag,
-                          na_size_t*      actual_size,
-                          na_addr_t*      actual_src,
-                          na_tag_t*       actual_tag);
-
-/**
- * @see Non-blocking version of mona_recv_mem.
- */
-na_return_t mona_irecv_mem(mona_instance_t mona,
+na_return_t mona_urecv_mem(mona_instance_t mona,
                            na_mem_handle_t mem,
                            na_size_t       size,
                            na_size_t       offset,
@@ -503,8 +709,21 @@ na_return_t mona_irecv_mem(mona_instance_t mona,
                            na_tag_t        tag,
                            na_size_t*      actual_size,
                            na_addr_t*      actual_src,
-                           na_tag_t*       actual_tag,
-                           mona_request_t* req);
+                           na_tag_t*       actual_tag);
+
+/**
+ * @see Non-blocking version of mona_urecv_mem.
+ */
+na_return_t mona_uirecv_mem(mona_instance_t mona,
+                            na_mem_handle_t mem,
+                            na_size_t       size,
+                            na_size_t       offset,
+                            na_addr_t       src,
+                            na_tag_t        tag,
+                            na_size_t*      actual_size,
+                            na_addr_t*      actual_src,
+                            na_tag_t*       actual_tag,
+                            mona_request_t* req);
 
 /**
  * Get the maximum size of messages supported by unexpected send/recv.
