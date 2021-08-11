@@ -16,6 +16,7 @@ set (MONA_VERSION "${mona-vers}.${MONA_VERSION_PATCH}")
 add_library(mona
             ${CMAKE_CURRENT_SOURCE_DIR}/mona.c
             ${CMAKE_CURRENT_SOURCE_DIR}/mona-unexpected.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/mona-expected.c
             ${CMAKE_CURRENT_SOURCE_DIR}/mona-coll.c)
 target_link_libraries (mona mercury PkgConfig::ARGOBOTS)
 target_include_directories (mona PUBLIC $<INSTALL_INTERFACE:include>)

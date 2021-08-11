@@ -146,8 +146,10 @@ static inline mona_request_t get_req_from_cache(mona_instance_t mona)
         req             = mona->req_cache;
         mona->req_cache = req->next;
         req->next       = NULL;
+        ABT_eventual_reset(req->eventual);
     } else {
         req = (mona_request_t)calloc(1, sizeof(*req));
+        ABT_eventual_create(sizeof(na_return_t), &(req->eventual));
     }
     ABT_mutex_unlock(mona->req_cache_mtx);
     return req;
@@ -169,6 +171,7 @@ static inline void clear_req_cache(mona_instance_t mona)
     mona->req_cache           = NULL;
     while (cached_req) {
         mona_request_t tmp = cached_req->next;
+        ABT_eventual_free(&(cached_req->eventual));
         free(cached_req);
         cached_req = tmp;
     }

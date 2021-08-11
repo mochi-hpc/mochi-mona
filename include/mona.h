@@ -434,8 +434,8 @@ na_return_t mona_recv_nc(mona_instance_t  mona,
                          void**           buffers,
                          const na_size_t* buf_sizes,
                          na_addr_t        src,
-                         na_size_t*       actual_size,
-                         na_tag_t*        actual_tag);
+                         na_tag_t         tag,
+                         na_size_t*       actual_size);
 
 /**
  * @see Non-blocking version of mona_recv_nc.

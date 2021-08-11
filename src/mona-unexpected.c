@@ -48,10 +48,6 @@ na_return_t mona_uisend(mona_instance_t mona,
                         na_tag_t        tag,
                         mona_request_t* req)
 {
-    ABT_eventual eventual;
-    int          ret = ABT_eventual_create(sizeof(na_return_t), &eventual);
-    if (ret != 0) return NA_NOMEM;
-
     struct uisend_args* args = (struct uisend_args*)malloc(sizeof(*args));
     args->mona               = mona;
     args->buf                = buf;
@@ -61,11 +57,10 @@ na_return_t mona_uisend(mona_instance_t mona,
     args->tag                = tag;
 
     mona_request_t tmp_req = get_req_from_cache(mona);
-    tmp_req->eventual      = eventual;
     args->req              = tmp_req;
 
-    ret = ABT_thread_create(mona->progress_pool, uisend_thread, args,
-                            ABT_THREAD_ATTR_NULL, NULL);
+    int ret = ABT_thread_create(mona->progress_pool, uisend_thread, args,
+                                ABT_THREAD_ATTR_NULL, NULL);
     if (ret != ABT_SUCCESS) {
         return_req_to_cache(mona, tmp_req);
         return NA_NOMEM;
@@ -175,10 +170,6 @@ na_return_t mona_uisend_nc(mona_instance_t    mona,
                            na_tag_t           tag,
                            mona_request_t*    req)
 {
-    ABT_eventual eventual;
-    int          ret = ABT_eventual_create(sizeof(na_return_t), &eventual);
-    if (ret != 0) return NA_NOMEM;
-
     struct uisend_nc_args* args = (struct uisend_nc_args*)malloc(sizeof(*args));
     args->mona                  = mona;
     args->count                 = count;
@@ -189,11 +180,10 @@ na_return_t mona_uisend_nc(mona_instance_t    mona,
     args->tag                   = tag;
 
     mona_request_t tmp_req = get_req_from_cache(mona);
-    tmp_req->eventual      = eventual;
     args->req              = tmp_req;
 
-    ret = ABT_thread_create(mona->progress_pool, uisend_nc_thread, args,
-                            ABT_THREAD_ATTR_NULL, NULL);
+    int ret = ABT_thread_create(mona->progress_pool, uisend_nc_thread, args,
+                                ABT_THREAD_ATTR_NULL, NULL);
     if (ret != ABT_SUCCESS) {
         return_req_to_cache(mona, tmp_req);
         return NA_NOMEM;
@@ -310,10 +300,6 @@ na_return_t mona_uisend_mem(mona_instance_t mona,
                             na_tag_t        tag,
                             mona_request_t* req)
 {
-    ABT_eventual eventual;
-    int          ret = ABT_eventual_create(sizeof(na_return_t), &eventual);
-    if (ret != 0) return NA_NOMEM;
-
     struct uisend_mem_args* args = (struct uisend_mem_args*)malloc(sizeof(*args));
     args->mona                   = mona;
     args->mem                    = mem;
@@ -324,11 +310,10 @@ na_return_t mona_uisend_mem(mona_instance_t mona,
     args->tag                    = tag;
 
     mona_request_t tmp_req = get_req_from_cache(mona);
-    tmp_req->eventual      = eventual;
     args->req              = tmp_req;
 
-    ret = ABT_thread_create(mona->progress_pool, uisend_mem_thread, args,
-                            ABT_THREAD_ATTR_NULL, NULL);
+    int ret = ABT_thread_create(mona->progress_pool, uisend_mem_thread, args,
+                                ABT_THREAD_ATTR_NULL, NULL);
     if (ret != ABT_SUCCESS) {
         return_req_to_cache(mona, tmp_req);
         return NA_NOMEM;
@@ -509,10 +494,6 @@ na_return_t mona_uirecv(mona_instance_t mona,
                         na_tag_t*       actual_tag,
                         mona_request_t* req)
 {
-    ABT_eventual eventual;
-    int          ret = ABT_eventual_create(sizeof(na_return_t), &eventual);
-    if (ret != 0) return NA_NOMEM;
-
     struct uirecv_args* args = (struct uirecv_args*)malloc(sizeof(*args));
     args->mona               = mona;
     args->buf                = buf;
@@ -525,10 +506,9 @@ na_return_t mona_uirecv(mona_instance_t mona,
 
     mona_request_t tmp_req = get_req_from_cache(mona);
     args->req              = tmp_req;
-    tmp_req->eventual      = eventual;
 
-    ret = ABT_thread_create(mona->progress_pool, uirecv_thread, args,
-                            ABT_THREAD_ATTR_NULL, NULL);
+    int ret = ABT_thread_create(mona->progress_pool, uirecv_thread, args,
+                                ABT_THREAD_ATTR_NULL, NULL);
     if (ret != ABT_SUCCESS) {
         return_req_to_cache(mona, tmp_req);
         return NA_NOMEM;
@@ -701,10 +681,6 @@ na_return_t mona_uirecv_nc(mona_instance_t  mona,
                            na_tag_t*        actual_tag,
                            mona_request_t*  req)
 {
-    ABT_eventual eventual;
-    int          ret = ABT_eventual_create(sizeof(na_return_t), &eventual);
-    if (ret != 0) return NA_NOMEM;
-
     struct uirecv_nc_args* args = (struct uirecv_nc_args*)malloc(sizeof(*args));
     args->mona                  = mona;
     args->count                 = count;
@@ -718,10 +694,9 @@ na_return_t mona_uirecv_nc(mona_instance_t  mona,
 
     mona_request_t tmp_req = get_req_from_cache(mona);
     args->req              = tmp_req;
-    tmp_req->eventual      = eventual;
 
-    ret = ABT_thread_create(mona->progress_pool, uirecv_nc_thread, args,
-                            ABT_THREAD_ATTR_NULL, NULL);
+    int ret = ABT_thread_create(mona->progress_pool, uirecv_nc_thread, args,
+                                ABT_THREAD_ATTR_NULL, NULL);
     if (ret != ABT_SUCCESS) {
         return_req_to_cache(mona, tmp_req);
         return NA_NOMEM;
@@ -849,10 +824,6 @@ na_return_t mona_uirecv_mem(mona_instance_t mona,
                             na_tag_t*       actual_tag,
                             mona_request_t* req)
 {
-    ABT_eventual eventual;
-    int          ret = ABT_eventual_create(sizeof(na_return_t), &eventual);
-    if (ret != 0) return NA_NOMEM;
-
     struct uirecv_mem_args* args = (struct uirecv_mem_args*)malloc(sizeof(*args));
     args->mona                   = mona;
     args->mem                    = mem;
@@ -866,10 +837,9 @@ na_return_t mona_uirecv_mem(mona_instance_t mona,
 
     mona_request_t tmp_req = get_req_from_cache(mona);
     args->req              = tmp_req;
-    tmp_req->eventual      = eventual;
 
-    ret = ABT_thread_create(mona->progress_pool, uirecv_mem_thread, args,
-                            ABT_THREAD_ATTR_NULL, NULL);
+    int ret = ABT_thread_create(mona->progress_pool, uirecv_mem_thread, args,
+                                ABT_THREAD_ATTR_NULL, NULL);
     if (ret != ABT_SUCCESS) {
         return_req_to_cache(mona, tmp_req);
         return NA_NOMEM;

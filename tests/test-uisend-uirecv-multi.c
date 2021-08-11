@@ -118,8 +118,8 @@ static MunitTest test_suite_tests[] = {
     { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL }
 };
 
-static const MunitSuite test_suite = { 
-    (char*) "/mona/isend-irecv-multi", test_suite_tests, NULL, 1, MUNIT_SUITE_OPTION_NONE
+static const MunitSuite test_suite = {
+    (char*) "/mona/uisend-uirecv-multi", test_suite_tests, NULL, 1, MUNIT_SUITE_OPTION_NONE
 };
 
 int main(int argc, char* argv[MUNIT_ARRAY_PARAM(argc + 1)]) {
