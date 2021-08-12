@@ -1,7 +1,12 @@
 #!/bin/bash
 
-MONA_SPACK_ROOT=$HOME/spack # spack location
+MONA_SOURCE_PATH=$HERE/src # where sources will be downloaded
+MONA_PREFIX_PATH=$HERE/sw  # where software will be installed
+
+MONA_SPACK_LOCATION=$MONA_PREFIX_PATH/spack # spack location
 MONA_SPACK_ENV=mona-env     # environment in which Mona is installed
+MONA_MOCHI_LOCATION=$MONA_PREFIX_PATH/mochi-spack-packages
+
 # send/recv benchmark parameters
 MONA_SEND_RECV_MSG_SIZES=(8 128 2048 32768 524288)
 MONA_SEND_RECV_ITERATIONS=10000
