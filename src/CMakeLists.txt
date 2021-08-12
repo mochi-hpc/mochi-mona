@@ -17,7 +17,16 @@ add_library(mona
             ${CMAKE_CURRENT_SOURCE_DIR}/mona.c
             ${CMAKE_CURRENT_SOURCE_DIR}/mona-unexpected.c
             ${CMAKE_CURRENT_SOURCE_DIR}/mona-expected.c
-            ${CMAKE_CURRENT_SOURCE_DIR}/mona-coll.c)
+            ${CMAKE_CURRENT_SOURCE_DIR}/mona-comm.c
+	    ${CMAKE_CURRENT_SOURCE_DIR}/mona-barrier.c
+	    ${CMAKE_CURRENT_SOURCE_DIR}/mona-bcast.c
+	    ${CMAKE_CURRENT_SOURCE_DIR}/mona-gather.c
+	    ${CMAKE_CURRENT_SOURCE_DIR}/mona-scatter.c
+	    ${CMAKE_CURRENT_SOURCE_DIR}/mona-allgather.c
+	    ${CMAKE_CURRENT_SOURCE_DIR}/mona-alltoall.c
+	    ${CMAKE_CURRENT_SOURCE_DIR}/mona-reduce.c
+	    ${CMAKE_CURRENT_SOURCE_DIR}/mona-allreduce.c
+	    ${CMAKE_CURRENT_SOURCE_DIR}/mona-sendrecv.c)
 target_link_libraries (mona mercury PkgConfig::ARGOBOTS)
 target_include_directories (mona PUBLIC $<INSTALL_INTERFACE:include>)
 
