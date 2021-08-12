@@ -27,7 +27,7 @@ function print_log() {
 }
 
 print_log "Loading spack"
-. $MONA_SPACK_ROOT/share/spack/setup-env.sh
+. $MONA_SPACK_LOCATION/share/spack/setup-env.sh
 
 print_log "Loading spack environment"
 spack env activate $MONA_SPACK_ENV

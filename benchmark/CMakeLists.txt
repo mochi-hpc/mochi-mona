@@ -21,6 +21,8 @@ target_link_libraries (mona-gather-benchmark mona MPI::MPI_C)
 
 install (TARGETS mona-usend-urecv-benchmark
          DESTINATION bin)
+install (TARGETS mona-send-recv-benchmark
+         DESTINATION bin)
 install (TARGETS mona-allreduce-benchmark
          DESTINATION bin)
 install (TARGETS mona-bcast-benchmark
