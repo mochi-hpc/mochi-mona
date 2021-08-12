@@ -104,7 +104,7 @@ na_return_t mona_send_nc(mona_instance_t    mona,
         }
 
         na_ret = mona_msg_send_expected(mona, msg->buffer, msg_size,
-                                        msg->plugin_data, dest, dest_id, tag);
+                                        msg->plugin_data, dest, dest_id, tag*2);
 
     } else {
 
@@ -245,7 +245,7 @@ na_return_t mona_send_mem(mona_instance_t mona,
 
     // Issue non-blocking receive for ACK
     na_ret = mona_msg_irecv_expected(mona, ack_msg->buffer, ack_msg_size,
-                                     ack_msg->plugin_data, dest, dest_id, tag,
+                                     ack_msg->plugin_data, dest, dest_id, 2*tag+1,
                                      ack_op_id, &ack_req);
     if (na_ret != NA_SUCCESS) {
         return_op_id_to_cache(mona, ack_cache_id);
@@ -254,7 +254,7 @@ na_return_t mona_send_mem(mona_instance_t mona,
 
     // Issue send of message with mem handle
     na_ret = mona_msg_send_expected(mona, msg->buffer, msg_size,
-                                    msg->plugin_data, dest, dest_id, tag);
+                                    msg->plugin_data, dest, dest_id, 2*tag);
     if (na_ret != NA_SUCCESS) {
         mona_cancel(mona, ack_op_id);
         return_op_id_to_cache(mona, ack_cache_id);
@@ -408,7 +408,7 @@ na_return_t mona_recv_nc(mona_instance_t  mona,
 
     msg = get_msg_from_cache(mona, NA_TRUE);
     na_ret = mona_msg_recv_expected(mona, msg->buffer, recv_size,
-                                    msg->plugin_data, src, 0, tag);
+                                    msg->plugin_data, src, 0, 2*tag);
     if (na_ret != NA_SUCCESS) goto finish;
 
     char* p = msg->buffer + header_size;
@@ -485,7 +485,7 @@ na_return_t mona_recv_nc(mona_instance_t  mona,
         // XXX how do we support a source id different from 0 ?
         na_ret
             = mona_msg_send_expected(mona, msg->buffer, msg_size,
-                                     msg->plugin_data, src, 0, tag);
+                                     msg->plugin_data, src, 0, 2*tag+1);
         if (na_ret != NA_SUCCESS) goto finish;
     }
 
@@ -568,7 +568,7 @@ na_return_t mona_recv_mem(mona_instance_t mona,
 
     msg = get_msg_from_cache(mona, NA_TRUE);
     na_ret = mona_msg_recv_expected(mona, msg->buffer, recv_size,
-                                    msg->plugin_data, src, 0, tag);
+                                    msg->plugin_data, src, 0, 2*tag);
     if (na_ret != NA_SUCCESS) goto finish;
 
     char* p = msg->buffer + header_size + 1;
@@ -608,7 +608,7 @@ na_return_t mona_recv_mem(mona_instance_t mona,
 
     // XXX how do we support a source id different from 0 ?
     na_ret = mona_msg_send_expected(mona, msg->buffer, msg_size,
-                                    msg->plugin_data, src, 0, tag);
+                                    msg->plugin_data, src, 0, 2*tag+1);
     if (na_ret != NA_SUCCESS) goto finish;
 
     if (actual_size) *actual_size = size;

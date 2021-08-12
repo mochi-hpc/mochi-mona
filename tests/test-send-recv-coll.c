@@ -86,7 +86,7 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
         munit_assert_int(ret, ==, NA_SUCCESS);
 
         na_size_t recv_size;
-        ret = mona_comm_recv(comm, buf, 64, 1, 1234, &recv_size, NULL, NULL);
+        ret = mona_comm_recv(comm, buf, 64, 1, 1234, &recv_size);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
         for(i = 0; i < 64; i++) {
@@ -96,7 +96,7 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
     } else { // receiver
 
         na_size_t recv_size;
-        ret = mona_comm_recv(comm, buf, msg_len, 0, 1234, &recv_size, NULL, NULL);
+        ret = mona_comm_recv(comm, buf, msg_len, 0, 1234, &recv_size);
         munit_assert_int(ret, ==, NA_SUCCESS);
         for(i = 0; i < (int)msg_len; i++) {
             munit_assert_int(buf[i], ==, i % 32);
@@ -126,7 +126,7 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
             msg_len/2,
             (context->rank + 1) % 2,
             1234,
-            NULL, NULL, NULL);
+            NULL);
     munit_assert_int(ret, ==, NA_SUCCESS);
 
     for(i = 0; i < (int)msg_len; i++) {
@@ -144,7 +144,7 @@ static MunitTest test_suite_tests[] = {
     { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL }
 };
 
-static const MunitSuite test_suite = { 
+static const MunitSuite test_suite = {
     (char*) "/mona/send-recv", test_suite_tests, NULL, 1, MUNIT_SUITE_OPTION_NONE
 };
 

@@ -354,7 +354,7 @@ na_size_t mona_msg_get_expected_header_size(mona_instance_t mona)
 
 na_tag_t mona_msg_get_max_tag(mona_instance_t mona)
 {
-    return NA_Msg_get_max_tag(mona->na_class);
+    return NA_Msg_get_max_tag(mona->na_class)/2 - 1;
 }
 
 // ------------------------------------------------------------------------------------

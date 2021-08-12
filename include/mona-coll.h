@@ -168,8 +168,6 @@ na_return_t mona_comm_isend(mona_comm_t     comm,
  * @param src [IN] Source rank
  * @param tag [IN] Tag
  * @param actual_size [OUT] Size received
- * @param actual_src [OUT] Actual source of the message
- * @param actual_tag [OUT] Actual tag of the message
  *
  * @return NA_SUCCESS or corresponding error code (see na.h)
  */
@@ -178,9 +176,7 @@ na_return_t mona_comm_recv(mona_comm_t comm,
                            na_size_t   size,
                            int         src,
                            na_tag_t    tag,
-                           na_size_t*  actual_size,
-                           int*        actual_src,
-                           na_tag_t*   actual_tag);
+                           na_size_t*  actual_size);
 
 /**
  * @see Non-blocking version of mona_comm_recv.
@@ -191,8 +187,6 @@ na_return_t mona_comm_irecv(mona_comm_t     comm,
                             int             src,
                             na_tag_t        tag,
                             na_size_t*      actual_size,
-                            int*            actual_src,
-                            na_tag_t*       actual_tag,
                             mona_request_t* req);
 
 /**
@@ -208,8 +202,6 @@ na_return_t mona_comm_irecv(mona_comm_t     comm,
  * @param source [IN] Source
  * @param recvtag [IN] Receiving tag
  * @param actual_recvsize [OUT] Actual received size
- * @param actual_recv_src [OUT] Actual received source
- * @param actual_recv_tag [OUT] Actual received tag
  *
  * @return NA_SUCCESS or corresponding error code (see na.h)
  */
@@ -222,9 +214,7 @@ na_return_t mona_comm_sendrecv(mona_comm_t comm,
                                na_size_t   recvsize,
                                int         source,
                                na_tag_t    recvtag,
-                               na_size_t*  actual_recvsize,
-                               int*        actual_recv_src,
-                               na_tag_t*   actual_recv_tag);
+                               na_size_t*  actual_recvsize);
 
 /**
  * @brief Perform a barrier across the processes of the communicator.

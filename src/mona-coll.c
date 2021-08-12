@@ -154,7 +154,7 @@ na_return_t mona_comm_send(
     mona_comm_t comm, const void* buf, na_size_t size, int dest, na_tag_t tag)
 {
     if (dest < 0 || (unsigned)dest >= comm->size) return NA_INVALID_ARG;
-    return mona_usend(comm->mona, buf, size, comm->addrs[dest], 0, tag);
+    return mona_send(comm->mona, buf, size, comm->addrs[dest], 0, tag);
 }
 
 na_return_t mona_comm_isend(mona_comm_t     comm,
@@ -165,7 +165,7 @@ na_return_t mona_comm_isend(mona_comm_t     comm,
                             mona_request_t* req)
 {
     if (dest < 0 || (unsigned)dest >= comm->size) return NA_INVALID_ARG;
-    return mona_uisend(comm->mona, buf, size, comm->addrs[dest], 0, tag, req);
+    return mona_isend(comm->mona, buf, size, comm->addrs[dest], 0, tag, req);
 }
 
 na_return_t mona_comm_recv(mona_comm_t comm,
@@ -173,24 +173,11 @@ na_return_t mona_comm_recv(mona_comm_t comm,
                            na_size_t   size,
                            int         src,
                            na_tag_t    tag,
-                           na_size_t*  actual_size,
-                           int*        actual_src,
-                           na_tag_t*   actual_tag)
+                           na_size_t*  actual_size)
 {
     if (src < 0 || (unsigned)src >= comm->size) return NA_INVALID_ARG;
-    na_addr_t   actual_src_addr;
-    na_return_t na_ret = mona_urecv(comm->mona, buf, size, comm->addrs[src], tag,
-                                    actual_size, &actual_src_addr, actual_tag);
-    if (na_ret != NA_SUCCESS) return na_ret;
-    unsigned i;
-    for (i = 0; i < comm->size; i++) {
-        if (mona_addr_cmp(comm->mona, actual_src_addr, comm->addrs[i])) {
-            if (actual_src) *actual_src = i;
-            break;
-        }
-    }
-    if (i == comm->size) { na_ret = NA_PROTOCOL_ERROR; }
-    mona_addr_free(comm->mona, actual_src_addr);
+    na_return_t na_ret = mona_recv(comm->mona, buf, size, comm->addrs[src], tag,
+                                   actual_size);
     return na_ret;
 }
 
@@ -201,8 +188,6 @@ typedef struct irecv_args {
     int            src;
     na_tag_t       tag;
     na_size_t*     actual_size;
-    int*           actual_src;
-    na_tag_t*      actual_tag;
     mona_request_t req;
 } irecv_args;
 
@@ -210,8 +195,7 @@ static void irecv_thread(void* x)
 {
     irecv_args* args   = (irecv_args*)x;
     na_return_t na_ret = mona_comm_recv(args->comm, args->buf, args->size,
-                                        args->src, args->tag, args->actual_size,
-                                        args->actual_src, args->actual_tag);
+                                        args->src, args->tag, args->actual_size);
     ABT_eventual_set(args->req->eventual, &na_ret, sizeof(na_ret));
     free(args);
 }
@@ -222,8 +206,6 @@ na_return_t mona_comm_irecv(mona_comm_t     comm,
                             int             src,
                             na_tag_t        tag,
                             na_size_t*      actual_size,
-                            int*            actual_src,
-                            na_tag_t*       actual_tag,
                             mona_request_t* req)
 {
     NB_OP_INIT(irecv_args);
@@ -233,8 +215,6 @@ na_return_t mona_comm_irecv(mona_comm_t     comm,
     args->src         = src;
     args->tag         = tag;
     args->actual_size = actual_size;
-    args->actual_src  = actual_src;
-    args->actual_tag  = actual_tag;
     NB_OP_POST(irecv_thread);
 }
 
@@ -247,18 +227,17 @@ na_return_t mona_comm_sendrecv(mona_comm_t comm,
                                na_size_t   recvsize,
                                int         source,
                                na_tag_t    recvtag,
-                               na_size_t*  actual_recvsize,
-                               int*        actual_recv_src,
-                               na_tag_t*   actual_recv_tag)
+                               na_size_t*  actual_recvsize)
 {
     mona_request_t sendreq;
     na_return_t    na_ret;
 
-    na_ret = mona_comm_isend(comm, sendbuf, sendsize, dest, sendtag, &sendreq);
+    na_ret = mona_comm_irecv(comm, recvbuf, recvsize, source, recvtag,
+                             actual_recvsize, &sendreq);
     if (na_ret != NA_SUCCESS) return na_ret;
 
-    na_ret = mona_comm_recv(comm, recvbuf, recvsize, source, recvtag,
-                            actual_recvsize, actual_recv_src, actual_recv_tag);
+    na_ret = mona_comm_send(comm, sendbuf, sendsize, dest, sendtag);
+
     if (na_ret != NA_SUCCESS) {
         mona_wait(sendreq);
         return na_ret;
@@ -285,8 +264,7 @@ na_return_t mona_comm_barrier(mona_comm_t comm, na_tag_t tag)
     while (mask < size) {
         dst    = (rank + mask) % size;
         src    = (rank - mask + size) % size;
-        na_ret = mona_comm_sendrecv(comm, NULL, 0, dst, tag, NULL, 0, src, tag,
-                                    NULL, NULL, NULL);
+        na_ret = mona_comm_sendrecv(comm, NULL, 0, dst, tag, NULL, 0, src, tag, NULL);
         if (na_ret) break;
         mask <<= 1;
     }
@@ -348,7 +326,7 @@ na_return_t mona_comm_bcast(
             src = rank - mask;
             if (src < 0) src += comm_size;
             na_ret
-                = mona_comm_recv(comm, buf, size, src, tag, NULL, NULL, NULL);
+                = mona_comm_recv(comm, buf, size, src, tag, NULL);
             if (na_ret != NA_SUCCESS) { return na_ret; }
             break;
         }
@@ -483,7 +461,7 @@ na_return_t mona_comm_gather(mona_comm_t comm,
                 continue;
             }
             na_ret = mona_comm_irecv(comm, (char*)recvbuf + i * size, size, i,
-                                     tag, NULL, NULL, NULL, reqs + i);
+                                     tag, NULL, reqs + i);
             if (na_ret != NA_SUCCESS) goto finish;
         }
         for (i = 0; i < comm_size; i++) {
@@ -574,8 +552,7 @@ na_return_t mona_comm_gatherv(mona_comm_t      comm,
             // recv from the other processes if the send account is not zero
             if (recvsizes[i] != 0) {
                 na_ret = mona_comm_irecv(comm, (char*)recvbuf + offsets[i],
-                                         recvsizes[i], i, tag, NULL, NULL, NULL,
-                                         reqs + i);
+                                         recvsizes[i], i, tag, NULL, reqs + i);
                 if (na_ret != NA_SUCCESS) { goto finish; }
             }
         }
@@ -677,7 +654,7 @@ na_return_t mona_comm_scatter(mona_comm_t comm,
         }
     } else {
         na_ret
-            = mona_comm_recv(comm, recvbuf, size, root, tag, NULL, NULL, NULL);
+            = mona_comm_recv(comm, recvbuf, size, root, tag, NULL);
     }
 finish:
     free(reqs);
@@ -761,8 +738,7 @@ na_return_t mona_comm_scatterv(mona_comm_t      comm,
             if (na_ret != NA_SUCCESS) goto finish;
         }
     } else {
-        na_ret = mona_comm_recv(comm, recvbuf, recvsize, root, tag, NULL, NULL,
-                                NULL);
+        na_ret = mona_comm_recv(comm, recvbuf, recvsize, root, tag, NULL);
     }
 finish:
     free(reqs);
@@ -929,7 +905,7 @@ na_return_t mona_comm_reduce(mona_comm_t comm,
                 source = (source + lroot) % comm_size;
 
                 na_ret = mona_comm_recv(comm, tempSrc, typesize * count, source,
-                                        tag, NULL, NULL, NULL);
+                                        tag, NULL);
                 if (na_ret != NA_SUCCESS) { goto finish; }
                 // for the first iteration, the recv buffer have already stored
                 // the value from the send buffer
@@ -1094,31 +1070,36 @@ na_return_t mona_comm_alltoall(mona_comm_t comm,
     mona_request_t* reqs = malloc(comm_size * sizeof(*reqs));
 
     for (int i = 0; i < comm_size; i++) {
-        if (i == rank) {
-            reqs[i] = MONA_REQUEST_NULL;
-            continue;
-        }
-        sendaddr = (char*)sendbuf + i * blocksize;
-        na_ret   = mona_comm_isend(comm, sendaddr, blocksize, i, tag, reqs + i);
-        if (na_ret != NA_SUCCESS) goto finish;
-    }
-
-    for (int i = 0; i < comm_size; i++) {
         recvaddr = (char*)recvbuf + i * blocksize;
         if (i == rank) {
             sendaddr = (char*)sendbuf + i * blocksize;
             memcpy(recvaddr, sendaddr, blocksize);
             continue;
         }
-        na_ret = mona_comm_recv(comm, recvaddr, blocksize, i, tag, NULL, NULL,
-                                NULL);
-        if (na_ret != NA_SUCCESS) goto finish;
+        na_ret = mona_comm_irecv(comm, recvaddr, blocksize, i, tag, NULL, reqs + i);
+        if (na_ret != NA_SUCCESS) {
+            goto finish;
+        }
+    }
+
+    for (int i = 0; i < comm_size; i++) {
+        if (i == rank) {
+            reqs[i] = MONA_REQUEST_NULL;
+            continue;
+        }
+        sendaddr = (char*)sendbuf + i * blocksize;
+        na_ret   = mona_comm_send(comm, sendaddr, blocksize, i, tag);
+        if (na_ret != NA_SUCCESS) {
+            goto finish;
+        }
     }
 
     for (int i = 0; i < comm_size; i++) {
         if (i == rank) continue;
         na_ret = mona_wait(reqs[i]);
-        if (na_ret != NA_SUCCESS) goto finish;
+        if (na_ret != NA_SUCCESS) {
+            goto finish;
+        }
     }
 
 finish:
