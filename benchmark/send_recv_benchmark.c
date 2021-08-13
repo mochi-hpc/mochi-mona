@@ -136,6 +136,159 @@ static void run_mona_benchmark(options_t* options) {
             options->iterations, options->msg_size, (t_end-t_start));
 }
 
+struct na_benchmark_state {
+    int           rank;
+    na_class_t*   na_class;
+    na_context_t* na_context;
+    na_size_t     header_size;
+    na_size_t     max_msg_size;
+    na_addr_t     peer_addr;
+    na_op_id_t*   op_id;
+    na_size_t     data_size;
+    char*         data;
+    char*         msg;
+    void*         plugin_data;
+    na_bool_t     should_stop;
+    uint64_t      remaining;
+};
+
+static int na_send_cb(const struct na_cb_info* info);
+static int na_recv_cb(const struct na_cb_info* info);
+
+static void na_post_send(struct na_benchmark_state* state) {
+    na_return_t ret;
+    int rank = state->rank;
+    na_size_t msg_size = state->data_size + state->header_size;
+    if(msg_size > state->max_msg_size)
+        msg_size = state->max_msg_size;
+    ret = NA_Msg_init_expected(state->na_class, state->msg, state->data_size + state->header_size);
+    ASSERT_MESSAGE(ret == NA_SUCCESS, "NA_Msg_init_expected failed");
+    ret = NA_Msg_send_expected(state->na_class, state->na_context, na_send_cb, state,
+                               state->msg, msg_size, state->plugin_data, state->peer_addr,
+                               0, 0, state->op_id);
+    ASSERT_MESSAGE(ret == NA_SUCCESS, "NA_Msg_send_expected failed");
+}
+
+static void na_post_recv(struct na_benchmark_state* state) {
+    na_return_t ret;
+    int rank = state->rank;
+    na_size_t msg_size = state->data_size + state->header_size;
+    if(msg_size > state->max_msg_size)
+        msg_size = state->max_msg_size;
+    ret = NA_Msg_init_expected(state->na_class, state->msg, state->data_size + state->header_size);
+    ASSERT_MESSAGE(ret == NA_SUCCESS, "NA_Msg_init_expected failed");
+    ret = NA_Msg_recv_expected(state->na_class, state->na_context, na_recv_cb, state,
+                               state->msg, msg_size, state->plugin_data, state->peer_addr,
+                               0, 0, state->op_id);
+    ASSERT_MESSAGE(ret == NA_SUCCESS, "NA_Msg_recv_expected failed");
+}
+
+static int na_send_cb(const struct na_cb_info* info) {
+    struct na_benchmark_state* state = (struct na_benchmark_state*)info->arg;
+    state->remaining -= 1;
+    if(state->remaining > 0) {
+        na_post_recv(state);
+    } else {
+        state->should_stop = NA_TRUE;
+    }
+}
+
+static int na_recv_cb(const struct na_cb_info* info) {
+    struct na_benchmark_state* state = (struct na_benchmark_state*)info->arg;
+    state->remaining -= 1;
+    if(state->remaining > 0) {
+        na_post_send(state);
+    } else {
+        state->should_stop = NA_TRUE;
+    }
+}
+
+static void run_na_benchmark(options_t* options) {
+
+    na_return_t ret;
+    double t_start, t_end;
+    struct na_benchmark_state state = {0};
+    MPI_Comm_rank(MPI_COMM_WORLD, &state.rank);
+    int rank = state.rank;
+
+    struct na_init_info info = {0};
+    if(options->no_wait)
+        info.progress_mode = NA_NO_BLOCK;
+
+    state.na_class = NA_Initialize_opt(options->transport, NA_TRUE, &info);
+    ASSERT_MESSAGE(state.na_class, "Could not initialize NA class");
+
+    state.na_context = NA_Context_create(state.na_class);
+    ASSERT_MESSAGE(state.na_context, "Could not initialize NA context");
+
+    char addr_str[128];
+    na_size_t addr_size = 128;
+    na_addr_t addr = NA_ADDR_NULL;
+    ret = NA_Addr_self(state.na_class, &addr);
+    ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not get self address");
+
+    ret = NA_Addr_to_string(state.na_class, addr_str, &addr_size, addr);
+    ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not convert address to string");
+
+    ret = NA_Addr_free(state.na_class, addr);
+    ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not free address");
+
+    char other_addr_str[128];
+    MPI_Sendrecv(addr_str, 128, MPI_BYTE, (rank+1)%2, 0,
+                 other_addr_str, 128, MPI_BYTE, (rank+1)%2, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    ret = NA_Addr_lookup(state.na_class, other_addr_str, &addr);
+    ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not lookup address");
+
+    state.header_size  = NA_Msg_get_expected_header_size(state.na_class);
+    state.max_msg_size = NA_Msg_get_max_expected_size(state.na_class);
+    state.data         = malloc(options->msg_size);
+    state.remaining    = options->iterations;
+    state.data_size    = options->msg_size;
+    state.peer_addr    = addr;
+    state.op_id        = NA_Op_create(state.na_class);
+    state.msg          = NA_Msg_buf_alloc(state.na_class, state.max_msg_size, &state.plugin_data);
+
+    // benchmark
+    MPI_Barrier(MPI_COMM_WORLD);
+    t_start = MPI_Wtime();
+
+    if(rank == 0) {
+        na_post_send(&state);
+    } else {
+        na_post_recv(&state);
+    }
+
+    while(!state.should_stop) {
+        unsigned int actual_count;
+        do {
+            ret = NA_Trigger(state.na_context, 0, 1, NULL, &actual_count);
+        } while((ret == NA_SUCCESS) && actual_count && !state.should_stop);
+
+        ret = NA_Progress(state.na_class, state.na_context, 0);
+        ASSERT_MESSAGE(ret == NA_SUCCESS || ret == NA_TIMEOUT,
+            "NA_Progress failed");
+    }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    t_end = MPI_Wtime();
+
+    free(state.data);
+    ret = NA_Op_destroy(state.na_class, state.op_id);
+    ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not destroy operation id");
+    ret = NA_Msg_buf_free(state.na_class, state.msg, state.plugin_data);
+    ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not free message buffer");
+    ret = NA_Addr_free(state.na_class, addr);
+    ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not free address");
+
+    NA_Context_destroy(state.na_class, state.na_context);
+    NA_Finalize(state.na_class);
+
+    if(rank == 0) printf("MoNA: %d send/recv pairs of %d bytes executed in %lf sec\n",
+            options->iterations, options->msg_size, (t_end-t_start));
+}
+
 static void parse_options(int argc, char** argv, options_t* options) {
 
     int c;
@@ -212,6 +365,8 @@ int main(int argc, char** argv) {
         run_mpi_benchmark(&options);
     } else if(options.method && strcmp(options.method, "mona") == 0) {
         run_mona_benchmark(&options);
+    } else if(options.method && strcmp(options.method, "na") == 0) {
+        run_na_benchmark(&options);
     } else {
         if(rank == 0) {
             fprintf(stderr, "Unknown benchmark method %s\n", options.method);
