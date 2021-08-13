@@ -18,6 +18,7 @@ typedef struct options_t {
     unsigned iterations;
     unsigned msg_size;
     na_bool_t use_progress_thread;
+    na_bool_t no_wait;
     na_size_t rdma_threshold;
 } options_t;
 
@@ -68,7 +69,11 @@ static void run_mona_benchmark(options_t* options) {
     unsigned i;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    mona_instance_t mona = mona_init_thread(options->transport, NA_TRUE, NULL, options->use_progress_thread);
+    struct na_init_info info = {0};
+    if(options->no_wait)
+        info.progress_mode = NA_NO_BLOCK;
+
+    mona_instance_t mona = mona_init_thread(options->transport, NA_TRUE, &info, options->use_progress_thread);
     ASSERT_MESSAGE(mona != MONA_INSTANCE_NULL, "Could not initialize Mona instance");
 
     mona_hint_set_rdma_threshold(mona, options->rdma_threshold);
@@ -84,7 +89,6 @@ static void run_mona_benchmark(options_t* options) {
 
     ret = mona_addr_free(mona, addr);
     ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not free address");
-
 
     char other_addr_str[128];
     MPI_Sendrecv(addr_str, 128, MPI_BYTE, (rank+1)%2, 0,
@@ -141,9 +145,10 @@ static void parse_options(int argc, char** argv, options_t* options) {
     options->transport = (char*)default_transport;
     options->method = NULL;
     options->use_progress_thread = NA_FALSE;
+    options->no_wait = NA_FALSE;
     options->rdma_threshold = (na_size_t)(-1);
 
-    while((c = getopt(argc, argv, "r:i:s:m:t:p")) != -1) {
+    while((c = getopt(argc, argv, "r:i:s:m:t:pn")) != -1) {
         switch (c)
         {
             case 'i':
@@ -163,6 +168,9 @@ static void parse_options(int argc, char** argv, options_t* options) {
                 break;
             case 'r':
                 options->rdma_threshold = atoi(optarg);
+                break;
+            case 'n':
+                options->no_wait = NA_TRUE;
                 break;
             case '?':
                 if(optopt == 'i' || optopt == 's' || optopt == 'm' || optopt == 'r')
