@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
 
     if(rank == 0) {
         MPI_Recv(addr_str, 128, MPI_CHAR, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        
+
         ret = mona_addr_lookup(mona, addr_str, &addr);
         ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not lookup address");
 
@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
 
     } else {
         MPI_Send(addr_str, 128, MPI_CHAR, 0, 0, MPI_COMM_WORLD);
-        
+
         na_addr_t source_addr = NA_ADDR_NULL;
         na_tag_t  tag = 0;
         na_size_t actual_size = 0;

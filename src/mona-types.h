@@ -66,11 +66,16 @@ typedef struct mona_instance {
         ABT_cond      pending_msg_cv;
         na_bool_t     pending_msg_queue_active; // a thread is queuing messages
     } unexpected;
+    // expected send/recv data
     struct {
         // message cache for high-level functions
         cached_msg_t msg_cache;
         ABT_mutex    msg_cache_mtx;
     } expected;
+    // hints
+    struct {
+        na_size_t rdma_threshold;
+    } hints;
 } mona_instance;
 
 typedef struct mona_request {

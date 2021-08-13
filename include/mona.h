@@ -464,12 +464,12 @@ na_return_t mona_irecv_nc(mona_instance_t  mona,
  * @return NA_SUCCESS or corresponding NA error code
  */
 na_return_t mona_recv_mem(mona_instance_t mona,
-                           na_mem_handle_t mem,
-                           na_size_t       size,
-                           na_size_t       offset,
-                           na_addr_t       src,
-                           na_tag_t        tag,
-                           na_size_t*      actual_size);
+                          na_mem_handle_t mem,
+                          na_size_t       size,
+                          na_size_t       offset,
+                          na_addr_t       src,
+                          na_tag_t        tag,
+                          na_size_t*      actual_size);
 
 /**
  * @see Non-blocking version of mona_recv_mem.
@@ -1417,6 +1417,19 @@ int mona_test(mona_request_t req, int* flag);
  * @return NA_SUCCESS or corresponding NA error code
  */
 na_return_t mona_wait_any(size_t count, mona_request_t* reqs, size_t* index);
+
+/**
+ * @brief Set the size of messages beyond which Mona will rely on
+ * RDMA instead of messages when sending data. Note that Mona will rely
+ * on RDMA regardless of this value for messages beyond the max message
+ * size of the NA layer used.
+ *
+ * @param mona Mona instance.
+ * @param threshold Threshold.
+ *
+ * @return NA_SUCCESS or corresponding NA error code
+ */
+na_return_t mona_hint_set_rdma_threshold(mona_instance_t mona, na_size_t threshold);
 
 #ifdef __cplusplus
 }

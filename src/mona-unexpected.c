@@ -79,17 +79,22 @@ na_return_t mona_usend_nc(mona_instance_t    mona,
                           na_uint8_t         dest_id,
                           na_tag_t           tag)
 {
-    na_return_t     na_ret     = NA_SUCCESS;
-    na_mem_handle_t mem_handle = NA_MEM_HANDLE_NULL;
-    na_size_t       msg_size   = mona_msg_get_unexpected_header_size(mona) + 1;
-    na_size_t       data_size  = 0;
-    cached_msg_t    msg        = get_msg_from_cache(mona, NA_FALSE);
+    na_return_t     na_ret      = NA_SUCCESS;
+    na_mem_handle_t mem_handle  = NA_MEM_HANDLE_NULL;
+    na_size_t       header_size = mona_msg_get_unexpected_header_size(mona) + 1;
+    na_size_t       msg_size    = header_size;
+    na_size_t       data_size   = 0;
+    cached_msg_t    msg         = get_msg_from_cache(mona, NA_FALSE);
     unsigned        i;
 
     for (i = 0; i < count; i++) { data_size += buf_sizes[i]; }
     msg_size += data_size;
 
-    if (msg_size <= mona_msg_get_max_unexpected_size(mona)) {
+#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+    na_size_t rdma_threshold = MIN(mona_msg_get_max_unexpected_size(mona),
+                                   mona->hints.rdma_threshold);
+
+    if (msg_size <= rdma_threshold) {
 
         na_ret = mona_msg_init_unexpected(mona, msg->buffer, msg_size);
         if (na_ret != NA_SUCCESS) goto finish;

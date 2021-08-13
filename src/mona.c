@@ -149,7 +149,8 @@ mona_instance_t mona_init_na_pool(na_class_t*   na_class,
     mona->unexpected.msg_cache_mtx    = ABT_MUTEX_NULL;
     mona->unexpected.pending_msg_mtx  = ABT_MUTEX_NULL;
     mona->unexpected.pending_msg_cv   = ABT_COND_NULL;
-    mona->expected.msg_cache_mtx    = ABT_MUTEX_NULL;
+    mona->expected.msg_cache_mtx      = ABT_MUTEX_NULL;
+    mona->hints.rdma_threshold        = (na_size_t)(-1);
     ret                    = ABT_mutex_create(&(mona->op_id_cache_mtx));
     if (ret != ABT_SUCCESS) goto error;
     ret = ABT_mutex_create(&(mona->req_cache_mtx));
@@ -355,6 +356,16 @@ na_size_t mona_msg_get_expected_header_size(mona_instance_t mona)
 na_tag_t mona_msg_get_max_tag(mona_instance_t mona)
 {
     return NA_Msg_get_max_tag(mona->na_class)/2 - 1;
+}
+
+// ------------------------------------------------------------------------------------
+// Mona hint logic
+// ------------------------------------------------------------------------------------
+
+na_return_t mona_hint_set_rdma_threshold(mona_instance_t mona, na_size_t threshold)
+{
+    mona->hints.rdma_threshold = threshold;
+    return NA_SUCCESS;
 }
 
 // ------------------------------------------------------------------------------------
