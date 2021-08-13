@@ -161,6 +161,7 @@ static void na_post_send(struct na_benchmark_state* state) {
     na_size_t msg_size = state->data_size + state->header_size;
     if(msg_size > state->max_msg_size)
         msg_size = state->max_msg_size;
+    memcpy(state->msg + state->header_size, state->data, msg_size - state->header_size);
     ret = NA_Msg_init_expected(state->na_class, state->msg, state->data_size + state->header_size);
     ASSERT_MESSAGE(ret == NA_SUCCESS, "NA_Msg_init_expected failed");
     ret = NA_Msg_send_expected(state->na_class, state->na_context, na_send_cb, state,
@@ -196,6 +197,10 @@ static int na_send_cb(const struct na_cb_info* info) {
 static int na_recv_cb(const struct na_cb_info* info) {
     struct na_benchmark_state* state = (struct na_benchmark_state*)info->arg;
     state->remaining -= 1;
+    na_size_t to_copy = state->data_size;
+    if(to_copy > state->max_msg_size - state->header_size)
+        to_copy = state->max_msg_size - state->header_size;
+    memcpy(state->data, state->msg + state->header_size, to_copy);
     if(state->remaining > 0) {
         na_post_send(state);
     } else {
@@ -285,7 +290,7 @@ static void run_na_benchmark(options_t* options) {
     NA_Context_destroy(state.na_class, state.na_context);
     NA_Finalize(state.na_class);
 
-    if(rank == 0) printf("MoNA: %d send/recv pairs of %d bytes executed in %lf sec\n",
+    if(rank == 0) printf("NA: %d send/recv pairs of %d bytes executed in %lf sec\n",
             options->iterations, options->msg_size, (t_end-t_start));
 }
 
