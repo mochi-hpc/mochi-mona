@@ -111,7 +111,6 @@ na_return_t mona_send_nc(mona_instance_t    mona,
 
         na_ret = mona_msg_send_expected(mona, msg->buffer, msg_size,
                                         msg->plugin_data, dest, dest_id, tag*2);
-        fprintf(stderr, "mona_msg_send_expected returned %d\n", na_ret);
         if(na_ret != NA_SUCCESS) goto finish;
 
     } else {
