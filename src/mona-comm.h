@@ -15,6 +15,7 @@ typedef struct mona_comm {
     na_size_t       size;
     na_size_t       rank;
     na_addr_t*      addrs;
+    na_bool_t       use_unexpected_msg;
 } mona_comm;
 
 #define NB_OP_INIT(__argtype__)                                             \

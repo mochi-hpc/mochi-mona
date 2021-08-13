@@ -84,6 +84,17 @@ na_return_t mona_comm_size(mona_comm_t comm, int* size);
 na_return_t mona_comm_rank(mona_comm_t comm, int* rank);
 
 /**
+ * @brief Enable (or disable) the use of unexpected messages in collective
+ * communications.
+ *
+ * @param comm Communication.
+ * @param flag Whether to use unexpected messages.
+ *
+ * @return NA_SUCCESS or corresponding error code (see na.h)
+ */
+na_return_t mona_comm_set_use_unexpected_msg(mona_comm_t comm, na_bool_t flag);
+
+/**
  * @brief Get the address corresponding to a rank.
  * If copy is set to NA_TRUE, the address will be copied
  * and it is the caller's responsibility to free it.

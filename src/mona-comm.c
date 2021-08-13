@@ -62,6 +62,12 @@ error:
     goto finish;
 }
 
+na_return_t mona_comm_set_use_unexpected_msg(mona_comm_t comm, na_bool_t flag)
+{
+    comm->use_unexpected_msg = flag;
+    return NA_SUCCESS;
+}
+
 na_return_t mona_comm_free(mona_comm_t comm)
 {
     unsigned    i;
@@ -124,7 +130,11 @@ na_return_t mona_comm_send(
     mona_comm_t comm, const void* buf, na_size_t size, int dest, na_tag_t tag)
 {
     if (dest < 0 || (unsigned)dest >= comm->size) return NA_INVALID_ARG;
-    return mona_send(comm->mona, buf, size, comm->addrs[dest], 0, tag);
+    if(comm->use_unexpected_msg) {
+        return mona_usend(comm->mona, buf, size, comm->addrs[dest], 0, tag);
+    } else {
+        return mona_send(comm->mona, buf, size, comm->addrs[dest], 0, tag);
+    }
 }
 
 na_return_t mona_comm_isend(mona_comm_t     comm,
@@ -146,8 +156,12 @@ na_return_t mona_comm_recv(mona_comm_t comm,
                            na_size_t*  actual_size)
 {
     if (src < 0 || (unsigned)src >= comm->size) return NA_INVALID_ARG;
-    na_return_t na_ret = mona_recv(comm->mona, buf, size, comm->addrs[src], tag,
-                                   actual_size);
+    na_return_t na_ret;
+    if(comm->use_unexpected_msg) {
+        na_ret = mona_urecv(comm->mona, buf, size, comm->addrs[src], tag, actual_size, NULL, NULL);
+    } else {
+        na_ret = mona_recv(comm->mona, buf, size, comm->addrs[src], tag, actual_size);
+    }
     return na_ret;
 }
 
