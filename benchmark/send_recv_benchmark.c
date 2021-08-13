@@ -103,8 +103,10 @@ static void run_mona_benchmark(options_t* options) {
 
     // warm up
     if(rank % 2 == 0) {
+        mona_request_t req;
+        mona_irecv(mona, buf, options->msg_size, addr, 0, NULL, &req);
         mona_send(mona, buf, options->msg_size, addr, 0, 0);
-        mona_recv(mona, buf, options->msg_size, addr, 0, NULL);
+        mona_wait(req);
     } else {
         mona_recv(mona, buf, options->msg_size, addr, 0, NULL);
         mona_send(mona, buf, options->msg_size, addr, 0, 0);
