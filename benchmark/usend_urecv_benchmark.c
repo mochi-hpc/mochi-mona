@@ -18,6 +18,7 @@ typedef struct options_t {
     unsigned iterations;
     unsigned msg_size;
     na_bool_t use_progress_thread;
+    na_size_t rdma_threshold;
 } options_t;
 
 static void run_mpi_benchmark(options_t* options) {
@@ -69,6 +70,8 @@ static void run_mona_benchmark(options_t* options) {
 
     mona_instance_t mona = mona_init_thread(options->transport, NA_TRUE, NULL, options->use_progress_thread);
     ASSERT_MESSAGE(mona != MONA_INSTANCE_NULL, "Could not initialize Mona instance");
+
+    mona_hint_set_rdma_threshold(mona, options->rdma_threshold);
 
     char addr_str[128];
     na_size_t addr_size = 128;
@@ -138,8 +141,9 @@ static void parse_options(int argc, char** argv, options_t* options) {
     options->transport = (char*)default_transport;
     options->method = NULL;
     options->use_progress_thread = NA_FALSE;
+    options->rdma_threshold = (na_size_t)(-1);
 
-    while((c = getopt(argc, argv, "i:s:m:t:p")) != -1) {
+    while((c = getopt(argc, argv, "r:i:s:m:t:p")) != -1) {
         switch (c)
         {
             case 'i':
@@ -157,8 +161,11 @@ static void parse_options(int argc, char** argv, options_t* options) {
             case 'p':
                 options->use_progress_thread = NA_TRUE;
                 break;
+            case 'r':
+                options->rdma_threshold = atoi(optarg);
+                break;
             case '?':
-                if(optopt == 'i' || optopt == 's' || optopt == 'm')
+                if(optopt == 'i' || optopt == 's' || optopt == 'm' || optopt == 'r')
                     fprintf(stderr, "Option -%c requires an argument.\n", optopt);
                 else if(isprint (optopt))
                     fprintf(stderr, "Unknown option `-%c'.\n", optopt);

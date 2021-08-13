@@ -165,7 +165,7 @@ static void parse_options(int argc, char** argv, options_t* options) {
                 options->rdma_threshold = atoi(optarg);
                 break;
             case '?':
-                if(optopt == 'i' || optopt == 's' || optopt == 'm')
+                if(optopt == 'i' || optopt == 's' || optopt == 'm' || optopt == 'r')
                     fprintf(stderr, "Option -%c requires an argument.\n", optopt);
                 else if(isprint (optopt))
                     fprintf(stderr, "Unknown option `-%c'.\n", optopt);
