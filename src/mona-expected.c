@@ -606,7 +606,7 @@ na_return_t mona_recv_mem(mona_instance_t mona,
     recv_size = remote_data_size < size ? remote_data_size : size;
     if (recv_size) {
         na_ret
-            = mona_get(mona, mem, 0, remote_handle, 0, recv_size, src, 0);
+            = mona_get(mona, mem, offset, remote_handle, remote_offset, recv_size, src, 0);
         if (na_ret != NA_SUCCESS) goto finish;
     }
 

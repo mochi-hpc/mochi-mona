@@ -12,16 +12,17 @@
 // AllReduce
 // -----------------------------------------------------------------------
 
-na_return_t mona_comm_allreduce(mona_comm_t comm,
-                                const void* sendbuf,
-                                void*       recvbuf,
-                                na_size_t   typesize,
-                                na_size_t   count,
-                                mona_op_t   op,
-                                void*       uargs,
-                                na_tag_t    tag)
+static na_return_t reduce_bcast(
+        mona_comm_t comm,
+        const void* sendbuf,
+        void*       recvbuf,
+        na_size_t   typesize,
+        na_size_t   count,
+        mona_op_t   op,
+        void*       uargs,
+        na_tag_t    tag)
 {
-    // TODO this is a simplistic algorithm (reduce followed by bcasy),
+    // TODO this is a simplistic algorithm (reduce followed by bcast),
     // ideally we would want to implement the algorithms provided in Mpich
     // and even some designed specifically for Mona
 
@@ -35,6 +36,18 @@ na_return_t mona_comm_allreduce(mona_comm_t comm,
     // bcast
     na_ret = mona_comm_bcast(comm, recvbuf, typesize * count, root, tag);
     return na_ret;
+}
+
+na_return_t mona_comm_allreduce(mona_comm_t comm,
+                                const void* sendbuf,
+                                void*       recvbuf,
+                                na_size_t   typesize,
+                                na_size_t   count,
+                                mona_op_t   op,
+                                void*       uargs,
+                                na_tag_t    tag)
+{
+    return reduce_bcast(comm, sendbuf, recvbuf, typesize, count, op, uargs, tag);
 }
 
 typedef struct iallreduce_args {

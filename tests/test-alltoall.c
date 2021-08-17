@@ -103,6 +103,7 @@ static MunitResult test_alltoall(const MunitParameter params[], void* data)
     int r;
     for(r = 0; r < size; r++) {
         for(i = 0; i < 8096; i++) {
+            fprintf(stderr, "r = %d, i = %d\n", r, i);
             munit_assert_int(recv_buf[r*8096 + i], ==, r + size*rank);
         }
     }
@@ -118,7 +119,7 @@ static MunitTest test_suite_tests[] = {
     { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL }
 };
 
-static const MunitSuite test_suite = { 
+static const MunitSuite test_suite = {
     (char*) "/mona/collectives", test_suite_tests, NULL, 1, MUNIT_SUITE_OPTION_NONE
 };
 

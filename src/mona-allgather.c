@@ -12,11 +12,12 @@
 // AllGather
 // -----------------------------------------------------------------------
 
-na_return_t mona_comm_allgather(mona_comm_t comm,
-                                const void* sendbuf,
-                                na_size_t   size,
-                                void*       recvbuf,
-                                na_tag_t    tag)
+static na_return_t mona_comm_allgather_gather_bcast(
+        mona_comm_t comm,
+        const void* sendbuf,
+        na_size_t   size,
+        void*       recvbuf,
+        na_tag_t    tag)
 {
     // TODO use a smarter algorithm
     na_return_t na_ret;
@@ -28,6 +29,17 @@ na_return_t mona_comm_allgather(mona_comm_t comm,
     na_ret = mona_comm_bcast(comm, recvbuf, comm_size * size, 0, tag);
 
     return na_ret;
+}
+
+na_return_t mona_comm_allgather(mona_comm_t comm,
+                                const void* sendbuf,
+                                na_size_t   size,
+                                void*       recvbuf,
+                                na_tag_t    tag)
+{
+    return mona_comm_allgather_gather_bcast(
+            comm, sendbuf,
+            size, recvbuf, tag);
 }
 
 typedef struct iallgather_args {
