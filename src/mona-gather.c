@@ -17,8 +17,8 @@ na_return_t mona_comm_gather(mona_comm_t comm,
                              na_tag_t    tag)
 {
     na_return_t     na_ret    = NA_SUCCESS;
-    int             comm_size = comm->size;
-    int             rank      = comm->rank;
+    int             comm_size = comm->all.size;
+    int             rank      = comm->all.rank;
     int             i;
     mona_request_t* reqs = NULL;
 
@@ -103,8 +103,8 @@ na_return_t mona_comm_gatherv(mona_comm_t      comm,
                               na_tag_t         tag)
 {
     na_return_t     na_ret    = NA_SUCCESS;
-    int             comm_size = comm->size;
-    int             rank      = comm->rank;
+    int             comm_size = comm->all.size;
+    int             rank      = comm->all.rank;
     mona_request_t* reqs      = NULL;
     int             i;
 

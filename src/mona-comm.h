@@ -10,11 +10,18 @@
 #include "mona-coll.h"
 #include <string.h>
 
+typedef struct mona_team {
+    na_size_t  size;
+    na_size_t  rank;
+    na_addr_t* addrs;
+} mona_team_t;
+
 typedef struct mona_comm {
     mona_instance_t mona;
-    na_size_t       size;
-    na_size_t       rank;
-    na_addr_t*      addrs;
+    mona_team_t     all;
+    mona_team_t     leaders;
+    mona_team_t     local;
+    na_bool_t       is_leader;
     na_bool_t       use_unexpected_msg;
 } mona_comm;
 

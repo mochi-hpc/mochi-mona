@@ -22,8 +22,8 @@ na_return_t mona_comm_scatter(mona_comm_t comm,
     // TODO use try something more efficient like binomial
     int             i;
     na_return_t     na_ret    = NA_SUCCESS;
-    int             comm_size = comm->size;
-    int             rank      = comm->rank;
+    int             comm_size = comm->all.size;
+    int             rank      = comm->all.rank;
     mona_request_t* reqs      = NULL;
 
     if (root == rank) {
@@ -105,8 +105,8 @@ na_return_t mona_comm_scatterv(mona_comm_t      comm,
     // TODO use try something more efficient like binomial
     int             i;
     na_return_t     na_ret    = NA_SUCCESS;
-    int             comm_size = comm->size;
-    int             rank      = comm->rank;
+    int             comm_size = comm->all.size;
+    int             rank      = comm->all.rank;
     mona_request_t* reqs      = NULL;
 
     if (root == rank) {

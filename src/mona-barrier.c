@@ -12,8 +12,8 @@
 na_return_t mona_comm_barrier(mona_comm_t comm, na_tag_t tag)
 {
     int size, rank, src, dst, mask;
-    size               = (int)comm->size;
-    rank               = (int)comm->rank;
+    size               = (int)comm->all.size;
+    rank               = (int)comm->all.rank;
     na_return_t na_ret = NA_SUCCESS;
 
     if (size == 1) return na_ret;

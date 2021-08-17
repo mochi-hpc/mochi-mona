@@ -35,8 +35,8 @@ na_return_t mona_comm_reduce(mona_comm_t comm,
 
     if (count == 0) return na_ret;
 
-    comm_size = comm->size;
-    rank      = comm->rank;
+    comm_size = comm->all.size;
+    rank      = comm->all.rank;
 
     // only support commutative operation for the current implementation
 

@@ -20,7 +20,7 @@ na_return_t mona_comm_allgather(mona_comm_t comm,
 {
     // TODO use a smarter algorithm
     na_return_t na_ret;
-    int         comm_size = comm->size;
+    int         comm_size = comm->all.size;
 
     na_ret = mona_comm_gather(comm, sendbuf, size, recvbuf, 0, tag);
     if (na_ret != NA_SUCCESS) { return na_ret; }

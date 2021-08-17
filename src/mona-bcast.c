@@ -16,8 +16,8 @@ na_return_t mona_comm_bcast(
     int         relative_rank, mask;
     na_return_t na_ret;
 
-    comm_size = comm->size;
-    rank      = comm->rank;
+    comm_size = comm->all.size;
+    rank      = comm->all.rank;
 
     // If there is only one process, return
     if (comm_size == 1) return NA_SUCCESS;
