@@ -12,11 +12,11 @@
 // AllToAll
 // -----------------------------------------------------------------------
 
-na_return_t mona_comm_alltoall(mona_comm_t comm,
-                               const void* sendbuf,
-                               na_size_t   blocksize,
-                               void*       recvbuf,
-                               na_tag_t    tag)
+static na_return_t alltoall_mem(mona_comm_t comm,
+                                const void* sendbuf,
+                                na_size_t   blocksize,
+                                void*       recvbuf,
+                                na_tag_t    tag)
 {
     mona_team_t* team     = &comm->all;
     na_return_t na_ret    = NA_SUCCESS;
@@ -93,6 +93,73 @@ finish:
     }
     free(reqs);
     return na_ret;
+}
+
+static na_return_t alltoall(mona_comm_t comm,
+                            const void* sendbuf,
+                            na_size_t   blocksize,
+                            void*       recvbuf,
+                            na_tag_t    tag)
+{
+    mona_team_t* team     = &comm->all;
+    na_return_t na_ret    = NA_SUCCESS;
+    int         comm_size = team->size;
+    int         rank      = team->rank;
+    na_size_t   offset    = 0;
+
+    mona_request_t* reqs = malloc(2 * comm_size * sizeof(*reqs));
+
+    for (int i = 0; i < comm_size; i++) {
+        offset = i * blocksize;
+        if (i == rank) {
+            memcpy(recvbuf + offset, sendbuf + offset, blocksize);
+            reqs[i] = MONA_REQUEST_NULL;
+            continue;
+        }
+        char* recvaddr = (char*)recvbuf + offset;
+        MONA_COMM_IRECV(na_ret, comm, team,
+                        recvaddr, blocksize,
+                        i, tag, NULL, reqs + i);
+        if (na_ret != NA_SUCCESS) {
+            goto finish;
+        }
+    }
+
+    for (int i = 0; i < comm_size; i++) {
+        offset = i * blocksize;
+        if (i == rank) {
+            reqs[comm_size + i] = MONA_REQUEST_NULL;
+            continue;
+        }
+        char* sendaddr = (char*)sendbuf + offset;
+        MONA_COMM_ISEND(na_ret, comm, team,
+                        sendaddr, blocksize,
+                        i, tag, reqs + comm_size + i);
+        if (na_ret != NA_SUCCESS) {
+            goto finish;
+        }
+    }
+
+    for (int i = 0; i < 2 * comm_size; i++) {
+        if (reqs[i] == MONA_REQUEST_NULL) continue;
+        na_ret = mona_wait(reqs[i]);
+        if (na_ret != NA_SUCCESS) {
+            goto finish;
+        }
+    }
+
+finish:
+    free(reqs);
+    return na_ret;
+}
+
+na_return_t mona_comm_alltoall(mona_comm_t comm,
+                               const void* sendbuf,
+                               na_size_t   blocksize,
+                               void*       recvbuf,
+                               na_tag_t    tag)
+{
+    return alltoall(comm, sendbuf, blocksize, recvbuf, tag);
 }
 
 typedef struct ialltoall_args {

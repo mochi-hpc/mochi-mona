@@ -21,7 +21,7 @@ typedef struct mona_comm {
     mona_team_t     all;
     mona_team_t     leaders;
     mona_team_t     local;
-    na_bool_t       is_leader;
+    na_size_t       leader_rank; // rank of local leader in "all"
     na_bool_t       use_unexpected_msg;
 } mona_comm;
 

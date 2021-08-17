@@ -5,93 +5,17 @@
  */
 #include "mona-comm.h"
 
-#if 0
-static na_return_t setup_teams(mona_comm_t comm) {
-    na_return_t na_ret = NA_SUCCESS;
-    char** known_nodes = calloc(sizeof(char*), comm->all.size);
-    na_size_t* team_leaders = calloc(sizeof(na_size_t), comm->all.size);
-    na_size_t num_nodes = 0;
-    char addr_str[256];
-    char self_addr_str = 256;
-    na_size_t addr_str_size;
-
-    comm->teams.count      = 0;
-    comm->teams.id         = 0;
-    comm->teams.leaders    = NULL;
-    comm->teams.is_leader  = NA_FALSE;
-    comm->teams.team_ranks = NULL;
-    comm->teams.team_size  = 0;
-
-    na_ret = mona_addr_to_string(comm->mona, addr_str, &addr_str_size, comm->all.addrs[comm->all.rank]);
-    if(na_ret != NA_SUCCESS) goto error;
-    char* column = strrchr(addr_str, ':');
-    if(column) *column = '\0';
-
-    for(na_size_t i = 0; i < comm->all.size; i++) {
-        addr_str_size = 256;
-        na_ret = mona_addr_to_string(comm->mona, addr_str, &addr_str_size, comm->all.addrs[i]);
-        if(na_ret != NA_SUCCESS) goto error;
-        // remove port number from address
-        column = strrchr(addr_str, ':');
-        if(column) *column = '\0';
-        // check if the node address is know
-        na_bool_t is_known = NA_FALSE;
-        for(na_size_t j = 0; j < num_nodes; j++) {
-            if(strcmp(addr_str, known_nodes[num_nodes-1]) == 0) {
-                is_known = NA_TRUE;
-                break;
-            }
-        }
-        // if it's a new node
-        if(!is_known) {
-            // add to known nodes
-            known_nodes[num_nodes] = strdup(addr_str);
-            team_leaders[num_nodes] = i;
-            num_nodes += 1;
-            if(i == comm->all.rank) {
-                comm->teams.is_leader = NA_TRUE;
-            }
-        }
-        // if it's in the same node as this process
-        if(strcmp(self_addr_str, addr_str) == 0) {
-            // add to the list of ranks
-            comm->teams.team_size += 1;
-            comm->teams.team_ranks = realloc(comm->teams.team_ranks,
-                    comm->teams.team_size*sizeof(na_size_t));
-            comm->teams.team_ranks[comm->teams.team_size-1] = i;
-        }
-    }
-
-    comm->teams.leaders = realloc(team_leaders, num_nodes*sizeof(na_size_t));
-    comm->teams.count = num_nodes;
-
-finish:
-    for(na_size_t i = 0; i < comm->all.size; i++) {
-        if(known_nodes[i])
-            free(known_nodes[i]);
-        else
-            break;
-    }
-    free(known_nodes);
-    return na_ret;
-error:
-    free(comm->teams.team_ranks);
-    free(team_leaders);
-    goto finish;
-}
-#endif
-
 static na_return_t setup_teams(mona_comm_t comm) {
     na_return_t na_ret = NA_SUCCESS;
     char** known_nodes = calloc(sizeof(char*), comm->all.size);
 
-    comm->leaders.size = 0;
-    comm->leaders.rank = 0;
+    comm->leaders.size  = 0;
+    comm->leaders.rank  = 0;
     comm->leaders.addrs = calloc(sizeof(na_addr_t), comm->all.size);
-    comm->local.size = 0;
-    comm->local.rank = 0;
-    comm->local.addrs = calloc(sizeof(na_addr_t), comm->all.size);
-    comm->is_leader = NA_FALSE;
+    comm->local.size    = 0;
+    comm->local.rank    = 0;
+    comm->local.addrs   = calloc(sizeof(na_addr_t), comm->all.size);
+    comm->leader_rank   = 0;
 
     char addr_str[256];
     char self_addr_str[256];
@@ -122,7 +46,6 @@ static na_return_t setup_teams(mona_comm_t comm) {
             known_nodes[comm->leaders.size] = strdup(addr_str);
             comm->leaders.addrs[comm->leaders.size] = comm->all.addrs[i];
             if(i == comm->all.rank) {
-                comm->is_leader = NA_TRUE;
                 comm->leaders.rank = comm->leaders.size;
             }
             comm->leaders.size += 1;
@@ -132,6 +55,9 @@ static na_return_t setup_teams(mona_comm_t comm) {
             comm->local.addrs[comm->local.size] = comm->all.addrs[i];
             if(i == comm->all.rank) {
                 comm->local.rank = comm->local.size;
+            }
+            if(!is_known) {
+                comm->leader_rank = i;
             }
             comm->local.size += 1;
         }
