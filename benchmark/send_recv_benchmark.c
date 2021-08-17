@@ -255,6 +255,10 @@ static void run_na_benchmark(options_t* options) {
     state.op_id        = NA_Op_create(state.na_class);
     state.msg          = NA_Msg_buf_alloc(state.na_class, state.max_msg_size, &state.plugin_data);
 
+    if(state.data_size > state.max_msg_size) {
+        t_start = t_end = 0;
+        goto finish;
+    }
     // benchmark
     MPI_Barrier(MPI_COMM_WORLD);
     t_start = MPI_Wtime();
@@ -275,9 +279,10 @@ static void run_na_benchmark(options_t* options) {
         ASSERT_MESSAGE(ret == NA_SUCCESS || ret == NA_TIMEOUT,
             "NA_Progress failed");
     }
-
     MPI_Barrier(MPI_COMM_WORLD);
     t_end = MPI_Wtime();
+
+finish:
 
     free(state.data);
     ret = NA_Op_destroy(state.na_class, state.op_id);
