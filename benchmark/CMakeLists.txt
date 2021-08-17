@@ -7,6 +7,9 @@ target_link_libraries (mona-send-recv-benchmark mona MPI::MPI_C)
 add_executable (mona-allreduce-benchmark ${CMAKE_CURRENT_SOURCE_DIR}/allreduce_benchmark.c)
 target_link_libraries (mona-allreduce-benchmark mona MPI::MPI_C)
 
+add_executable (mona-reduce-benchmark ${CMAKE_CURRENT_SOURCE_DIR}/reduce_benchmark.c)
+target_link_libraries (mona-reduce-benchmark mona MPI::MPI_C)
+
 add_executable (mona-bcast-benchmark ${CMAKE_CURRENT_SOURCE_DIR}/bcast_benchmark.c)
 target_link_libraries (mona-bcast-benchmark mona MPI::MPI_C)
 
@@ -24,6 +27,8 @@ install (TARGETS mona-usend-urecv-benchmark
 install (TARGETS mona-send-recv-benchmark
          DESTINATION bin)
 install (TARGETS mona-allreduce-benchmark
+         DESTINATION bin)
+install (TARGETS mona-reduce-benchmark
          DESTINATION bin)
 install (TARGETS mona-bcast-benchmark
          DESTINATION bin)
