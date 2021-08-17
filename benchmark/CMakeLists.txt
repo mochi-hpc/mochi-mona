@@ -22,6 +22,9 @@ target_link_libraries (mona-scatter-benchmark mona MPI::MPI_C)
 add_executable (mona-gather-benchmark ${CMAKE_CURRENT_SOURCE_DIR}/gather_benchmark.c)
 target_link_libraries (mona-gather-benchmark mona MPI::MPI_C)
 
+add_executable (mona-alltoall-benchmark ${CMAKE_CURRENT_SOURCE_DIR}/alltoall_benchmark.c)
+target_link_libraries (mona-alltoall-benchmark mona MPI::MPI_C)
+
 install (TARGETS mona-usend-urecv-benchmark
          DESTINATION bin)
 install (TARGETS mona-send-recv-benchmark
@@ -37,4 +40,6 @@ install (TARGETS mona-allgather-benchmark
 install (TARGETS mona-scatter-benchmark
          DESTINATION bin)
 install (TARGETS mona-gather-benchmark
+         DESTINATION bin)
+install (TARGETS mona-alltoall-benchmark
          DESTINATION bin)
