@@ -537,6 +537,14 @@ na_return_t mona_comm_ialltoall(mona_comm_t     comm,
                                 mona_request_t* req);
 
 /**
+ * @brief Set the desired radix for reduce operations.
+ *
+ * @param comm Communicator
+ * @param radix Radix
+ */
+na_return_t mona_hint_set_reduce_radix(mona_comm_t comm, uint32_t radix);
+
+/**
  * @brief List of built-in operations for mona_comm_{i}{all}reduce.
  * The suffix of the operation indicates the type of data it operates on
  * (u64 = uint64_t, i32 = int32_t, f32 = float, f64 = double, etc.)

@@ -17,6 +17,8 @@ static na_return_t setup_teams(mona_comm_t comm) {
     comm->local.addrs   = calloc(sizeof(na_addr_t), comm->all.size);
     comm->leader_rank   = 0;
 
+    comm->hints.reduce_radix = 2;
+
     char addr_str[256];
     char self_addr_str[256];
     na_size_t addr_str_size = 256;

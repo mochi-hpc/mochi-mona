@@ -12,16 +12,18 @@
 // Reduce
 // -----------------------------------------------------------------------
 
-na_return_t mona_comm_reduce(mona_comm_t comm,
-                             const void* sendbuf,
-                             void*       recvbuf,
-                             na_size_t   typesize,
-                             na_size_t   count,
-                             mona_op_t   op,
-                             void*       uargs,
-                             int         root,
-                             na_tag_t    tag)
+static na_return_t binary_tree_reduce(
+        mona_comm_t comm,
+        const void* sendbuf,
+        void*       recvbuf,
+        na_size_t   typesize,
+        na_size_t   count,
+        mona_op_t   op,
+        void*       uargs,
+        int         root,
+        na_tag_t    tag)
 {
+
     // TODO the bellow algorithm is a binomial algorithm.
     // We should try implementing the reduce_scatter_gather algorithm,
     // for large data sizes, and also enable n-ary trees instead of
@@ -94,6 +96,105 @@ finish:
     return na_ret;
 }
 
+static na_return_t radix_k_tree_reduce(
+        int32_t    k,
+        mona_comm_t comm,
+        const void* sendbuf,
+        void*       recvbuf,
+        na_size_t   typesize,
+        na_size_t   count,
+        mona_op_t   op,
+        void*       uargs,
+        int         root,
+        na_tag_t    tag)
+{
+    na_return_t na_ret = NA_SUCCESS;
+    int         comm_size, rank, rel_rank;
+
+    comm_size = comm->all.size;
+    rank      = comm->all.rank;
+    rel_rank  = (rank - root);
+    if(rel_rank < 0) rel_rank += comm_size;
+
+    if (count == 0 || comm_size == 1)
+        return na_ret;
+
+    char* tempBuf         = NULL;
+    mona_request_t* reqs  = NULL;
+    int   mallocRcvbuffer = 0;
+
+    tempBuf = (void*)malloc(typesize * count * (k-1));
+    reqs = (mona_request_t*)malloc(sizeof(*reqs)*(k-1));
+
+    // If I'm not the root, then my recvbuf may not be valid, therefore
+    // I have to allocate a temporary one
+    if (rank != root && recvbuf == NULL) {
+        mallocRcvbuffer = 1;
+        recvbuf         = (void*)malloc(typesize * count);
+    }
+    // recv buffer should be reinnitilized by sendBuffer if it is not the
+    // MONA_IN_PLACE for all ranks this aims to avoid the init value of the
+    // recvbuffer to influence the results
+    if ((rank != root) || sendbuf != MONA_IN_PLACE) {
+        memcpy(recvbuf, sendbuf, typesize * count);
+    }
+
+    int p = 1;
+    while(p < comm_size) {
+        int d = rel_rank % (p*k);
+        if(d == 0) {
+            for(int i = 1; i < (int)k; i++) {
+                int rel_src = rel_rank + i*p;
+                if(rel_src >= comm_size)
+                    break;
+                int src = (rel_src + root) % comm_size;
+                char* buf = tempBuf + (typesize * count * (i-1));
+                mona_request_t* req = reqs + (i-1);
+                na_ret = mona_comm_irecv(comm, buf, typesize * count, src, tag, NULL, req);
+                if (na_ret != NA_SUCCESS) { goto finish; }
+            }
+            for(int i = 1; i < (int)k; i++) {
+                int rel_src = rel_rank + i*p;
+                if(rel_src >= comm_size)
+                    break;
+                char* buf = tempBuf + (typesize * count * (i-1));
+                na_ret = mona_wait(reqs[i-1]);
+                if (na_ret != NA_SUCCESS) { goto finish; }
+                op(buf, recvbuf, typesize, count, uargs);
+            }
+        } else {
+            int rel_dest = rel_rank - d;
+            int dest = (rel_dest + root);
+            if(dest >= comm_size) dest -= comm_size;
+            na_ret = mona_comm_send(comm, recvbuf, typesize * count, dest, tag);
+            if (na_ret != NA_SUCCESS) { goto finish; }
+            break;
+        }
+        p *= k;
+    }
+
+finish:
+    if (tempBuf != NULL) { free(tempBuf); }
+    if (mallocRcvbuffer) { free(recvbuf); }
+    if (reqs != NULL) { free(reqs); }
+    return na_ret;
+}
+
+na_return_t mona_comm_reduce(mona_comm_t comm,
+                             const void* sendbuf,
+                             void*       recvbuf,
+                             na_size_t   typesize,
+                             na_size_t   count,
+                             mona_op_t   op,
+                             void*       uargs,
+                             int         root,
+                             na_tag_t    tag)
+{
+    return radix_k_tree_reduce(comm->hints.reduce_radix, comm,
+            sendbuf, recvbuf, typesize, count, op, uargs, root, tag);
+    //return binary_tree_reduce(comm, sendbuf, recvbuf, typesize, count, op, uargs, root, tag);
+}
+
 typedef struct ireduce_args {
     mona_comm_t    comm;
     const void*    sendbuf;
@@ -139,6 +240,13 @@ na_return_t mona_comm_ireduce(mona_comm_t     comm,
     args->root     = root;
     args->tag      = tag;
     NB_OP_POST(ireduce_thread);
+}
+
+na_return_t mona_hint_set_reduce_radix(mona_comm_t comm, uint32_t radix) {
+    if(radix < 2)
+        return NA_INVALID_ARG;
+    comm->hints.reduce_radix = radix;
+    return NA_SUCCESS;
 }
 
 #define DEFINE_MAX_OPERATOR(__name__, __type__)                       \

@@ -23,6 +23,9 @@ typedef struct mona_comm {
     mona_team_t     local;
     na_size_t       leader_rank; // rank of local leader in "all"
     na_bool_t       use_unexpected_msg;
+    struct {
+        uint32_t reduce_radix;
+    } hints;
 } mona_comm;
 
 #define NB_OP_INIT(__argtype__)                                             \

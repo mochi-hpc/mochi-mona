@@ -21,6 +21,7 @@ typedef struct options_t {
     na_bool_t use_progress_thread;
     na_bool_t no_wait;
     na_size_t rdma_threshold;
+    int32_t radix;
 } options_t;
 
 static void run_mpi_benchmark(options_t* options) {
@@ -115,6 +116,8 @@ static void run_mona_benchmark(options_t* options) {
     char* send_buf = malloc(options->msg_size);
     char* recv_buf = malloc(options->msg_size);
 
+    mona_hint_set_reduce_radix(comm, options->radix);
+
     // warm up
     mona_comm_reduce(comm, send_buf, recv_buf, 1, options->msg_size,
                      bxor, NULL, 0, 0);
@@ -159,13 +162,15 @@ static void parse_options(int argc, char** argv, options_t* options) {
     options->use_progress_thread = NA_FALSE;
     options->no_wait = NA_FALSE;
     options->rdma_threshold = (na_size_t)(-1);
+    options->radix = 2;
 
-    while((c = getopt(argc, argv, "r:i:s:m:t:hpn")) != -1) {
+    while((c = getopt(argc, argv, "k:r:i:s:m:t:hpn")) != -1) {
         switch (c)
         {
             case 'h':
                 fprintf(stderr,"Usage: %s -m <mpi|mona> -t <transport> "
-                               "-i <iterations> -s <msgsize>\n", argv[0]);
+                               "-i <iterations> -s <msgsize> -r <rdma-threshold> "
+                               "-k <radix> -p (use progress thread) -n (no wait)\n", argv[0]);
                 exit(0);
             case 'i':
                 options->iterations = atoi(optarg);
@@ -187,6 +192,9 @@ static void parse_options(int argc, char** argv, options_t* options) {
                 break;
             case 'n':
                 options->no_wait = NA_TRUE;
+                break;
+            case 'k':
+                options->radix = atoi(optarg);
                 break;
             case '?':
                 if(optopt == 'i' || optopt == 's' || optopt == 'm' || optopt == 'r')
