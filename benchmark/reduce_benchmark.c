@@ -119,14 +119,14 @@ static void run_mona_benchmark(options_t* options) {
     mona_hint_set_reduce_radix(comm, options->radix);
 
     // warm up
-    mona_comm_reduce(comm, send_buf, recv_buf, 1, options->msg_size,
+    mona_comm_reduce(comm, send_buf, recv_buf, options->msg_size, 1,
                      bxor, NULL, 0, 0);
     // benchmark
     MPI_Barrier(MPI_COMM_WORLD);
     t_start = MPI_Wtime();
 
     for(i = 0; i < options->iterations; i++) {
-        mona_comm_reduce(comm, send_buf, recv_buf, 1, options->msg_size,
+        mona_comm_reduce(comm, send_buf, recv_buf, options->msg_size, 1,
                          bxor, NULL, 0, 0);
     }
 
