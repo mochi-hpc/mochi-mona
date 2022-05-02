@@ -778,7 +778,16 @@ na_return_t mona_mem_handle_free(mona_instance_t mona,
 
 na_return_t mona_mem_register(mona_instance_t mona, na_mem_handle_t mem_handle)
 {
+#ifdef NA_VERSION_MAJOR
+#if NA_VERSION_MAJOR >= 3
+    return NA_Mem_register(mona->na_class, mem_handle, NA_MEM_TYPE_HOST, 0);
+#else
     return NA_Mem_register(mona->na_class, mem_handle);
+#endif
+#endif
+#ifndef NA_VERSION_MAJOR
+    return NA_Mem_register(mona->na_class, mem_handle);
+#endif
 }
 
 na_return_t mona_mem_deregister(mona_instance_t mona,
