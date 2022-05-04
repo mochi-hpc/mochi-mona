@@ -12,12 +12,11 @@
 // AllGather
 // -----------------------------------------------------------------------
 
-static na_return_t mona_comm_allgather_gather_bcast(
-        mona_comm_t comm,
-        const void* sendbuf,
-        na_size_t   size,
-        void*       recvbuf,
-        na_tag_t    tag)
+static na_return_t mona_comm_allgather_gather_bcast(mona_comm_t comm,
+                                                    const void* sendbuf,
+                                                    size_t      size,
+                                                    void*       recvbuf,
+                                                    na_tag_t    tag)
 {
     // TODO use a smarter algorithm
     na_return_t na_ret;
@@ -33,19 +32,17 @@ static na_return_t mona_comm_allgather_gather_bcast(
 
 na_return_t mona_comm_allgather(mona_comm_t comm,
                                 const void* sendbuf,
-                                na_size_t   size,
+                                size_t      size,
                                 void*       recvbuf,
                                 na_tag_t    tag)
 {
-    return mona_comm_allgather_gather_bcast(
-            comm, sendbuf,
-            size, recvbuf, tag);
+    return mona_comm_allgather_gather_bcast(comm, sendbuf, size, recvbuf, tag);
 }
 
 typedef struct iallgather_args {
     mona_comm_t    comm;
     const void*    sendbuf;
-    na_size_t      size;
+    size_t         size;
     void*          recvbuf;
     na_tag_t       tag;
     mona_request_t req;
@@ -62,7 +59,7 @@ static void iallgather_thread(void* x)
 
 na_return_t mona_comm_iallgather(mona_comm_t     comm,
                                  const void*     sendbuf,
-                                 na_size_t       size,
+                                 size_t          size,
                                  void*           recvbuf,
                                  na_tag_t        tag,
                                  mona_request_t* req)
@@ -75,4 +72,3 @@ na_return_t mona_comm_iallgather(mona_comm_t     comm,
     args->tag     = tag;
     NB_OP_POST(iallgather_thread);
 }
-

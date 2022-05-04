@@ -23,7 +23,7 @@ static MunitResult test_init_finalize(const MunitParameter params[], void* data)
     (void)params;
     (void)data;
 
-    mona_instance_t mona = mona_init("na+sm", NA_TRUE, NULL);
+    mona_instance_t mona = mona_init("na+sm", true, NULL);
     munit_assert_not_null(mona);
 
     mona_finalize(mona);
@@ -35,7 +35,7 @@ static MunitTest test_suite_tests[] = {
     { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL }
 };
 
-static const MunitSuite test_suite = { 
+static const MunitSuite test_suite = {
     (char*) "/mona/init", test_suite_tests, NULL, 1, MUNIT_SUITE_OPTION_NONE
 };
 

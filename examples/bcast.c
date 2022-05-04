@@ -19,12 +19,12 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    mona_instance_t mona = mona_init("ofi+tcp", NA_TRUE, NULL);
+    mona_instance_t mona = mona_init("ofi+tcp", true, NULL);
     ASSERT_MESSAGE(mona != MONA_INSTANCE_NULL, "Could not initialize Mona instance");
     printf("[%d] Correctly instanciated Mona\n", rank);
 
     char addr_str[128];
-    na_size_t addr_size = 128;
+    size_t addr_size = 128;
     na_addr_t addr = NA_ADDR_NULL;
     ret = mona_addr_self(mona, &addr);
     ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not get self address");

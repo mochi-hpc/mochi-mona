@@ -12,15 +12,14 @@
 // AllReduce
 // -----------------------------------------------------------------------
 
-static na_return_t reduce_bcast(
-        mona_comm_t comm,
-        const void* sendbuf,
-        void*       recvbuf,
-        na_size_t   typesize,
-        na_size_t   count,
-        mona_op_t   op,
-        void*       uargs,
-        na_tag_t    tag)
+static na_return_t reduce_bcast(mona_comm_t comm,
+                                const void* sendbuf,
+                                void*       recvbuf,
+                                size_t      typesize,
+                                size_t      count,
+                                mona_op_t   op,
+                                void*       uargs,
+                                na_tag_t    tag)
 {
     // TODO this is a simplistic algorithm (reduce followed by bcast),
     // ideally we would want to implement the algorithms provided in Mpich
@@ -41,21 +40,22 @@ static na_return_t reduce_bcast(
 na_return_t mona_comm_allreduce(mona_comm_t comm,
                                 const void* sendbuf,
                                 void*       recvbuf,
-                                na_size_t   typesize,
-                                na_size_t   count,
+                                size_t      typesize,
+                                size_t      count,
                                 mona_op_t   op,
                                 void*       uargs,
                                 na_tag_t    tag)
 {
-    return reduce_bcast(comm, sendbuf, recvbuf, typesize, count, op, uargs, tag);
+    return reduce_bcast(comm, sendbuf, recvbuf, typesize, count, op, uargs,
+                        tag);
 }
 
 typedef struct iallreduce_args {
     mona_comm_t    comm;
     const void*    sendbuf;
     void*          recvbuf;
-    na_size_t      typesize;
-    na_size_t      count;
+    size_t         typesize;
+    size_t         count;
     mona_op_t      op;
     void*          uargs;
     na_tag_t       tag;
@@ -75,8 +75,8 @@ static void iallreduce_thread(void* x)
 na_return_t mona_comm_iallreduce(mona_comm_t     comm,
                                  const void*     sendbuf,
                                  void*           recvbuf,
-                                 na_size_t       typesize,
-                                 na_size_t       count,
+                                 size_t          typesize,
+                                 size_t          count,
                                  mona_op_t       op,
                                  void*           uargs,
                                  na_tag_t        tag,
@@ -93,4 +93,3 @@ na_return_t mona_comm_iallreduce(mona_comm_t     comm,
     args->tag      = tag;
     NB_OP_POST(iallreduce_thread);
 }
-

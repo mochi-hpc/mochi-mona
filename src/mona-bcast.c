@@ -10,11 +10,12 @@
 // - scatter ring allgather
 // These could be added as alternatives
 
-static na_return_t mona_comm_bcast_binomial(
-    mona_comm_t comm, void* buf,
-    na_size_t size, int root,
-    na_tag_t tag,
-    mona_team_t* team)
+static na_return_t mona_comm_bcast_binomial(mona_comm_t  comm,
+                                            void*        buf,
+                                            size_t       size,
+                                            int          root,
+                                            na_tag_t     tag,
+                                            mona_team_t* team)
 {
 
     int         rank, comm_size, src, dst;
@@ -55,9 +56,7 @@ static na_return_t mona_comm_bcast_binomial(
 }
 
 na_return_t mona_comm_bcast(
-    mona_comm_t comm, void* buf,
-    na_size_t size, int root,
-    na_tag_t tag)
+    mona_comm_t comm, void* buf, size_t size, int root, na_tag_t tag)
 {
     return mona_comm_bcast_binomial(comm, buf, size, root, tag, &comm->all);
 }
@@ -65,7 +64,7 @@ na_return_t mona_comm_bcast(
 typedef struct ibcast_args {
     mona_comm_t    comm;
     void*          buf;
-    na_size_t      size;
+    size_t         size;
     int            root;
     na_tag_t       tag;
     mona_request_t req;
@@ -82,7 +81,7 @@ static void ibcast_thread(void* x)
 
 na_return_t mona_comm_ibcast(mona_comm_t     comm,
                              void*           buf,
-                             na_size_t       size,
+                             size_t          size,
                              int             root,
                              na_tag_t        tag,
                              mona_request_t* req)

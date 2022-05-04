@@ -22,7 +22,8 @@ na_return_t mona_comm_barrier(mona_comm_t comm, na_tag_t tag)
     while (mask < size) {
         dst    = (rank + mask) % size;
         src    = (rank - mask + size) % size;
-        na_ret = mona_comm_sendrecv(comm, NULL, 0, dst, tag, NULL, 0, src, tag, NULL);
+        na_ret = mona_comm_sendrecv(comm, NULL, 0, dst, tag, NULL, 0, src, tag,
+                                    NULL);
         if (na_ret) break;
         mask <<= 1;
     }
@@ -52,4 +53,3 @@ mona_comm_ibarrier(mona_comm_t comm, na_tag_t tag, mona_request_t* req)
     args->tag  = tag;
     NB_OP_POST(ibarrier_thread);
 }
-

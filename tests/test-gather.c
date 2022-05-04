@@ -17,14 +17,14 @@ static void* test_context_setup(const MunitParameter params[], void* user_data)
 
     MPI_Init(NULL, NULL);
     ABT_init(0, NULL);
-    mona_instance_t mona = mona_init("ofi+tcp", NA_TRUE, NULL);
+    mona_instance_t mona = mona_init("ofi+tcp", true, NULL);
 
     na_addr_t self_addr;
     ret = mona_addr_self(mona, &self_addr);
     munit_assert_int(ret, ==, NA_SUCCESS);
 
     char self_addr_str[128];
-    na_size_t self_addr_size = 128;
+    size_t self_addr_size = 128;
     ret = mona_addr_to_string(mona, self_addr_str, &self_addr_size, self_addr);
     munit_assert_int(ret, ==, NA_SUCCESS);
 

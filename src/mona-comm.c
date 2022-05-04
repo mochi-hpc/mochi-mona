@@ -5,9 +5,10 @@
  */
 #include "mona-comm.h"
 
-static na_return_t setup_teams(mona_comm_t comm) {
-    na_return_t na_ret = NA_SUCCESS;
-    char** known_nodes = calloc(sizeof(char*), comm->all.size);
+static na_return_t setup_teams(mona_comm_t comm)
+{
+    na_return_t na_ret      = NA_SUCCESS;
+    char**      known_nodes = calloc(sizeof(char*), comm->all.size);
 
     comm->leaders.size  = 0;
     comm->leaders.rank  = 0;
@@ -19,55 +20,55 @@ static na_return_t setup_teams(mona_comm_t comm) {
 
     comm->hints.reduce_radix = 2;
 
-    char addr_str[256];
-    char self_addr_str[256];
-    na_size_t addr_str_size = 256;
+    char   addr_str[256];
+    char   self_addr_str[256];
+    size_t addr_str_size = 256;
 
-    na_ret = mona_addr_to_string(comm->mona, addr_str, &addr_str_size, comm->all.addrs[comm->all.rank]);
-    if(na_ret != NA_SUCCESS) goto error;
+    na_ret = mona_addr_to_string(comm->mona, addr_str, &addr_str_size,
+                                 comm->all.addrs[comm->all.rank]);
+    if (na_ret != NA_SUCCESS) goto error;
     char* column = strrchr(addr_str, ':');
-    if(column) *column = '\0';
+    if (column) *column = '\0';
 
-    for(na_size_t i=0; i < comm->all.size; i++) {
+    for (size_t i = 0; i < comm->all.size; i++) {
 
         addr_str_size = 256;
-        na_ret = mona_addr_to_string(comm->mona, addr_str, &addr_str_size, comm->all.addrs[i]);
-        if(na_ret != NA_SUCCESS) goto error;
+        na_ret = mona_addr_to_string(comm->mona, addr_str, &addr_str_size,
+                                     comm->all.addrs[i]);
+        if (na_ret != NA_SUCCESS) goto error;
         column = strrchr(addr_str, ':');
-        if(column) *column = '\0';
+        if (column) *column = '\0';
 
-        na_bool_t is_known = NA_FALSE;
-        for(na_size_t j = 0; j < comm->leaders.size; j++) {
-            if(strcmp(addr_str, known_nodes[comm->leaders.size-1]) == 0) {
-                is_known = NA_TRUE;
+        bool is_known = false;
+        for (size_t j = 0; j < comm->leaders.size; j++) {
+            if (strcmp(addr_str, known_nodes[comm->leaders.size - 1]) == 0) {
+                is_known = true;
                 break;
             }
         }
 
-        if(!is_known) {
-            known_nodes[comm->leaders.size] = strdup(addr_str);
+        if (!is_known) {
+            known_nodes[comm->leaders.size]         = strdup(addr_str);
             comm->leaders.addrs[comm->leaders.size] = comm->all.addrs[i];
-            if(i == comm->all.rank) {
+            if (i == comm->all.rank) {
                 comm->leaders.rank = comm->leaders.size;
             }
             comm->leaders.size += 1;
         }
 
-        if(strcmp(self_addr_str, addr_str) == 0) {
+        if (strcmp(self_addr_str, addr_str) == 0) {
             comm->local.addrs[comm->local.size] = comm->all.addrs[i];
-            if(i == comm->all.rank) {
-                comm->local.rank = comm->local.size;
-            }
-            if(!is_known) {
-                comm->leader_rank = i;
-            }
+            if (i == comm->all.rank) { comm->local.rank = comm->local.size; }
+            if (!is_known) { comm->leader_rank = i; }
             comm->local.size += 1;
         }
     }
 
 finish:
-    comm->leaders.addrs = realloc(comm->leaders.addrs, sizeof(na_addr_t)*comm->leaders.size);
-    comm->local.addrs = realloc(comm->local.addrs, sizeof(na_addr_t)*comm->local.size);
+    comm->leaders.addrs
+        = realloc(comm->leaders.addrs, sizeof(na_addr_t) * comm->leaders.size);
+    comm->local.addrs
+        = realloc(comm->local.addrs, sizeof(na_addr_t) * comm->local.size);
     free(known_nodes);
     return na_ret;
 
@@ -78,7 +79,7 @@ error:
 }
 
 na_return_t mona_comm_create(mona_instance_t  mona,
-                             na_size_t        count,
+                             size_t           count,
                              const na_addr_t* peers,
                              mona_comm_t*     comm)
 {
@@ -87,7 +88,7 @@ na_return_t mona_comm_create(mona_instance_t  mona,
     if (count == 0) { return NA_INVALID_ARG; }
     mona_comm_t tmp = calloc(1, sizeof(mona_comm));
     if (!tmp) return NA_NOMEM;
-    tmp->mona  = mona;
+    tmp->mona      = mona;
     tmp->all.size  = count;
     tmp->all.rank  = count;
     tmp->all.addrs = calloc(sizeof(na_addr_t), count);
@@ -124,8 +125,7 @@ na_return_t mona_comm_create(mona_instance_t  mona,
     }
 
     na_ret = setup_teams(tmp);
-    if(na_ret != NA_SUCCESS)
-        goto error;
+    if (na_ret != NA_SUCCESS) goto error;
 
     *comm = tmp;
 
@@ -139,7 +139,7 @@ error:
     goto finish;
 }
 
-na_return_t mona_comm_set_use_unexpected_msg(mona_comm_t comm, na_bool_t flag)
+na_return_t mona_comm_set_use_unexpected_msg(mona_comm_t comm, bool flag)
 {
     comm->use_unexpected_msg = flag;
     return NA_SUCCESS;
@@ -173,7 +173,7 @@ na_return_t mona_comm_rank(mona_comm_t comm, int* rank)
 }
 
 na_return_t
-mona_comm_addr(mona_comm_t comm, int rank, na_addr_t* addr, na_bool_t copy)
+mona_comm_addr(mona_comm_t comm, int rank, na_addr_t* addr, bool copy)
 {
     if (rank < 0 || (unsigned)rank >= comm->all.size) return NA_INVALID_ARG;
     if (copy) {
@@ -186,12 +186,13 @@ mona_comm_addr(mona_comm_t comm, int rank, na_addr_t* addr, na_bool_t copy)
 
 na_return_t mona_comm_dup(mona_comm_t comm, mona_comm_t* new_comm)
 {
-    return mona_comm_create(comm->mona, comm->all.size, comm->all.addrs, new_comm);
+    return mona_comm_create(comm->mona, comm->all.size, comm->all.addrs,
+                            new_comm);
 }
 
 na_return_t mona_comm_subset(mona_comm_t  comm,
                              const int*   ranks,
-                             na_size_t    size,
+                             size_t       size,
                              mona_comm_t* new_comm)
 {
     if (size > comm->all.size) return NA_INVALID_ARG;
@@ -206,10 +207,10 @@ na_return_t mona_comm_subset(mona_comm_t  comm,
 // -----------------------------------------------------------------------
 
 na_return_t mona_comm_send(
-    mona_comm_t comm, const void* buf, na_size_t size, int dest, na_tag_t tag)
+    mona_comm_t comm, const void* buf, size_t size, int dest, na_tag_t tag)
 {
     if (dest < 0 || (unsigned)dest >= comm->all.size) return NA_INVALID_ARG;
-    if(comm->use_unexpected_msg) {
+    if (comm->use_unexpected_msg) {
         return mona_usend(comm->mona, buf, size, comm->all.addrs[dest], 0, tag);
     } else {
         return mona_send(comm->mona, buf, size, comm->all.addrs[dest], 0, tag);
@@ -218,28 +219,31 @@ na_return_t mona_comm_send(
 
 na_return_t mona_comm_isend(mona_comm_t     comm,
                             const void*     buf,
-                            na_size_t       size,
+                            size_t          size,
                             int             dest,
                             na_tag_t        tag,
                             mona_request_t* req)
 {
     if (dest < 0 || (unsigned)dest >= comm->all.size) return NA_INVALID_ARG;
-    return mona_isend(comm->mona, buf, size, comm->all.addrs[dest], 0, tag, req);
+    return mona_isend(comm->mona, buf, size, comm->all.addrs[dest], 0, tag,
+                      req);
 }
 
 na_return_t mona_comm_recv(mona_comm_t comm,
                            void*       buf,
-                           na_size_t   size,
+                           size_t      size,
                            int         src,
                            na_tag_t    tag,
-                           na_size_t*  actual_size)
+                           size_t*     actual_size)
 {
     if (src < 0 || (unsigned)src >= comm->all.size) return NA_INVALID_ARG;
     na_return_t na_ret;
-    if(comm->use_unexpected_msg) {
-        na_ret = mona_urecv(comm->mona, buf, size, comm->all.addrs[src], tag, actual_size, NULL, NULL);
+    if (comm->use_unexpected_msg) {
+        na_ret = mona_urecv(comm->mona, buf, size, comm->all.addrs[src], tag,
+                            actual_size, NULL, NULL);
     } else {
-        na_ret = mona_recv(comm->mona, buf, size, comm->all.addrs[src], tag, actual_size);
+        na_ret = mona_recv(comm->mona, buf, size, comm->all.addrs[src], tag,
+                           actual_size);
     }
     return na_ret;
 }
@@ -247,28 +251,29 @@ na_return_t mona_comm_recv(mona_comm_t comm,
 typedef struct irecv_args {
     mona_comm_t    comm;
     void*          buf;
-    na_size_t      size;
+    size_t         size;
     int            src;
     na_tag_t       tag;
-    na_size_t*     actual_size;
+    size_t*        actual_size;
     mona_request_t req;
 } irecv_args;
 
 static void irecv_thread(void* x)
 {
-    irecv_args* args   = (irecv_args*)x;
-    na_return_t na_ret = mona_comm_recv(args->comm, args->buf, args->size,
-                                        args->src, args->tag, args->actual_size);
+    irecv_args* args = (irecv_args*)x;
+    na_return_t na_ret
+        = mona_comm_recv(args->comm, args->buf, args->size, args->src,
+                         args->tag, args->actual_size);
     ABT_eventual_set(args->req->eventual, &na_ret, sizeof(na_ret));
     free(args);
 }
 
 na_return_t mona_comm_irecv(mona_comm_t     comm,
                             void*           buf,
-                            na_size_t       size,
+                            size_t          size,
                             int             src,
                             na_tag_t        tag,
-                            na_size_t*      actual_size,
+                            size_t*         actual_size,
                             mona_request_t* req)
 {
     NB_OP_INIT(irecv_args);
@@ -280,4 +285,3 @@ na_return_t mona_comm_irecv(mona_comm_t     comm,
     args->actual_size = actual_size;
     NB_OP_POST(irecv_thread);
 }
-

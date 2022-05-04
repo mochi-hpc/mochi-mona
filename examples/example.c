@@ -18,12 +18,12 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    mona_instance_t mona = mona_init("na+sm", NA_TRUE, NULL);
-    ASSERT_MESSAGE(mona != MONA_INSTANCE_NULL, "Could not initialize Mona instance"); 
+    mona_instance_t mona = mona_init("na+sm", true, NULL);
+    ASSERT_MESSAGE(mona != MONA_INSTANCE_NULL, "Could not initialize Mona instance");
     printf("[%d] Correctly instanciated Mona\n", rank);
 
     char addr_str[128];
-    na_size_t addr_size = 128;
+    size_t addr_size = 128;
     na_addr_t addr = NA_ADDR_NULL;
     ret = mona_addr_self(mona, &addr);
     ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not get self address");
@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
 
         na_addr_t source_addr = NA_ADDR_NULL;
         na_tag_t  tag = 0;
-        na_size_t actual_size = 0;
+        size_t actual_size = 0;
 
         ret = mona_msg_recv_unexpected(
                 mona, buf, msg_len, plugin_data,

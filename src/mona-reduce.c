@@ -12,16 +12,15 @@
 // Reduce
 // -----------------------------------------------------------------------
 
-static na_return_t binary_tree_reduce(
-        mona_comm_t comm,
-        const void* sendbuf,
-        void*       recvbuf,
-        na_size_t   typesize,
-        na_size_t   count,
-        mona_op_t   op,
-        void*       uargs,
-        int         root,
-        na_tag_t    tag)
+static na_return_t binary_tree_reduce(mona_comm_t comm,
+                                      const void* sendbuf,
+                                      void*       recvbuf,
+                                      size_t      typesize,
+                                      size_t      count,
+                                      mona_op_t   op,
+                                      void*       uargs,
+                                      int         root,
+                                      na_tag_t    tag)
 {
 
     // TODO the bellow algorithm is a binomial algorithm.
@@ -96,17 +95,16 @@ finish:
     return na_ret;
 }
 
-static na_return_t radix_k_tree_reduce(
-        int32_t    k,
-        mona_comm_t comm,
-        const void* sendbuf,
-        void*       recvbuf,
-        na_size_t   typesize,
-        na_size_t   count,
-        mona_op_t   op,
-        void*       uargs,
-        int         root,
-        na_tag_t    tag)
+static na_return_t radix_k_tree_reduce(int32_t     k,
+                                       mona_comm_t comm,
+                                       const void* sendbuf,
+                                       void*       recvbuf,
+                                       size_t      typesize,
+                                       size_t      count,
+                                       mona_op_t   op,
+                                       void*       uargs,
+                                       int         root,
+                                       na_tag_t    tag)
 {
     na_return_t na_ret = NA_SUCCESS;
     int         comm_size, rank, rel_rank;
@@ -114,17 +112,16 @@ static na_return_t radix_k_tree_reduce(
     comm_size = comm->all.size;
     rank      = comm->all.rank;
     rel_rank  = (rank - root);
-    if(rel_rank < 0) rel_rank += comm_size;
+    if (rel_rank < 0) rel_rank += comm_size;
 
-    if (count == 0 || comm_size == 1)
-        return na_ret;
+    if (count == 0 || comm_size == 1) return na_ret;
 
-    char* tempBuf         = NULL;
-    mona_request_t* reqs  = NULL;
-    int   mallocRcvbuffer = 0;
+    char*           tempBuf         = NULL;
+    mona_request_t* reqs            = NULL;
+    int             mallocRcvbuffer = 0;
 
-    tempBuf = (void*)malloc(typesize * count * (k-1));
-    reqs = (mona_request_t*)malloc(sizeof(*reqs)*(k-1));
+    tempBuf = (void*)malloc(typesize * count * (k - 1));
+    reqs    = (mona_request_t*)malloc(sizeof(*reqs) * (k - 1));
 
     // If I'm not the root, then my recvbuf may not be valid, therefore
     // I have to allocate a temporary one
@@ -140,32 +137,31 @@ static na_return_t radix_k_tree_reduce(
     }
 
     int p = 1;
-    while(p < comm_size) {
-        int d = rel_rank % (p*k);
-        if(d == 0) {
-            for(int i = 1; i < (int)k; i++) {
-                int rel_src = rel_rank + i*p;
-                if(rel_src >= comm_size)
-                    break;
-                int src = (rel_src + root) % comm_size;
-                char* buf = tempBuf + (typesize * count * (i-1));
-                mona_request_t* req = reqs + (i-1);
-                na_ret = mona_comm_irecv(comm, buf, typesize * count, src, tag, NULL, req);
+    while (p < comm_size) {
+        int d = rel_rank % (p * k);
+        if (d == 0) {
+            for (int i = 1; i < (int)k; i++) {
+                int rel_src = rel_rank + i * p;
+                if (rel_src >= comm_size) break;
+                int             src = (rel_src + root) % comm_size;
+                char*           buf = tempBuf + (typesize * count * (i - 1));
+                mona_request_t* req = reqs + (i - 1);
+                na_ret = mona_comm_irecv(comm, buf, typesize * count, src, tag,
+                                         NULL, req);
                 if (na_ret != NA_SUCCESS) { goto finish; }
             }
-            for(int i = 1; i < (int)k; i++) {
-                int rel_src = rel_rank + i*p;
-                if(rel_src >= comm_size)
-                    break;
-                char* buf = tempBuf + (typesize * count * (i-1));
-                na_ret = mona_wait(reqs[i-1]);
+            for (int i = 1; i < (int)k; i++) {
+                int rel_src = rel_rank + i * p;
+                if (rel_src >= comm_size) break;
+                char* buf = tempBuf + (typesize * count * (i - 1));
+                na_ret    = mona_wait(reqs[i - 1]);
                 if (na_ret != NA_SUCCESS) { goto finish; }
                 op(buf, recvbuf, typesize, count, uargs);
             }
         } else {
             int rel_dest = rel_rank - d;
-            int dest = (rel_dest + root);
-            if(dest >= comm_size) dest -= comm_size;
+            int dest     = (rel_dest + root);
+            if (dest >= comm_size) dest -= comm_size;
             na_ret = mona_comm_send(comm, recvbuf, typesize * count, dest, tag);
             if (na_ret != NA_SUCCESS) { goto finish; }
             break;
@@ -183,24 +179,25 @@ finish:
 na_return_t mona_comm_reduce(mona_comm_t comm,
                              const void* sendbuf,
                              void*       recvbuf,
-                             na_size_t   typesize,
-                             na_size_t   count,
+                             size_t      typesize,
+                             size_t      count,
                              mona_op_t   op,
                              void*       uargs,
                              int         root,
                              na_tag_t    tag)
 {
-    return radix_k_tree_reduce(comm->hints.reduce_radix, comm,
-            sendbuf, recvbuf, typesize, count, op, uargs, root, tag);
-    //return binary_tree_reduce(comm, sendbuf, recvbuf, typesize, count, op, uargs, root, tag);
+    return radix_k_tree_reduce(comm->hints.reduce_radix, comm, sendbuf, recvbuf,
+                               typesize, count, op, uargs, root, tag);
+    // return binary_tree_reduce(comm, sendbuf, recvbuf, typesize, count, op,
+    // uargs, root, tag);
 }
 
 typedef struct ireduce_args {
     mona_comm_t    comm;
     const void*    sendbuf;
     void*          recvbuf;
-    na_size_t      typesize;
-    na_size_t      count;
+    size_t         typesize;
+    size_t         count;
     mona_op_t      op;
     void*          uargs;
     int            root;
@@ -221,8 +218,8 @@ static void ireduce_thread(void* x)
 na_return_t mona_comm_ireduce(mona_comm_t     comm,
                               const void*     sendbuf,
                               void*           recvbuf,
-                              na_size_t       typesize,
-                              na_size_t       count,
+                              size_t          typesize,
+                              size_t          count,
                               mona_op_t       op,
                               void*           uargs,
                               int             root,
@@ -242,24 +239,24 @@ na_return_t mona_comm_ireduce(mona_comm_t     comm,
     NB_OP_POST(ireduce_thread);
 }
 
-na_return_t mona_hint_set_reduce_radix(mona_comm_t comm, uint32_t radix) {
-    if(radix < 2)
-        return NA_INVALID_ARG;
+na_return_t mona_hint_set_reduce_radix(mona_comm_t comm, uint32_t radix)
+{
+    if (radix < 2) return NA_INVALID_ARG;
     comm->hints.reduce_radix = radix;
     return NA_SUCCESS;
 }
 
-#define DEFINE_MAX_OPERATOR(__name__, __type__)                       \
-    void __name__(const void* in, void* inout, na_size_t typesize,    \
-                  na_size_t count, void* uargs)                       \
-    {                                                                 \
-        (void)uargs;                                                  \
-        const __type__* in_t    = (const __type__*)in;                \
-        __type__*       inout_t = (__type__*)inout;                   \
-        na_size_t       i;                                            \
-        for (i = 0; i < count; i++) {                                 \
-            inout_t[i] = inout_t[i] < in_t[i] ? in_t[i] : inout_t[i]; \
-        }                                                             \
+#define DEFINE_MAX_OPERATOR(__name__, __type__)                               \
+    void __name__(const void* in, void* inout, size_t typesize, size_t count, \
+                  void* uargs)                                                \
+    {                                                                         \
+        (void)uargs;                                                          \
+        const __type__* in_t    = (const __type__*)in;                        \
+        __type__*       inout_t = (__type__*)inout;                           \
+        size_t          i;                                                    \
+        for (i = 0; i < count; i++) {                                         \
+            inout_t[i] = inout_t[i] < in_t[i] ? in_t[i] : inout_t[i];         \
+        }                                                                     \
     }
 
 DEFINE_MAX_OPERATOR(mona_op_max_u64, uint64_t)
@@ -273,17 +270,17 @@ DEFINE_MAX_OPERATOR(mona_op_max_i8, int8_t)
 DEFINE_MAX_OPERATOR(mona_op_max_f32, float)
 DEFINE_MAX_OPERATOR(mona_op_max_f64, double)
 
-#define DEFINE_MIN_OPERATOR(__name__, __type__)                       \
-    void __name__(const void* in, void* inout, na_size_t typesize,    \
-                  na_size_t count, void* uargs)                       \
-    {                                                                 \
-        (void)uargs;                                                  \
-        const __type__* in_t    = (const __type__*)in;                \
-        __type__*       inout_t = (__type__*)inout;                   \
-        na_size_t       i;                                            \
-        for (i = 0; i < count; i++) {                                 \
-            inout_t[i] = inout_t[i] > in_t[i] ? in_t[i] : inout_t[i]; \
-        }                                                             \
+#define DEFINE_MIN_OPERATOR(__name__, __type__)                               \
+    void __name__(const void* in, void* inout, size_t typesize, size_t count, \
+                  void* uargs)                                                \
+    {                                                                         \
+        (void)uargs;                                                          \
+        const __type__* in_t    = (const __type__*)in;                        \
+        __type__*       inout_t = (__type__*)inout;                           \
+        size_t          i;                                                    \
+        for (i = 0; i < count; i++) {                                         \
+            inout_t[i] = inout_t[i] > in_t[i] ? in_t[i] : inout_t[i];         \
+        }                                                                     \
     }
 
 DEFINE_MIN_OPERATOR(mona_op_min_u64, uint64_t)
@@ -297,15 +294,15 @@ DEFINE_MIN_OPERATOR(mona_op_min_i8, int8_t)
 DEFINE_MIN_OPERATOR(mona_op_min_f32, float)
 DEFINE_MIN_OPERATOR(mona_op_min_f64, double)
 
-#define DEFINE_SUM_OPERATOR(__name__, __type__)                            \
-    void __name__(const void* in, void* inout, na_size_t typesize,         \
-                  na_size_t count, void* uargs)                            \
-    {                                                                      \
-        (void)uargs;                                                       \
-        const __type__* in_t    = (const __type__*)in;                     \
-        __type__*       inout_t = (__type__*)inout;                        \
-        na_size_t       i;                                                 \
-        for (i = 0; i < count; i++) { inout_t[i] = inout_t[i] + in_t[i]; } \
+#define DEFINE_SUM_OPERATOR(__name__, __type__)                               \
+    void __name__(const void* in, void* inout, size_t typesize, size_t count, \
+                  void* uargs)                                                \
+    {                                                                         \
+        (void)uargs;                                                          \
+        const __type__* in_t    = (const __type__*)in;                        \
+        __type__*       inout_t = (__type__*)inout;                           \
+        size_t          i;                                                    \
+        for (i = 0; i < count; i++) { inout_t[i] = inout_t[i] + in_t[i]; }    \
     }
 
 DEFINE_SUM_OPERATOR(mona_op_sum_u64, uint64_t)
@@ -319,15 +316,15 @@ DEFINE_SUM_OPERATOR(mona_op_sum_i8, int8_t)
 DEFINE_SUM_OPERATOR(mona_op_sum_f32, float)
 DEFINE_SUM_OPERATOR(mona_op_sum_f64, double)
 
-#define DEFINE_PROD_OPERATOR(__name__, __type__)                           \
-    void __name__(const void* in, void* inout, na_size_t typesize,         \
-                  na_size_t count, void* uargs)                            \
-    {                                                                      \
-        (void)uargs;                                                       \
-        const __type__* in_t    = (const __type__*)in;                     \
-        __type__*       inout_t = (__type__*)inout;                        \
-        na_size_t       i;                                                 \
-        for (i = 0; i < count; i++) { inout_t[i] = inout_t[i] * in_t[i]; } \
+#define DEFINE_PROD_OPERATOR(__name__, __type__)                              \
+    void __name__(const void* in, void* inout, size_t typesize, size_t count, \
+                  void* uargs)                                                \
+    {                                                                         \
+        (void)uargs;                                                          \
+        const __type__* in_t    = (const __type__*)in;                        \
+        __type__*       inout_t = (__type__*)inout;                           \
+        size_t          i;                                                    \
+        for (i = 0; i < count; i++) { inout_t[i] = inout_t[i] * in_t[i]; }    \
     }
 
 DEFINE_PROD_OPERATOR(mona_op_prod_u64, uint64_t)
@@ -341,15 +338,15 @@ DEFINE_PROD_OPERATOR(mona_op_prod_i8, int8_t)
 DEFINE_PROD_OPERATOR(mona_op_prod_f32, float)
 DEFINE_PROD_OPERATOR(mona_op_prod_f64, double)
 
-#define DEFINE_LAND_OPERATOR(__name__, __type__)                            \
-    void __name__(const void* in, void* inout, na_size_t typesize,          \
-                  na_size_t count, void* uargs)                             \
-    {                                                                       \
-        (void)uargs;                                                        \
-        const __type__* in_t    = (const __type__*)in;                      \
-        __type__*       inout_t = (__type__*)inout;                         \
-        na_size_t       i;                                                  \
-        for (i = 0; i < count; i++) { inout_t[i] = inout_t[i] && in_t[i]; } \
+#define DEFINE_LAND_OPERATOR(__name__, __type__)                              \
+    void __name__(const void* in, void* inout, size_t typesize, size_t count, \
+                  void* uargs)                                                \
+    {                                                                         \
+        (void)uargs;                                                          \
+        const __type__* in_t    = (const __type__*)in;                        \
+        __type__*       inout_t = (__type__*)inout;                           \
+        size_t          i;                                                    \
+        for (i = 0; i < count; i++) { inout_t[i] = inout_t[i] && in_t[i]; }   \
     }
 
 DEFINE_LAND_OPERATOR(mona_op_land_u64, uint64_t)
@@ -363,15 +360,15 @@ DEFINE_LAND_OPERATOR(mona_op_land_i8, int8_t)
 DEFINE_LAND_OPERATOR(mona_op_land_f32, float)
 DEFINE_LAND_OPERATOR(mona_op_land_f64, double)
 
-#define DEFINE_LOR_OPERATOR(__name__, __type__)                             \
-    void __name__(const void* in, void* inout, na_size_t typesize,          \
-                  na_size_t count, void* uargs)                             \
-    {                                                                       \
-        (void)uargs;                                                        \
-        const __type__* in_t    = (const __type__*)in;                      \
-        __type__*       inout_t = (__type__*)inout;                         \
-        na_size_t       i;                                                  \
-        for (i = 0; i < count; i++) { inout_t[i] = inout_t[i] || in_t[i]; } \
+#define DEFINE_LOR_OPERATOR(__name__, __type__)                               \
+    void __name__(const void* in, void* inout, size_t typesize, size_t count, \
+                  void* uargs)                                                \
+    {                                                                         \
+        (void)uargs;                                                          \
+        const __type__* in_t    = (const __type__*)in;                        \
+        __type__*       inout_t = (__type__*)inout;                           \
+        size_t          i;                                                    \
+        for (i = 0; i < count; i++) { inout_t[i] = inout_t[i] || in_t[i]; }   \
     }
 
 DEFINE_LOR_OPERATOR(mona_op_lor_u64, uint64_t)
@@ -385,23 +382,20 @@ DEFINE_LOR_OPERATOR(mona_op_lor_i8, int8_t)
 DEFINE_LOR_OPERATOR(mona_op_lor_f32, float)
 DEFINE_LOR_OPERATOR(mona_op_lor_f64, double)
 
-#define DEFINE_OPERATOR(__name__, __base__, __typesize__)          \
-    void __name__(const void* in, void* inout, na_size_t typesize, \
-                  na_size_t count, void* uargs)                    \
-    {                                                              \
-        __base__(in, inout, __typesize__, count, uargs);           \
+#define DEFINE_OPERATOR(__name__, __base__, __typesize__)                     \
+    void __name__(const void* in, void* inout, size_t typesize, size_t count, \
+                  void* uargs)                                                \
+    {                                                                         \
+        __base__(in, inout, __typesize__, count, uargs);                      \
     }
 
-static inline void mona_op_band(const void* in,
-                                void*       inout,
-                                na_size_t   typesize,
-                                na_size_t   count,
-                                void*       uargs)
+static inline void mona_op_band(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs)
 {
     (void)uargs;
     const char* in_char    = (const char*)in;
     char*       inout_char = (char*)inout;
-    na_size_t   i;
+    size_t      i;
     for (i = 0; i < typesize * count; i++) {
         inout_char[i] = inout_char[i] & in_char[i];
     }
@@ -418,16 +412,13 @@ DEFINE_OPERATOR(mona_op_band_i8, mona_op_band, 1)
 DEFINE_OPERATOR(mona_op_band_f32, mona_op_band, 4)
 DEFINE_OPERATOR(mona_op_band_f64, mona_op_band, 8)
 
-static inline void mona_op_bor(const void* in,
-                               void*       inout,
-                               na_size_t   typesize,
-                               na_size_t   count,
-                               void*       uargs)
+static inline void mona_op_bor(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs)
 {
     (void)uargs;
     const char* in_char    = (const char*)in;
     char*       inout_char = (char*)inout;
-    na_size_t   i;
+    size_t      i;
     for (i = 0; i < typesize * count; i++) {
         inout_char[i] = inout_char[i] | in_char[i];
     }

@@ -18,7 +18,7 @@ static void* test_context_setup(const MunitParameter params[], void* user_data)
 
     MPI_Init(NULL, NULL);
     ABT_init(0, NULL);
-    mona_instance_t mona = mona_init("ofi+tcp", NA_TRUE, NULL);
+    mona_instance_t mona = mona_init("ofi+tcp", true, NULL);
 
     test_context* context = (test_context*)calloc(1, sizeof(*context));
     context->mona = mona;
@@ -28,7 +28,7 @@ static void* test_context_setup(const MunitParameter params[], void* user_data)
     munit_assert_int(ret, ==, NA_SUCCESS);
 
     char self_addr_str[128];
-    na_size_t self_addr_size = 128;
+    size_t self_addr_size = 128;
     ret = mona_addr_to_string(mona, self_addr_str, &self_addr_size, context->self_addr);
     munit_assert_int(ret, ==, NA_SUCCESS);
 
@@ -66,7 +66,7 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
     mona_instance_t mona = context->mona;
 
     char* buf = malloc(8192);
-    na_size_t msg_len = 8192;
+    size_t msg_len = 8192;
 
     if(context->rank == 0) { // sender
         int i;
@@ -77,7 +77,7 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
         ret = mona_send(mona, buf, msg_len, context->other_addr, 0, 1234);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
-        na_size_t recv_size;
+        size_t recv_size;
         ret = mona_recv(mona, buf, 64, context->other_addr, 1234, &recv_size);
         munit_assert_int(ret, ==, NA_SUCCESS);
 
@@ -88,7 +88,7 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
     } else { // receiver
         int i;
 
-        na_size_t recv_size;
+        size_t recv_size;
         ret = mona_recv(mona, buf, msg_len, context->other_addr, 1234, &recv_size);
         munit_assert_int(ret, ==, NA_SUCCESS);
         for(i = 0; i < (int)msg_len; i++) {

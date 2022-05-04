@@ -18,7 +18,7 @@ static void* test_context_setup(const MunitParameter params[], void* user_data)
 
     MPI_Init(NULL, NULL);
     ABT_init(0, NULL);
-    mona_instance_t mona = mona_init("na+sm", NA_TRUE, NULL);
+    mona_instance_t mona = mona_init("na+sm", true, NULL);
 
     test_context* context = (test_context*)calloc(1, sizeof(*context));
     context->mona = mona;
@@ -28,7 +28,7 @@ static void* test_context_setup(const MunitParameter params[], void* user_data)
     munit_assert_int(ret, ==, NA_SUCCESS);
 
     char self_addr_str[128];
-    na_size_t self_addr_size = 128;
+    size_t self_addr_size = 128;
     ret = mona_addr_to_string(mona, self_addr_str, &self_addr_size, context->self_addr);
     munit_assert_int(ret, ==, NA_SUCCESS);
 
@@ -81,7 +81,7 @@ static MunitResult test_send_recv_unexpected(const MunitParameter params[], void
         munit_assert_int(ret, ==, NA_SUCCESS);
     } else { // receiver
         na_tag_t  tag         = 0;
-        na_size_t actual_size = 0;
+        size_t actual_size = 0;
         na_addr_t source_addr = NA_ADDR_NULL;
 
         ret = mona_msg_recv_unexpected(
@@ -96,7 +96,7 @@ static MunitResult test_send_recv_unexpected(const MunitParameter params[], void
         ret = mona_addr_free(mona, source_addr);
         munit_assert_int(ret, ==, NA_SUCCESS);
     }
-    
+
     ret = mona_msg_buf_free(mona, buf, plugin_data);
     munit_assert_int(ret, ==, NA_SUCCESS);
 

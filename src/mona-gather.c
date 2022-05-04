@@ -11,7 +11,7 @@
 
 na_return_t mona_comm_gather(mona_comm_t comm,
                              const void* sendbuf,
-                             na_size_t   size,
+                             size_t      size,
                              void*       recvbuf,
                              int         root,
                              na_tag_t    tag)
@@ -55,7 +55,7 @@ finish:
 typedef struct igather_args {
     mona_comm_t    comm;
     const void*    sendbuf;
-    na_size_t      size;
+    size_t         size;
     void*          recvbuf;
     int            root;
     na_tag_t       tag;
@@ -73,7 +73,7 @@ static void igather_thread(void* x)
 
 na_return_t mona_comm_igather(mona_comm_t     comm,
                               const void*     sendbuf,
-                              na_size_t       size,
+                              size_t          size,
                               void*           recvbuf,
                               int             root,
                               na_tag_t        tag,
@@ -93,14 +93,14 @@ na_return_t mona_comm_igather(mona_comm_t     comm,
 // Gatherv
 // -----------------------------------------------------------------------
 
-na_return_t mona_comm_gatherv(mona_comm_t      comm,
-                              const void*      sendbuf,
-                              na_size_t        sendsize,
-                              void*            recvbuf,
-                              const na_size_t* recvsizes,
-                              const na_size_t* offsets,
-                              int              root,
-                              na_tag_t         tag)
+na_return_t mona_comm_gatherv(mona_comm_t   comm,
+                              const void*   sendbuf,
+                              size_t        sendsize,
+                              void*         recvbuf,
+                              const size_t* recvsizes,
+                              const size_t* offsets,
+                              int           root,
+                              na_tag_t      tag)
 {
     na_return_t     na_ret    = NA_SUCCESS;
     int             comm_size = comm->all.size;
@@ -148,15 +148,15 @@ finish:
 }
 
 typedef struct igatherv_args {
-    mona_comm_t      comm;
-    const void*      sendbuf;
-    na_size_t        sendsize;
-    void*            recvbuf;
-    const na_size_t* recvsizes;
-    const na_size_t* offsets;
-    int              root;
-    na_tag_t         tag;
-    mona_request_t   req;
+    mona_comm_t    comm;
+    const void*    sendbuf;
+    size_t         sendsize;
+    void*          recvbuf;
+    const size_t*  recvsizes;
+    const size_t*  offsets;
+    int            root;
+    na_tag_t       tag;
+    mona_request_t req;
 } igatherv_args;
 
 static void igatherv_thread(void* x)
@@ -169,15 +169,15 @@ static void igatherv_thread(void* x)
     free(args);
 }
 
-na_return_t mona_comm_igatherv(mona_comm_t      comm,
-                               const void*      sendbuf,
-                               na_size_t        sendsize,
-                               void*            recvbuf,
-                               const na_size_t* recvsizes,
-                               const na_size_t* offsets,
-                               int              root,
-                               na_tag_t         tag,
-                               mona_request_t*  req)
+na_return_t mona_comm_igatherv(mona_comm_t     comm,
+                               const void*     sendbuf,
+                               size_t          sendsize,
+                               void*           recvbuf,
+                               const size_t*   recvsizes,
+                               const size_t*   offsets,
+                               int             root,
+                               na_tag_t        tag,
+                               mona_request_t* req)
 {
     NB_OP_INIT(igatherv_args);
     args->comm      = comm;
@@ -190,4 +190,3 @@ na_return_t mona_comm_igatherv(mona_comm_t      comm,
     args->tag       = tag;
     NB_OP_POST(igatherv_thread);
 }
-

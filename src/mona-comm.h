@@ -11,8 +11,8 @@
 #include <string.h>
 
 typedef struct mona_team {
-    na_size_t  size;
-    na_size_t  rank;
+    size_t     size;
+    size_t     rank;
     na_addr_t* addrs;
 } mona_team_t;
 
@@ -21,8 +21,8 @@ typedef struct mona_comm {
     mona_team_t     all;
     mona_team_t     leaders;
     mona_team_t     local;
-    na_size_t       leader_rank; // rank of local leader in "all"
-    na_bool_t       use_unexpected_msg;
+    size_t          leader_rank; // rank of local leader in "all"
+    bool            use_unexpected_msg;
     struct {
         uint32_t reduce_radix;
     } hints;
@@ -49,116 +49,116 @@ typedef struct mona_comm {
     }                                                                    \
     return NA_SUCCESS
 
-#define MONA_COMM_SEND(__ret__, __comm__, __team__, \
-                       __buf__, __size__, __dest__, __tag__) \
-    do { \
-    if((__comm__)->use_unexpected_msg) { \
-        __ret__ = mona_usend((__comm__)->mona, (__buf__), (__size__), \
-                             (__team__)->addrs[__dest__], 0, (__tag__)); \
-    } else { \
-        __ret__ = mona_send((__comm__)->mona, (__buf__), (__size__), \
-                            (__team__)->addrs[__dest__], 0, (__tag__)); \
-    } \
-    } while(0)
-
-#define MONA_COMM_RECV(__ret__, __comm__, __team__, \
-                       __buf__, __size__, __src__, \
-                       __tag__, __actual_size__) \
-    do { \
-    if((__comm__)->use_unexpected_msg) { \
-        __ret__ = mona_urecv((__comm__)->mona, (__buf__), (__size__), \
-                             (__team__)->addrs[__src__], (__tag__), \
-                             (__actual_size__), NULL, NULL); \
-    } else { \
-        __ret__ = mona_recv((__comm__)->mona, (__buf__), (__size__), \
-                            (__team__)->addrs[__src__], (__tag__), (__actual_size__)); \
-    } \
-    } while(0)
-
-#define MONA_COMM_SEND_MEM(__ret__, __comm__, __team__, \
-                           __mem__, __size__, __offset__, \
-                           __dest__, __tag__) \
-    do { \
-    if((__comm__)->use_unexpected_msg) { \
-        __ret__ = mona_usend_mem((__comm__)->mona, (__mem__), (__size__), (__offset__), \
+#define MONA_COMM_SEND(__ret__, __comm__, __team__, __buf__, __size__,       \
+                       __dest__, __tag__)                                    \
+    do {                                                                     \
+        if ((__comm__)->use_unexpected_msg) {                                \
+            __ret__ = mona_usend((__comm__)->mona, (__buf__), (__size__),    \
                                  (__team__)->addrs[__dest__], 0, (__tag__)); \
-    } else { \
-        __ret__ = mona_send_mem((__comm__)->mona, (__mem__), (__size__), (__offset__), \
-                                (__team__)->addrs[__dest__], 0, (__tag__)); \
-    } \
-    } while(0)
+        } else {                                                             \
+            __ret__ = mona_send((__comm__)->mona, (__buf__), (__size__),     \
+                                (__team__)->addrs[__dest__], 0, (__tag__));  \
+        }                                                                    \
+    } while (0)
 
-#define MONA_COMM_RECV_MEM(__ret__, __comm__, __team__, \
-                           __mem__, __size__, __offset__, \
-                           __src__, __tag__, __actual_size__) \
-    do { \
-    if((__comm__)->use_unexpected_msg) { \
-        __ret__ = mona_urecv_mem((__comm__)->mona, (__mem__), (__size__), \
-                                 (__offset__), (__team__)->addrs[__src__], \
-                                 (__tag__), (__actual_size__), NULL, NULL); \
-    } else { \
-        __ret__ = mona_recv_mem((__comm__)->mona, (__mem__), (__size__), \
-                                (__offset__), (__team__)->addrs[__src__], \
-                                (__tag__), (__actual_size__)); \
-    } \
-    } while(0)
+#define MONA_COMM_RECV(__ret__, __comm__, __team__, __buf__, __size__,    \
+                       __src__, __tag__, __actual_size__)                 \
+    do {                                                                  \
+        if ((__comm__)->use_unexpected_msg) {                             \
+            __ret__ = mona_urecv((__comm__)->mona, (__buf__), (__size__), \
+                                 (__team__)->addrs[__src__], (__tag__),   \
+                                 (__actual_size__), NULL, NULL);          \
+        } else {                                                          \
+            __ret__ = mona_recv((__comm__)->mona, (__buf__), (__size__),  \
+                                (__team__)->addrs[__src__], (__tag__),    \
+                                (__actual_size__));                       \
+        }                                                                 \
+    } while (0)
 
-#define MONA_COMM_ISEND(__ret__, __comm__, __team__, \
-                        __buf__, __size__, __dest__, \
-                        __tag__, __req__) \
-    do { \
-    if((__comm__)->use_unexpected_msg) { \
-        __ret__ = mona_uisend((__comm__)->mona, (__buf__), (__size__), \
-                              (__team__)->addrs[__dest__], \
-                              0, (__tag__), (__req__)); \
-    } else { \
-        __ret__ = mona_isend((__comm__)->mona, (__buf__), (__size__), \
-                             (__team__)->addrs[__dest__], 0, (__tag__), \
-                             (__req__)); \
-    } \
-    } while(0)
+#define MONA_COMM_SEND_MEM(__ret__, __comm__, __team__, __mem__, __size__,     \
+                           __offset__, __dest__, __tag__)                      \
+    do {                                                                       \
+        if ((__comm__)->use_unexpected_msg) {                                  \
+            __ret__ = mona_usend_mem(                                          \
+                (__comm__)->mona, (__mem__), (__size__), (__offset__),         \
+                (__team__)->addrs[__dest__], 0, (__tag__));                    \
+        } else {                                                               \
+            __ret__ = mona_send_mem((__comm__)->mona, (__mem__), (__size__),   \
+                                    (__offset__), (__team__)->addrs[__dest__], \
+                                    0, (__tag__));                             \
+        }                                                                      \
+    } while (0)
 
-#define MONA_COMM_IRECV(__ret__, __comm__, __team__, \
-                        __buf__, __size__, __src__, \
-                        __tag__, __actual_size__, __req__) \
-    do { \
-    if((__comm__)->use_unexpected_msg) { \
-        __ret__ = mona_uirecv((__comm__)->mona, (__buf__), (__size__), \
-                              (__team__)->addrs[__src__], (__tag__), \
-                              (__actual_size__), NULL, NULL, (__req__)); \
-    } else { \
-        __ret__ = mona_irecv((__comm__)->mona, (__buf__), (__size__), \
-                             (__team__)->addrs[__src__], (__tag__), \
-                             (__actual_size__), (__req__)); \
-    } \
-    } while(0)
+#define MONA_COMM_RECV_MEM(__ret__, __comm__, __team__, __mem__, __size__,    \
+                           __offset__, __src__, __tag__, __actual_size__)     \
+    do {                                                                      \
+        if ((__comm__)->use_unexpected_msg) {                                 \
+            __ret__                                                           \
+                = mona_urecv_mem((__comm__)->mona, (__mem__), (__size__),     \
+                                 (__offset__), (__team__)->addrs[__src__],    \
+                                 (__tag__), (__actual_size__), NULL, NULL);   \
+        } else {                                                              \
+            __ret__ = mona_recv_mem((__comm__)->mona, (__mem__), (__size__),  \
+                                    (__offset__), (__team__)->addrs[__src__], \
+                                    (__tag__), (__actual_size__));            \
+        }                                                                     \
+    } while (0)
 
-#define MONA_COMM_ISEND_MEM(__ret__, __comm__, __team__, \
-                            __mem__, __size__, __offset__, \
-                            __dest__, __tag__, __req__) \
-    do { \
-    if((__comm__)->use_unexpected_msg) { \
-        __ret__ = mona_uisend_mem((__comm__)->mona, (__mem__), (__size__), (__offset__), \
-                                  (__team__)->addrs[__dest__], 0, (__tag__), (__req__)); \
-    } else { \
-        __ret__ = mona_isend_mem((__comm__)->mona, (__mem__), (__size__), (__offset__), \
-                                 (__team__)->addrs[__dest__], 0, (__tag__), (__req__)); \
-    } \
-    } while(0)
+#define MONA_COMM_ISEND(__ret__, __comm__, __team__, __buf__, __size__,      \
+                        __dest__, __tag__, __req__)                          \
+    do {                                                                     \
+        if ((__comm__)->use_unexpected_msg) {                                \
+            __ret__ = mona_uisend((__comm__)->mona, (__buf__), (__size__),   \
+                                  (__team__)->addrs[__dest__], 0, (__tag__), \
+                                  (__req__));                                \
+        } else {                                                             \
+            __ret__ = mona_isend((__comm__)->mona, (__buf__), (__size__),    \
+                                 (__team__)->addrs[__dest__], 0, (__tag__),  \
+                                 (__req__));                                 \
+        }                                                                    \
+    } while (0)
 
-#define MONA_COMM_IRECV_MEM(__ret__, __comm__, __team__, \
-                            __mem__, __size__, __offset__, \
-                            __src__, __tag__, __actual_size__, __req__) \
-    do { \
-    if((__comm__)->use_unexpected_msg) { \
-        __ret__ = mona_uirecv_mem((__comm__)->mona, (__mem__), (__size__), \
-                                  (__offset__), (__team__)->addrs[__src__], \
-                                  (__tag__), (__actual_size__), NULL, NULL, \
-                                  (__req__)); \
-    } else { \
-        __ret__ = mona_irecv_mem((__comm__)->mona, (__mem__), (__size__), \
-                                 (__offset__), (__team__)->addrs[__src__], \
-                                 (__tag__), (__actual_size__), (__req__)); \
-    } \
-    } while(0)
+#define MONA_COMM_IRECV(__ret__, __comm__, __team__, __buf__, __size__,      \
+                        __src__, __tag__, __actual_size__, __req__)          \
+    do {                                                                     \
+        if ((__comm__)->use_unexpected_msg) {                                \
+            __ret__ = mona_uirecv((__comm__)->mona, (__buf__), (__size__),   \
+                                  (__team__)->addrs[__src__], (__tag__),     \
+                                  (__actual_size__), NULL, NULL, (__req__)); \
+        } else {                                                             \
+            __ret__ = mona_irecv((__comm__)->mona, (__buf__), (__size__),    \
+                                 (__team__)->addrs[__src__], (__tag__),      \
+                                 (__actual_size__), (__req__));              \
+        }                                                                    \
+    } while (0)
+
+#define MONA_COMM_ISEND_MEM(__ret__, __comm__, __team__, __mem__, __size__, \
+                            __offset__, __dest__, __tag__, __req__)         \
+    do {                                                                    \
+        if ((__comm__)->use_unexpected_msg) {                               \
+            __ret__ = mona_uisend_mem(                                      \
+                (__comm__)->mona, (__mem__), (__size__), (__offset__),      \
+                (__team__)->addrs[__dest__], 0, (__tag__), (__req__));      \
+        } else {                                                            \
+            __ret__ = mona_isend_mem(                                       \
+                (__comm__)->mona, (__mem__), (__size__), (__offset__),      \
+                (__team__)->addrs[__dest__], 0, (__tag__), (__req__));      \
+        }                                                                   \
+    } while (0)
+
+#define MONA_COMM_IRECV_MEM(__ret__, __comm__, __team__, __mem__, __size__,    \
+                            __offset__, __src__, __tag__, __actual_size__,     \
+                            __req__)                                           \
+    do {                                                                       \
+        if ((__comm__)->use_unexpected_msg) {                                  \
+            __ret__ = mona_uirecv_mem(                                         \
+                (__comm__)->mona, (__mem__), (__size__), (__offset__),         \
+                (__team__)->addrs[__src__], (__tag__), (__actual_size__),      \
+                NULL, NULL, (__req__));                                        \
+        } else {                                                               \
+            __ret__ = mona_irecv_mem((__comm__)->mona, (__mem__), (__size__),  \
+                                     (__offset__), (__team__)->addrs[__src__], \
+                                     (__tag__), (__actual_size__), (__req__)); \
+        }                                                                      \
+    } while (0)
 #endif

@@ -33,7 +33,7 @@ typedef struct mona_comm* mona_comm_t;
  * @param typesize size of the type being processed
  * @param count number of elements in the input arrays
  */
-typedef void (*mona_op_t)(const void*, void*, na_size_t, na_size_t, void*);
+typedef void (*mona_op_t)(const void*, void*, size_t, size_t, void*);
 
 /**
  * @brief Create a communicator from an array of addresses.
@@ -50,7 +50,7 @@ typedef void (*mona_op_t)(const void*, void*, na_size_t, na_size_t, void*);
  * @return NA_SUCCESS or corresponding error code (see na.h)
  */
 na_return_t mona_comm_create(mona_instance_t  mona,
-                             na_size_t        count,
+                             size_t           count,
                              const na_addr_t* peers,
                              mona_comm_t*     comm);
 
@@ -92,13 +92,13 @@ na_return_t mona_comm_rank(mona_comm_t comm, int* rank);
  *
  * @return NA_SUCCESS or corresponding error code (see na.h)
  */
-na_return_t mona_comm_set_use_unexpected_msg(mona_comm_t comm, na_bool_t flag);
+na_return_t mona_comm_set_use_unexpected_msg(mona_comm_t comm, bool flag);
 
 /**
  * @brief Get the address corresponding to a rank.
- * If copy is set to NA_TRUE, the address will be copied
+ * If copy is set to true, the address will be copied
  * and it is the caller's responsibility to free it.
- * If copy is set to NA_FALSE, the address will remain
+ * If copy is set to false, the address will remain
  * valid until the communicator is destroyed, and the caller
  * should not free it.
  *
@@ -110,7 +110,7 @@ na_return_t mona_comm_set_use_unexpected_msg(mona_comm_t comm, na_bool_t flag);
  * @return NA_SUCCESS or corresponding error code (see na.h)
  */
 na_return_t
-mona_comm_addr(mona_comm_t comm, int rank, na_addr_t* addr, na_bool_t copy);
+mona_comm_addr(mona_comm_t comm, int rank, na_addr_t* addr, bool copy);
 
 /**
  * @brief Duplicate the communicator.
@@ -135,7 +135,7 @@ na_return_t mona_comm_dup(mona_comm_t comm, mona_comm_t* new_comm);
  */
 na_return_t mona_comm_subset(mona_comm_t  comm,
                              const int*   ranks,
-                             na_size_t    size,
+                             size_t       size,
                              mona_comm_t* new_comm);
 
 /**
@@ -152,14 +152,14 @@ na_return_t mona_comm_subset(mona_comm_t  comm,
  * @return NA_SUCCESS or corresponding error code (see na.h)
  */
 na_return_t mona_comm_send(
-    mona_comm_t comm, const void* buf, na_size_t size, int dest, na_tag_t tag);
+    mona_comm_t comm, const void* buf, size_t size, int dest, na_tag_t tag);
 
 /**
  * @see Non-blocking version of mona_comm_send.
  */
 na_return_t mona_comm_isend(mona_comm_t     comm,
                             const void*     buf,
-                            na_size_t       size,
+                            size_t          size,
                             int             dest,
                             na_tag_t        tag,
                             mona_request_t* req);
@@ -184,20 +184,20 @@ na_return_t mona_comm_isend(mona_comm_t     comm,
  */
 na_return_t mona_comm_recv(mona_comm_t comm,
                            void*       buf,
-                           na_size_t   size,
+                           size_t      size,
                            int         src,
                            na_tag_t    tag,
-                           na_size_t*  actual_size);
+                           size_t*     actual_size);
 
 /**
  * @see Non-blocking version of mona_comm_recv.
  */
 na_return_t mona_comm_irecv(mona_comm_t     comm,
                             void*           buf,
-                            na_size_t       size,
+                            size_t          size,
                             int             src,
                             na_tag_t        tag,
-                            na_size_t*      actual_size,
+                            size_t*         actual_size,
                             mona_request_t* req);
 
 /**
@@ -218,14 +218,14 @@ na_return_t mona_comm_irecv(mona_comm_t     comm,
  */
 na_return_t mona_comm_sendrecv(mona_comm_t comm,
                                const void* sendbuf,
-                               na_size_t   sendsize,
+                               size_t      sendsize,
                                int         dest,
                                na_tag_t    sendtag,
                                void*       recvbuf,
-                               na_size_t   recvsize,
+                               size_t      recvsize,
                                int         source,
                                na_tag_t    recvtag,
-                               na_size_t*  actual_recvsize);
+                               size_t*     actual_recvsize);
 
 /**
  * @brief Perform a barrier across the processes of the communicator.
@@ -256,14 +256,14 @@ mona_comm_ibarrier(mona_comm_t comm, na_tag_t tag, mona_request_t* req);
  * @return NA_SUCCESS or corresponding error code (see na.h)
  */
 na_return_t mona_comm_bcast(
-    mona_comm_t comm, void* buf, na_size_t size, int root, na_tag_t tag);
+    mona_comm_t comm, void* buf, size_t size, int root, na_tag_t tag);
 
 /**
  * @see Non-blocking version of mona_comm_bcast.
  */
 na_return_t mona_comm_ibcast(mona_comm_t     comm,
                              void*           buf,
-                             na_size_t       size,
+                             size_t          size,
                              int             root,
                              na_tag_t        tag,
                              mona_request_t* req);
@@ -282,7 +282,7 @@ na_return_t mona_comm_ibcast(mona_comm_t     comm,
  */
 na_return_t mona_comm_gather(mona_comm_t comm,
                              const void* sendbuf,
-                             na_size_t   size,
+                             size_t      size,
                              void*       recvbuf,
                              int         root,
                              na_tag_t    tag);
@@ -292,7 +292,7 @@ na_return_t mona_comm_gather(mona_comm_t comm,
  */
 na_return_t mona_comm_igather(mona_comm_t     comm,
                               const void*     sendbuf,
-                              na_size_t       size,
+                              size_t          size,
                               void*           recvbuf,
                               int             root,
                               na_tag_t        tag,
@@ -314,27 +314,27 @@ na_return_t mona_comm_igather(mona_comm_t     comm,
  *
  * @return NA_SUCCESS or corresponding error code (see na.h)
  */
-na_return_t mona_comm_gatherv(mona_comm_t      comm,
-                              const void*      sendbuf,
-                              na_size_t        sendsize,
-                              void*            recvbuf,
-                              const na_size_t* recvsizes,
-                              const na_size_t* displ,
-                              int              root,
-                              na_tag_t         tag);
+na_return_t mona_comm_gatherv(mona_comm_t   comm,
+                              const void*   sendbuf,
+                              size_t        sendsize,
+                              void*         recvbuf,
+                              const size_t* recvsizes,
+                              const size_t* displ,
+                              int           root,
+                              na_tag_t      tag);
 
 /**
  * @see Non-blocking version of mona_comm_gatherv.
  */
-na_return_t mona_comm_igatherv(mona_comm_t      comm,
-                               const void*      sendbuf,
-                               na_size_t        sendsize,
-                               void*            recvbuf,
-                               const na_size_t* recvsizes,
-                               const na_size_t* displ,
-                               int              root,
-                               na_tag_t         tag,
-                               mona_request_t*  req);
+na_return_t mona_comm_igatherv(mona_comm_t     comm,
+                               const void*     sendbuf,
+                               size_t          sendsize,
+                               void*           recvbuf,
+                               const size_t*   recvsizes,
+                               const size_t*   displ,
+                               int             root,
+                               na_tag_t        tag,
+                               mona_request_t* req);
 
 /**
  * @brief Scatter data from the root process to the rest of the processes.
@@ -350,7 +350,7 @@ na_return_t mona_comm_igatherv(mona_comm_t      comm,
  */
 na_return_t mona_comm_scatter(mona_comm_t comm,
                               const void* sendbuf,
-                              na_size_t   size,
+                              size_t      size,
                               void*       recvbuf,
                               int         root,
                               na_tag_t    tag);
@@ -360,7 +360,7 @@ na_return_t mona_comm_scatter(mona_comm_t comm,
  */
 na_return_t mona_comm_iscatter(mona_comm_t     comm,
                                const void*     sendbuf,
-                               na_size_t       size,
+                               size_t          size,
                                void*           recvbuf,
                                int             root,
                                na_tag_t        tag,
@@ -381,27 +381,27 @@ na_return_t mona_comm_iscatter(mona_comm_t     comm,
  *
  * @return NA_SUCCESS or corresponding error code (see na.h)
  */
-na_return_t mona_comm_scatterv(mona_comm_t      comm,
-                               const void*      sendbuf,
-                               const na_size_t* sendsizes,
-                               const na_size_t* displs,
-                               void*            recvbuf,
-                               na_size_t        recvsize,
-                               int              root,
-                               na_tag_t         tag);
+na_return_t mona_comm_scatterv(mona_comm_t   comm,
+                               const void*   sendbuf,
+                               const size_t* sendsizes,
+                               const size_t* displs,
+                               void*         recvbuf,
+                               size_t        recvsize,
+                               int           root,
+                               na_tag_t      tag);
 
 /**
  * @see Non-blocking version of mona_comm_scatterv.
  */
-na_return_t mona_comm_iscatterv(mona_comm_t      comm,
-                                const void*      sendbuf,
-                                const na_size_t* sendsizes,
-                                const na_size_t* displs,
-                                void*            recvbuf,
-                                na_size_t        recvsize,
-                                int              root,
-                                na_tag_t         tag,
-                                mona_request_t*  req);
+na_return_t mona_comm_iscatterv(mona_comm_t     comm,
+                                const void*     sendbuf,
+                                const size_t*   sendsizes,
+                                const size_t*   displs,
+                                void*           recvbuf,
+                                size_t          recvsize,
+                                int             root,
+                                na_tag_t        tag,
+                                mona_request_t* req);
 
 /**
  * @brief Gather data from all processes to all processes.
@@ -416,7 +416,7 @@ na_return_t mona_comm_iscatterv(mona_comm_t      comm,
  */
 na_return_t mona_comm_allgather(mona_comm_t comm,
                                 const void* sendbuf,
-                                na_size_t   size,
+                                size_t      size,
                                 void*       recvbuf,
                                 na_tag_t    tag);
 
@@ -425,7 +425,7 @@ na_return_t mona_comm_allgather(mona_comm_t comm,
  */
 na_return_t mona_comm_iallgather(mona_comm_t     comm,
                                  const void*     sendbuf,
-                                 na_size_t       size,
+                                 size_t          size,
                                  void*           recvbuf,
                                  na_tag_t        tag,
                                  mona_request_t* req);
@@ -450,8 +450,8 @@ na_return_t mona_comm_iallgather(mona_comm_t     comm,
 na_return_t mona_comm_reduce(mona_comm_t comm,
                              const void* sendbuf,
                              void*       recvbuf,
-                             na_size_t   typesize,
-                             na_size_t   count,
+                             size_t      typesize,
+                             size_t      count,
                              mona_op_t   op,
                              void*       uargs,
                              int         root,
@@ -463,8 +463,8 @@ na_return_t mona_comm_reduce(mona_comm_t comm,
 na_return_t mona_comm_ireduce(mona_comm_t     comm,
                               const void*     sendbuf,
                               void*           recvbuf,
-                              na_size_t       typesize,
-                              na_size_t       count,
+                              size_t          typesize,
+                              size_t          count,
                               mona_op_t       op,
                               void*           uargs,
                               int             root,
@@ -488,8 +488,8 @@ na_return_t mona_comm_ireduce(mona_comm_t     comm,
 na_return_t mona_comm_allreduce(mona_comm_t comm,
                                 const void* sendbuf,
                                 void*       recvbuf,
-                                na_size_t   typesize,
-                                na_size_t   count,
+                                size_t      typesize,
+                                size_t      count,
                                 mona_op_t   op,
                                 void*       uargs,
                                 na_tag_t    tag);
@@ -500,8 +500,8 @@ na_return_t mona_comm_allreduce(mona_comm_t comm,
 na_return_t mona_comm_iallreduce(mona_comm_t     comm,
                                  const void*     sendbuf,
                                  void*           recvbuf,
-                                 na_size_t       typesize,
-                                 na_size_t       count,
+                                 size_t          typesize,
+                                 size_t          count,
                                  mona_op_t       op,
                                  void*           uargs,
                                  na_tag_t        tag,
@@ -522,7 +522,7 @@ na_return_t mona_comm_iallreduce(mona_comm_t     comm,
  */
 na_return_t mona_comm_alltoall(mona_comm_t comm,
                                const void* sendbuf,
-                               na_size_t   size,
+                               size_t      size,
                                void*       recvbuf,
                                na_tag_t    tag);
 
@@ -531,7 +531,7 @@ na_return_t mona_comm_alltoall(mona_comm_t comm,
  */
 na_return_t mona_comm_ialltoall(mona_comm_t     comm,
                                 const void*     sendbuf,
-                                na_size_t       blocksize,
+                                size_t          blocksize,
                                 void*           recvbuf,
                                 na_tag_t        tag,
                                 mona_request_t* req);
@@ -549,413 +549,173 @@ na_return_t mona_hint_set_reduce_radix(mona_comm_t comm, uint32_t radix);
  * The suffix of the operation indicates the type of data it operates on
  * (u64 = uint64_t, i32 = int32_t, f32 = float, f64 = double, etc.)
  */
-void mona_op_max_u64(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_max_u32(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_max_u16(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_max_u8(const void* in,
-                    void*       inout,
-                    na_size_t   typesize,
-                    na_size_t   count,
-                    void*       uargs);
-void mona_op_max_i64(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_max_i32(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_max_i16(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_max_i8(const void* in,
-                    void*       inout,
-                    na_size_t   typesize,
-                    na_size_t   count,
-                    void*       uargs);
-void mona_op_max_f32(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_max_f64(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
+void mona_op_max_u64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_max_u32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_max_u16(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_max_u8(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_max_i64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_max_i32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_max_i16(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_max_i8(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_max_f32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_max_f64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
 
-void mona_op_min_u64(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_min_u32(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_min_u16(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_min_u8(const void* in,
-                    void*       inout,
-                    na_size_t   typesize,
-                    na_size_t   count,
-                    void*       uargs);
-void mona_op_min_i64(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_min_i32(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_min_i16(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_min_i8(const void* in,
-                    void*       inout,
-                    na_size_t   typesize,
-                    na_size_t   count,
-                    void*       uargs);
-void mona_op_min_f32(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_min_f64(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
+void mona_op_min_u64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_min_u32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_min_u16(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_min_u8(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_min_i64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_min_i32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_min_i16(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_min_i8(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_min_f32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_min_f64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
 
-void mona_op_sum_u64(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_sum_u32(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_sum_u16(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_sum_u8(const void* in,
-                    void*       inout,
-                    na_size_t   typesize,
-                    na_size_t   count,
-                    void*       uargs);
-void mona_op_sum_i64(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_sum_i32(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_sum_i16(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_sum_i8(const void* in,
-                    void*       inout,
-                    na_size_t   typesize,
-                    na_size_t   count,
-                    void*       uargs);
-void mona_op_sum_f32(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_sum_f64(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
+void mona_op_sum_u64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_sum_u32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_sum_u16(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_sum_u8(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_sum_i64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_sum_i32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_sum_i16(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_sum_i8(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_sum_f32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_sum_f64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
 
-void mona_op_prod_u64(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_prod_u32(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_prod_u16(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_prod_u8(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_prod_i64(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_prod_i32(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_prod_i16(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_prod_i8(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_prod_f32(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_prod_f64(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
+void mona_op_prod_u64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_prod_u32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_prod_u16(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_prod_u8(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_prod_i64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_prod_i32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_prod_i16(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_prod_i8(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_prod_f32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_prod_f64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
 
-void mona_op_land_u64(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_land_u32(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_land_u16(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_land_u8(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_land_i64(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_land_i32(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_land_i16(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_land_i8(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_land_f32(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_land_f64(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
+void mona_op_land_u64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_land_u32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_land_u16(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_land_u8(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_land_i64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_land_i32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_land_i16(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_land_i8(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_land_f32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_land_f64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
 
-void mona_op_lor_u64(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_lor_u32(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_lor_u16(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_lor_u8(const void* in,
-                    void*       inout,
-                    na_size_t   typesize,
-                    na_size_t   count,
-                    void*       uargs);
-void mona_op_lor_i64(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_lor_i32(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_lor_i16(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_lor_i8(const void* in,
-                    void*       inout,
-                    na_size_t   typesize,
-                    na_size_t   count,
-                    void*       uargs);
-void mona_op_lor_f32(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_lor_f64(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
+void mona_op_lor_u64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_lor_u32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_lor_u16(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_lor_u8(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_lor_i64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_lor_i32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_lor_i16(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_lor_i8(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_lor_f32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_lor_f64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
 
-void mona_op_band_u64(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_band_u32(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_band_u16(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_band_u8(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_band_i64(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_band_i32(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_band_i16(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_band_i8(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_band_f32(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
-void mona_op_band_f64(const void* in,
-                      void*       inout,
-                      na_size_t   typesize,
-                      na_size_t   count,
-                      void*       uargs);
+void mona_op_band_u64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_band_u32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_band_u16(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_band_u8(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_band_i64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_band_i32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_band_i16(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_band_i8(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_band_f32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_band_f64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
 
-void mona_op_bor_u64(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_bor_u32(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_bor_u16(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_bor_u8(const void* in,
-                    void*       inout,
-                    na_size_t   typesize,
-                    na_size_t   count,
-                    void*       uargs);
-void mona_op_bor_i64(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_bor_i32(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_bor_i16(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_bor_i8(const void* in,
-                    void*       inout,
-                    na_size_t   typesize,
-                    na_size_t   count,
-                    void*       uargs);
-void mona_op_bor_f32(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
-void mona_op_bor_f64(const void* in,
-                     void*       inout,
-                     na_size_t   typesize,
-                     na_size_t   count,
-                     void*       uargs);
+void mona_op_bor_u64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_bor_u32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_bor_u16(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_bor_u8(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_bor_i64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_bor_i32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_bor_i16(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_bor_i8(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_bor_f32(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+void mona_op_bor_f64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
 
 #ifdef __cplusplus
 }

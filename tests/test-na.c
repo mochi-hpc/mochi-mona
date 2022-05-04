@@ -12,7 +12,7 @@ typedef struct {
     na_addr_t     self_addr;
     na_addr_t     other_addr;
     na_op_id_t*   op_id;
-    na_size_t     msg_len;
+    size_t     msg_len;
     char*         buf;
     void*         plugin_data;
     int           stop;
@@ -28,7 +28,7 @@ static void* test_context_setup(const MunitParameter params[], void* user_data)
     MPI_Init(NULL, NULL);
 
     test_context* context = (test_context*)calloc(1, sizeof(*context));
-    context->na_class = NA_Initialize_opt("ofi+tcp", NA_TRUE, NULL);
+    context->na_class = NA_Initialize_opt("ofi+tcp", true, NULL);
     context->na_context = NA_Context_create(context->na_class);
 
     MPI_Comm_rank(MPI_COMM_WORLD, &(context->rank));
@@ -37,7 +37,7 @@ static void* test_context_setup(const MunitParameter params[], void* user_data)
     munit_assert_int(ret, ==, NA_SUCCESS);
 
     char self_addr_str[128];
-    na_size_t self_addr_size = 128;
+    size_t self_addr_size = 128;
     ret = NA_Addr_to_string(context->na_class, self_addr_str, &self_addr_size, context->self_addr);
     munit_assert_int(ret, ==, NA_SUCCESS);
 

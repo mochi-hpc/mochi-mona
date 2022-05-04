@@ -14,7 +14,7 @@
 
 na_return_t mona_comm_scatter(mona_comm_t comm,
                               const void* sendbuf,
-                              na_size_t   size,
+                              size_t      size,
                               void*       recvbuf,
                               int         root,
                               na_tag_t    tag)
@@ -43,8 +43,7 @@ na_return_t mona_comm_scatter(mona_comm_t comm,
             if (na_ret != NA_SUCCESS) goto finish;
         }
     } else {
-        na_ret
-            = mona_comm_recv(comm, recvbuf, size, root, tag, NULL);
+        na_ret = mona_comm_recv(comm, recvbuf, size, root, tag, NULL);
     }
 finish:
     free(reqs);
@@ -54,7 +53,7 @@ finish:
 typedef struct iscatter_args {
     mona_comm_t    comm;
     const void*    sendbuf;
-    na_size_t      size;
+    size_t         size;
     void*          recvbuf;
     int            root;
     na_tag_t       tag;
@@ -73,7 +72,7 @@ static void iscatter_thread(void* x)
 
 na_return_t mona_comm_iscatter(mona_comm_t     comm,
                                const void*     sendbuf,
-                               na_size_t       size,
+                               size_t          size,
                                void*           recvbuf,
                                int             root,
                                na_tag_t        tag,
@@ -93,14 +92,14 @@ na_return_t mona_comm_iscatter(mona_comm_t     comm,
 // Scatterv
 // -----------------------------------------------------------------------
 
-na_return_t mona_comm_scatterv(mona_comm_t      comm,
-                               const void*      sendbuf,
-                               const na_size_t* sendsizes,
-                               const na_size_t* displs,
-                               void*            recvbuf,
-                               na_size_t        recvsize,
-                               int              root,
-                               na_tag_t         tag)
+na_return_t mona_comm_scatterv(mona_comm_t   comm,
+                               const void*   sendbuf,
+                               const size_t* sendsizes,
+                               const size_t* displs,
+                               void*         recvbuf,
+                               size_t        recvsize,
+                               int           root,
+                               na_tag_t      tag)
 {
     // TODO use try something more efficient like binomial
     int             i;
@@ -136,15 +135,15 @@ finish:
 }
 
 typedef struct iscatterv_args {
-    mona_comm_t      comm;
-    const void*      sendbuf;
-    const na_size_t* sendsizes;
-    const na_size_t* displs;
-    void*            recvbuf;
-    na_size_t        recvsize;
-    int              root;
-    na_tag_t         tag;
-    mona_request_t   req;
+    mona_comm_t    comm;
+    const void*    sendbuf;
+    const size_t*  sendsizes;
+    const size_t*  displs;
+    void*          recvbuf;
+    size_t         recvsize;
+    int            root;
+    na_tag_t       tag;
+    mona_request_t req;
 } iscatterv_args;
 
 static void iscatterv_thread(void* x)
@@ -157,15 +156,15 @@ static void iscatterv_thread(void* x)
     free(args);
 }
 
-na_return_t mona_comm_iscatterv(mona_comm_t      comm,
-                                const void*      sendbuf,
-                                const na_size_t* sendsizes,
-                                const na_size_t* displs,
-                                void*            recvbuf,
-                                na_size_t        recvsize,
-                                int              root,
-                                na_tag_t         tag,
-                                mona_request_t*  req)
+na_return_t mona_comm_iscatterv(mona_comm_t     comm,
+                                const void*     sendbuf,
+                                const size_t*   sendsizes,
+                                const size_t*   displs,
+                                void*           recvbuf,
+                                size_t          recvsize,
+                                int             root,
+                                na_tag_t        tag,
+                                mona_request_t* req)
 {
     NB_OP_INIT(iscatterv_args);
     args->comm      = comm;
