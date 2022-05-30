@@ -9,7 +9,7 @@
 #
 
 cmake_minimum_required (VERSION 3.14)
-project (mona C)
+project (mona C CXX)
 enable_testing ()
 
 option (ENABLE_TESTS        "Build tests. May require CppUnit_ROOT" OFF)

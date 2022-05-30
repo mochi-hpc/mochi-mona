@@ -1,0 +1,360 @@
+#include <stdexcept>
+
+// ------------------------------------------------------------------------ //
+// MONA implementation of a subset of MPI functions
+// ------------------------------------------------------------------------ //
+
+static bool MONA_MPI_Is_mona_comm(MPI_Comm comm) {
+    return true;
+}
+
+// ------------------------------------------------------------------------ //
+// Default MONA implementation for non-supported functions
+// ------------------------------------------------------------------------ //
+
+{{foreachfn FUNCTION MPI_Abort
+                 MPI_Allgather
+                 MPI_Allgatherv
+                 MPI_Allreduce
+                 MPI_Alltoall
+                 MPI_Alltoallv
+                 MPI_Alltoallw
+                 MPI_Attr_delete
+                 MPI_Attr_get
+                 MPI_Attr_put
+                 MPI_Barrier
+                 MPI_Bcast
+                 MPI_Bsend
+                 MPI_Bsend_init
+                 MPI_Cart_coords
+                 MPI_Cart_get
+                 MPI_Cart_map
+                 MPI_Cart_rank
+                 MPI_Cart_shift
+                 MPI_Cart_sub
+                 MPI_Cartdim_get
+                 MPI_Comm_accept
+                 MPI_Comm_call_errhandler
+                 MPI_Comm_connect
+                 MPI_Comm_create
+                 MPI_Comm_create_group
+                 MPI_Comm_delete_attr
+                 MPI_Comm_dup
+                 MPI_Comm_dup_with_info
+                 MPI_Comm_get_attr
+                 MPI_Comm_get_errhandler
+                 MPI_Comm_get_info
+                 MPI_Comm_get_name
+                 MPI_Comm_group
+                 MPI_Comm_idup
+                 MPI_Comm_rank
+                 MPI_Comm_remote_group
+                 MPI_Comm_remote_size
+                 MPI_Comm_set_attr
+                 MPI_Comm_set_errhandler
+                 MPI_Comm_set_info
+                 MPI_Comm_set_name
+                 MPI_Comm_size
+                 MPI_Comm_split
+                 MPI_Comm_split_type
+                 MPI_Comm_test_inter
+                 MPI_Dist_graph_create_adjacent
+                 MPI_Dist_graph_neighbors
+                 MPI_Dist_graph_neighbors_count
+                 MPI_Errhandler_get
+                 MPI_Errhandler_set
+                 MPI_Exscan
+                 MPI_File_open
+                 MPI_Gather
+                 MPI_Gatherv
+                 MPI_Graph_get
+                 MPI_Graph_map
+                 MPI_Graph_neighbors
+                 MPI_Graph_neighbors_count
+                 MPI_Graphdims_get
+                 MPI_Iallgather
+                 MPI_Iallgatherv
+                 MPI_Iallreduce
+                 MPI_Ialltoall
+                 MPI_Ialltoallv
+                 MPI_Ialltoallw
+                 MPI_Ibarrier
+                 MPI_Ibcast
+                 MPI_Ibsend
+                 MPI_Iexscan
+                 MPI_Igather
+                 MPI_Igatherv
+                 MPI_Improbe
+                 MPI_Ineighbor_allgather
+                 MPI_Ineighbor_allgatherv
+                 MPI_Ineighbor_alltoall
+                 MPI_Ineighbor_alltoallv
+                 MPI_Ineighbor_alltoallw
+                 MPI_Iprobe
+                 MPI_Irecv
+                 MPI_Ireduce
+                 MPI_Ireduce_scatter
+                 MPI_Ireduce_scatter_block
+                 MPI_Irsend
+                 MPI_Iscatter
+                 MPI_Iscatterv
+                 MPI_Isend
+                 MPI_Issend
+                 MPI_Mprobe
+                 MPI_Neighbor_allgather
+                 MPI_Neighbor_allgatherv
+                 MPI_Neighbor_alltoall
+                 MPI_Neighbor_alltoallv
+                 MPI_Neighbor_alltoallw
+                 MPI_Pack
+                 MPI_Pack_size
+                 MPI_Probe
+                 MPI_Recv
+                 MPI_Recv_init
+                 MPI_Reduce
+                 MPI_Reduce_scatter
+                 MPI_Reduce_scatter_block
+                 MPI_Rsend
+                 MPI_Rsend_init
+                 MPI_Scan
+                 MPI_Scatter
+                 MPI_Scatterv
+                 MPI_Send
+                 MPI_Send_init
+                 MPI_Sendrecv
+                 MPI_Sendrecv_replace
+                 MPI_Ssend
+                 MPI_Ssend_init
+                 MPI_Topo_test
+                 MPI_Unpack
+                 MPI_Win_allocate
+                 MPI_Win_allocate_shared
+                 MPI_Win_create
+                 MPI_Win_create_dynamic
+                 MPI_Intercomm_merge
+                 MPI_Graph_create
+                 MPI_Comm_compare
+                 MPI_Intercomm_create
+                 MPI_Comm_disconnect
+                 MPI_Comm_free
+                 MPI_Dist_graph_create}}
+static {{ret_type}} MONA_{{FUNCTION}}{{argTypeList}} {
+    throw std::runtime_error("MONA_{{FUNCTION}} not implemented");
+    {{ret_type}} ret;
+    return ret;
+}
+{{endforeachfn}}
+
+// ------------------------------------------------------------------------ //
+// PMPI wrappers for functions that have an argument requiring translation
+// (MPI_Comm, MPI_Request, etc.)
+// ------------------------------------------------------------------------ //
+
+#define IS_MONA_COMM(__comm__) \
+        int __is_mona_comm = MONA_MPI_Is_mona_comm(__comm__)
+
+#define CONVERT_TO_MONA_COMM(__comm__) \
+        __comm__ = __comm__
+
+#define CONVERT_TO_MPI_COMM(__comm__) \
+        __comm__ = __comm__
+
+{{fn    FUNCTION MPI_Abort
+                 MPI_Allgather
+                 MPI_Allgatherv
+                 MPI_Allreduce
+                 MPI_Alltoall
+                 MPI_Alltoallv
+                 MPI_Alltoallw
+                 MPI_Attr_delete
+                 MPI_Attr_get
+                 MPI_Attr_put
+                 MPI_Barrier
+                 MPI_Bcast
+                 MPI_Bsend
+                 MPI_Bsend_init
+                 MPI_Cart_coords
+                 MPI_Cart_get
+                 MPI_Cart_map
+                 MPI_Cart_rank
+                 MPI_Cart_shift
+                 MPI_Cart_sub
+                 MPI_Cartdim_get
+                 MPI_Comm_accept
+                 MPI_Comm_call_errhandler
+                 MPI_Comm_connect
+                 MPI_Comm_create
+                 MPI_Comm_create_group
+                 MPI_Comm_delete_attr
+                 MPI_Comm_dup
+                 MPI_Comm_dup_with_info
+                 MPI_Comm_get_attr
+                 MPI_Comm_get_errhandler
+                 MPI_Comm_get_info
+                 MPI_Comm_get_name
+                 MPI_Comm_group
+                 MPI_Comm_idup
+                 MPI_Comm_rank
+                 MPI_Comm_remote_group
+                 MPI_Comm_remote_size
+                 MPI_Comm_set_attr
+                 MPI_Comm_set_errhandler
+                 MPI_Comm_set_info
+                 MPI_Comm_set_name
+                 MPI_Comm_size
+                 MPI_Comm_split
+                 MPI_Comm_split_type
+                 MPI_Comm_test_inter
+                 MPI_Dist_graph_create_adjacent
+                 MPI_Dist_graph_neighbors
+                 MPI_Dist_graph_neighbors_count
+                 MPI_Errhandler_get
+                 MPI_Errhandler_set
+                 MPI_Exscan
+                 MPI_File_open
+                 MPI_Gather
+                 MPI_Gatherv
+                 MPI_Graph_get
+                 MPI_Graph_map
+                 MPI_Graph_neighbors
+                 MPI_Graph_neighbors_count
+                 MPI_Graphdims_get
+                 MPI_Iallgather
+                 MPI_Iallgatherv
+                 MPI_Iallreduce
+                 MPI_Ialltoall
+                 MPI_Ialltoallv
+                 MPI_Ialltoallw
+                 MPI_Ibarrier
+                 MPI_Ibcast
+                 MPI_Ibsend
+                 MPI_Iexscan
+                 MPI_Igather
+                 MPI_Igatherv
+                 MPI_Improbe
+                 MPI_Ineighbor_allgather
+                 MPI_Ineighbor_allgatherv
+                 MPI_Ineighbor_alltoall
+                 MPI_Ineighbor_alltoallv
+                 MPI_Ineighbor_alltoallw
+                 MPI_Iprobe
+                 MPI_Irecv
+                 MPI_Ireduce
+                 MPI_Ireduce_scatter
+                 MPI_Ireduce_scatter_block
+                 MPI_Irsend
+                 MPI_Iscatter
+                 MPI_Iscatterv
+                 MPI_Isend
+                 MPI_Issend
+                 MPI_Mprobe
+                 MPI_Neighbor_allgather
+                 MPI_Neighbor_allgatherv
+                 MPI_Neighbor_alltoall
+                 MPI_Neighbor_alltoallv
+                 MPI_Neighbor_alltoallw
+                 MPI_Pack
+                 MPI_Pack_size
+                 MPI_Probe
+                 MPI_Recv
+                 MPI_Recv_init
+                 MPI_Reduce
+                 MPI_Reduce_scatter
+                 MPI_Reduce_scatter_block
+                 MPI_Rsend
+                 MPI_Rsend_init
+                 MPI_Scan
+                 MPI_Scatter
+                 MPI_Scatterv
+                 MPI_Send
+                 MPI_Send_init
+                 MPI_Sendrecv
+                 MPI_Sendrecv_replace
+                 MPI_Ssend
+                 MPI_Ssend_init
+                 MPI_Topo_test
+                 MPI_Unpack
+                 MPI_Win_allocate
+                 MPI_Win_allocate_shared
+                 MPI_Win_create
+                 MPI_Win_create_dynamic
+                 MPI_Intercomm_merge
+                 MPI_Graph_create
+                 MPI_Dist_graph_create}}
+    {{applyToType MPI_Comm IS_MONA_COMM}}
+    if(__is_mona_comm) {
+        {{applyToType MON_Comm CONVERT_TO_MONA_COMM}}
+        {{ret_val}} = MONA_{{FUNCTION}}({{args}});
+    } else {
+        {{applyToType MON_Comm CONVERT_TO_MPI_COMM}}
+        {{callfn}}
+    }
+{{endfn}}
+
+/* ================== C Wrappers for MPI_Comm_disconnect ================== */
+_EXTERN_C_ int PMPI_Comm_disconnect(MPI_Comm *comm);
+_EXTERN_C_ int MPI_Comm_disconnect(MPI_Comm *comm) {
+    int _wrap_py_return_val = 0;
+
+    IS_MONA_COMM(*comm);
+
+    if(__is_mona_comm) {
+        _wrap_py_return_val = MONA_MPI_Comm_disconnect(comm);
+    } else {
+        _wrap_py_return_val = PMPI_Comm_disconnect(comm);
+    }
+    return _wrap_py_return_val;
+}
+
+/* ================== C Wrappers for MPI_Comm_free ================== */
+_EXTERN_C_ int PMPI_Comm_free(MPI_Comm *comm);
+_EXTERN_C_ int MPI_Comm_free(MPI_Comm *comm) {
+    int _wrap_py_return_val = 0;
+
+    IS_MONA_COMM(*comm);
+
+    if(__is_mona_comm) {
+        _wrap_py_return_val = MONA_MPI_Comm_free(comm);
+    } else {
+        _wrap_py_return_val = PMPI_Comm_free(comm);
+    }
+    return _wrap_py_return_val;
+}
+
+/* ================== C Wrappers for MPI_Comm_compare ================== */
+_EXTERN_C_ int PMPI_Comm_compare(MPI_Comm comm1, MPI_Comm comm2, int *result);
+_EXTERN_C_ int MPI_Comm_compare(MPI_Comm comm1, MPI_Comm comm2, int *result) {
+    int _wrap_py_return_val = 0;
+
+    int __comm1_is_mona = MONA_MPI_Is_mona_comm(comm1);
+    int __comm2_is_mona = MONA_MPI_Is_mona_comm(comm2);
+
+    if(__comm1_is_mona && __comm2_is_mona) {
+        CONVERT_TO_MONA_COMM(comm1);
+        CONVERT_TO_MONA_COMM(comm2);
+        _wrap_py_return_val = MONA_MPI_Comm_compare(comm1, comm2, result);
+    } else if(!__comm2_is_mona && !__comm2_is_mona) {
+        _wrap_py_return_val = PMPI_Comm_compare(comm1, comm2, result);
+    } else {
+       *result = 0;
+    }
+    return _wrap_py_return_val;
+}
+
+/* ================== C Wrappers for MPI_Intercomm_create ================== */
+_EXTERN_C_ int PMPI_Intercomm_create(MPI_Comm local_comm, int local_leader, MPI_Comm peer_comm, int remote_leader, int tag, MPI_Comm *newintercomm);
+_EXTERN_C_ int MPI_Intercomm_create(MPI_Comm local_comm, int local_leader, MPI_Comm peer_comm, int remote_leader, int tag, MPI_Comm *newintercomm) {
+    int _wrap_py_return_val = 0;
+
+    int __is_mona_local_comm = MONA_MPI_Is_mona_comm(local_comm);
+    int __is_mona_peer_comm = MONA_MPI_Is_mona_comm(peer_comm);
+
+    if(__is_mona_local_comm && __is_mona_peer_comm) {
+        _wrap_py_return_val = MONA_MPI_Intercomm_create(local_comm, local_leader, peer_comm, remote_leader, tag, newintercomm);
+    } else if(!__is_mona_local_comm && !__is_mona_peer_comm) {
+        _wrap_py_return_val = PMPI_Intercomm_create(local_comm, local_leader, peer_comm, remote_leader, tag, newintercomm);
+    } else {
+        _wrap_py_return_val = -1;
+    }
+    return _wrap_py_return_val;
+}
