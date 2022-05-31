@@ -130,6 +130,11 @@ static MunitResult test_waitany(const MunitParameter params[], void* data)
         munit_assert_int(ret, ==, 0);
     }
 
+    MPI_Request sendreqs2[size];
+    MPI_Request recvreqs2[size];
+    memcpy(sendreqs2, sendreqs, sizeof(MPI_Request)*size);
+    memcpy(recvreqs2, recvreqs, sizeof(MPI_Request)*size);
+
     for(int i=0; i < size-1; i++) {
         int index = 0;
         ret = MPI_Waitany(size, sendreqs, &index, MPI_STATUS_IGNORE);
@@ -142,6 +147,13 @@ static MunitResult test_waitany(const MunitParameter params[], void* data)
         ret = MPI_Waitany(size, recvreqs, &index, MPI_STATUS_IGNORE);
         munit_assert_int(ret, ==, NA_SUCCESS);
         recvreqs[index] = MPI_REQUEST_NULL;
+    }
+
+    for(int i=0; i < size-1; i++) {
+        if(sendreqs2[i] != MPI_REQUEST_NULL)
+            MPI_Request_free(sendreqs2+i);
+        if(recvreqs2[i] != MPI_REQUEST_NULL)
+            MPI_Request_free(recvreqs2+i);
     }
 
     for(int i=0; i < size; i++) {

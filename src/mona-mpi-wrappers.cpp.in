@@ -2,10 +2,12 @@
 #include <unordered_map>
 #include <algorithm>
 #include <iostream>
+#include <mpi.h>
 #include <mona-coll.h>
 
 static std::unordered_map<MPI_Comm, MPI_Comm> _user_comm_to_mpi;
 static std::unordered_map<MPI_Comm, mona_comm_t> _user_comm_to_mona;
+
 static MPI_Comm last_user_comm = (MPI_Comm)42;
 
 static size_t get_datatype_size(MPI_Datatype dt) {
@@ -134,6 +136,74 @@ extern "C" int MPI_Register_mona_comm(mona_comm_t comm, MPI_Comm* newcomm) {
 // MONA implementation of a subset of MPI functions
 // ------------------------------------------------------------------------ //
 
+static int MONA_MPI_Comm_size(MPI_Comm user_comm, int* size) {
+    mona_comm_t mona_comm = get_mona_comm_from(user_comm);
+    na_return_t ret = mona_comm_size(mona_comm, size);
+    if(ret != NA_SUCCESS) return -1;
+    return 0;
+}
+
+static int MONA_MPI_Comm_rank(MPI_Comm user_comm, int* rank) {
+    mona_comm_t mona_comm = get_mona_comm_from(user_comm);
+    na_return_t ret = mona_comm_rank(mona_comm, rank);
+    if(ret != NA_SUCCESS) return -1;
+    return 0;
+}
+
+static int MONA_MPI_Comm_free(MPI_Comm* user_comm) {
+    mona_comm_t mona_comm = get_mona_comm_from(*user_comm);
+    deregister_mona_comm(mona_comm);
+    *user_comm = MPI_COMM_NULL;
+    return 0;
+}
+
+static int MONA_MPI_Send(const void *buf, int count, MPI_Datatype datatype,
+                         int dest, int tag, MPI_Comm user_comm) {
+    size_t dtype_size = get_datatype_size(datatype);
+    if(dtype_size == 0) return -1;
+    mona_comm_t mona_comm = get_mona_comm_from(user_comm);
+    na_return_t ret = mona_comm_send(mona_comm, buf, count*dtype_size, dest, tag);
+    if(ret != NA_SUCCESS) return -1;
+    return 0;
+}
+
+static int MONA_MPI_Recv(void *buf, int count, MPI_Datatype datatype,
+                         int src, int tag, MPI_Comm user_comm, MPI_Status* status) {
+    size_t dtype_size = get_datatype_size(datatype);
+    if(dtype_size == 0) return -1;
+    mona_comm_t mona_comm = get_mona_comm_from(user_comm);
+    size_t received_size = 0;
+    na_return_t ret = mona_comm_recv(mona_comm, buf, count*dtype_size, src, tag, &received_size);
+    if(ret != NA_SUCCESS) return -1;
+    if(status && status != MPI_STATUS_IGNORE) {
+        PMPI_Status_set_elements(status, datatype, received_size/dtype_size);
+        PMPI_Status_set_cancelled(status, 0);
+    }
+    return 0;
+}
+
+static int MONA_MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+                             int dest, int sendtag,
+                             void *recvbuf, int recvcount, MPI_Datatype recvtype,
+                             int source, int recvtag,
+                             MPI_Comm user_comm, MPI_Status *status) {
+    size_t sendtype_size = get_datatype_size(sendtype);
+    size_t recvtype_size = get_datatype_size(recvtype);
+    if(sendtype_size == 0) return -1;
+    if(recvtype_size == 0) return -1;
+    mona_comm_t mona_comm = get_mona_comm_from(user_comm);
+    size_t received_size = 0;
+    na_return_t ret = mona_comm_sendrecv(
+        mona_comm, sendbuf, sendcount*sendtype_size, dest, sendtag,
+        recvbuf, recvcount*recvtype_size, source, recvtag, &received_size);
+    if(ret != NA_SUCCESS) return -1;
+    if(status && status != MPI_STATUS_IGNORE) {
+        PMPI_Status_set_elements(status, recvtype, received_size/recvtype_size);
+        PMPI_Status_set_cancelled(status, 0);
+    }
+    return 0;
+}
+
 // ------------------------------------------------------------------------ //
 // Default MONA implementation for non-supported functions
 // ------------------------------------------------------------------------ //
@@ -173,14 +243,12 @@ extern "C" int MPI_Register_mona_comm(mona_comm_t comm, MPI_Comm* newcomm) {
                  MPI_Comm_get_name
                  MPI_Comm_group
                  MPI_Comm_idup
-                 MPI_Comm_rank
                  MPI_Comm_remote_group
                  MPI_Comm_remote_size
                  MPI_Comm_set_attr
                  MPI_Comm_set_errhandler
                  MPI_Comm_set_info
                  MPI_Comm_set_name
-                 MPI_Comm_size
                  MPI_Comm_split
                  MPI_Comm_split_type
                  MPI_Comm_test_inter
@@ -235,7 +303,6 @@ extern "C" int MPI_Register_mona_comm(mona_comm_t comm, MPI_Comm* newcomm) {
                  MPI_Pack
                  MPI_Pack_size
                  MPI_Probe
-                 MPI_Recv
                  MPI_Recv_init
                  MPI_Reduce
                  MPI_Reduce_scatter
@@ -245,9 +312,7 @@ extern "C" int MPI_Register_mona_comm(mona_comm_t comm, MPI_Comm* newcomm) {
                  MPI_Scan
                  MPI_Scatter
                  MPI_Scatterv
-                 MPI_Send
                  MPI_Send_init
-                 MPI_Sendrecv
                  MPI_Sendrecv_replace
                  MPI_Ssend
                  MPI_Ssend_init
@@ -262,13 +327,10 @@ extern "C" int MPI_Register_mona_comm(mona_comm_t comm, MPI_Comm* newcomm) {
                  MPI_Comm_compare
                  MPI_Intercomm_create
                  MPI_Comm_disconnect
-                 MPI_Comm_free
                  MPI_Dist_graph_create}}
 static {{ret_type}} MONA_{{FUNCTION}}{{argTypeList}} {
     std::cerr << "MONA_{{FUNCTION}} not implemented" << std::endl;
     return -1;
-    //{{ret_type}} ret;
-    //return ret;
 }
 {{endforeachfn}}
 
