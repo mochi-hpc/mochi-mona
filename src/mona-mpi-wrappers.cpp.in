@@ -275,6 +275,28 @@ static int MONA_MPI_Scatter(const void *sendbuf, int sendcount, MPI_Datatype sen
     return (int)mona_comm_scatter(mona_comm, sendbuf, sendtype_size*sendcount, recvbuf, root, 0);
 }
 
+static int MONA_MPI_Scatterv(const void *sendbuf, const int *sendcounts, const int *displs,
+                             MPI_Datatype sendtype, void *recvbuf, int recvcount,
+                             MPI_Datatype recvtype,
+                             int root, MPI_Comm user_comm) {
+    mona_comm_t mona_comm = get_mona_comm_from(user_comm);
+    size_t sendtype_size = get_datatype_size(sendtype);
+    size_t recvtype_size = get_datatype_size(recvtype);
+    if(sendtype_size == 0) return -1;
+    if(recvtype_size == 0) return -1;
+    int n = 0;
+    na_return_t ret = mona_comm_size(mona_comm, &n);
+    if(ret != NA_SUCCESS) return ret;
+    std::vector<size_t> m_sendcounts(n);
+    std::vector<size_t> m_displs(n);
+    for(int i=0; i < n; i++) {
+        m_sendcounts[i] = (size_t)sendcounts[i]*sendtype_size;
+        m_displs[i] = (size_t)displs[i];
+    }
+    return (int)mona_comm_scatterv(mona_comm, sendbuf, m_sendcounts.data(), m_displs.data(),
+                                   recvbuf, recvcount*recvtype_size, root, 0);
+}
+
 // ------------------------------------------------------------------------ //
 // Default MONA implementation for non-supported functions
 // ------------------------------------------------------------------------ //
@@ -376,7 +398,6 @@ static int MONA_MPI_Scatter(const void *sendbuf, int sendcount, MPI_Datatype sen
                  MPI_Rsend
                  MPI_Rsend_init
                  MPI_Scan
-                 MPI_Scatterv
                  MPI_Send_init
                  MPI_Sendrecv_replace
                  MPI_Ssend
