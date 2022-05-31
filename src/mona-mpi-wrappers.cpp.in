@@ -139,14 +139,14 @@ extern "C" int MPI_Register_mona_comm(mona_comm_t comm, MPI_Comm* newcomm) {
 static int MONA_MPI_Comm_size(MPI_Comm user_comm, int* size) {
     mona_comm_t mona_comm = get_mona_comm_from(user_comm);
     na_return_t ret = mona_comm_size(mona_comm, size);
-    if(ret != NA_SUCCESS) return -1;
+    if(ret != NA_SUCCESS) return ret;
     return 0;
 }
 
 static int MONA_MPI_Comm_rank(MPI_Comm user_comm, int* rank) {
     mona_comm_t mona_comm = get_mona_comm_from(user_comm);
     na_return_t ret = mona_comm_rank(mona_comm, rank);
-    if(ret != NA_SUCCESS) return -1;
+    if(ret != NA_SUCCESS) return ret;
     return 0;
 }
 
@@ -163,7 +163,7 @@ static int MONA_MPI_Send(const void *buf, int count, MPI_Datatype datatype,
     if(dtype_size == 0) return -1;
     mona_comm_t mona_comm = get_mona_comm_from(user_comm);
     na_return_t ret = mona_comm_send(mona_comm, buf, count*dtype_size, dest, tag);
-    if(ret != NA_SUCCESS) return -1;
+    if(ret != NA_SUCCESS) return ret;
     return 0;
 }
 
@@ -174,7 +174,7 @@ static int MONA_MPI_Recv(void *buf, int count, MPI_Datatype datatype,
     mona_comm_t mona_comm = get_mona_comm_from(user_comm);
     size_t received_size = 0;
     na_return_t ret = mona_comm_recv(mona_comm, buf, count*dtype_size, src, tag, &received_size);
-    if(ret != NA_SUCCESS) return -1;
+    if(ret != NA_SUCCESS) return ret;
     if(status && status != MPI_STATUS_IGNORE) {
         PMPI_Status_set_elements(status, datatype, received_size/dtype_size);
         PMPI_Status_set_cancelled(status, 0);
@@ -196,12 +196,18 @@ static int MONA_MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype se
     na_return_t ret = mona_comm_sendrecv(
         mona_comm, sendbuf, sendcount*sendtype_size, dest, sendtag,
         recvbuf, recvcount*recvtype_size, source, recvtag, &received_size);
-    if(ret != NA_SUCCESS) return -1;
+    if(ret != NA_SUCCESS) return ret;
     if(status && status != MPI_STATUS_IGNORE) {
         PMPI_Status_set_elements(status, recvtype, received_size/recvtype_size);
         PMPI_Status_set_cancelled(status, 0);
     }
     return 0;
+}
+
+static int MONA_MPI_Barrier(MPI_Comm user_comm) {
+    mona_comm_t mona_comm = get_mona_comm_from(user_comm);
+    na_return_t ret = mona_comm_barrier(mona_comm, 0);
+    return ret;
 }
 
 // ------------------------------------------------------------------------ //
@@ -218,7 +224,6 @@ static int MONA_MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype se
                  MPI_Attr_delete
                  MPI_Attr_get
                  MPI_Attr_put
-                 MPI_Barrier
                  MPI_Bcast
                  MPI_Bsend
                  MPI_Bsend_init

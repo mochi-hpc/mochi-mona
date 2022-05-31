@@ -58,7 +58,7 @@ add_munit_test (NAME TestWaitAny MPI NUM_PROCS 5 SOURCES test-waitany.c)
 # MPI wrappers tests
 if (${ENABLE_MPI_WRAPPERS})
   add_munit_test (NAME TestMPISendRecvColl MPI WRAPPER NUM_PROCS 2 SOURCES test-mpi-send-recv-coll.c)
-  #add_munit_test (NAME TestMPIBarrier MPI WRAPPER NUM_PROCS 5 SOURCES test-mpi-barrier.c)
+  add_munit_test (NAME TestMPIBarrier MPI WRAPPER NUM_PROCS 5 SOURCES test-mpi-barrier.c)
   #add_munit_test (NAME TestMPIBcast MPI WRAPPER NUM_PROCS 5 SOURCES test-mpi-bcast.c)
   #add_munit_test (NAME TestMPIGather MPI WRAPPER NUM_PROCS 5 SOURCES test-mpi-gather.c)
   #add_munit_test (NAME TestMPIGatherv MPI WRAPPER NUM_PROCS 5 SOURCES test-mpi-gatherv.c)
