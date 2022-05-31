@@ -110,7 +110,7 @@ static MunitResult test_bcast(const MunitParameter params[], void* data)
     // small broadcast from another root
     int root = size/2;
     value = rank == root ? 4563 : 0;
-    ret = MPI_Bcast(&value, sizeof(value), MPI_BYTE, 0, context->mpi_comm);
+    ret = MPI_Bcast(&value, sizeof(value), MPI_BYTE, root, context->mpi_comm);
     munit_assert_int(ret, ==, 0);
     munit_assert_int(value, ==, 4563);
 

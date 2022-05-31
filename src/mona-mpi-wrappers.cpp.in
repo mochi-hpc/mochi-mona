@@ -206,8 +206,14 @@ static int MONA_MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype se
 
 static int MONA_MPI_Barrier(MPI_Comm user_comm) {
     mona_comm_t mona_comm = get_mona_comm_from(user_comm);
-    na_return_t ret = mona_comm_barrier(mona_comm, 0);
-    return ret;
+    return (int)mona_comm_barrier(mona_comm, 0);
+}
+
+static int MONA_MPI_Bcast(void* buffer, int count,
+                          MPI_Datatype datatype, int root, MPI_Comm user_comm) {
+    mona_comm_t mona_comm = get_mona_comm_from(user_comm);
+    size_t type_size = get_datatype_size(datatype);
+    return (int)mona_comm_bcast(mona_comm, buffer, count*type_size, root, 0);
 }
 
 // ------------------------------------------------------------------------ //
@@ -224,7 +230,6 @@ static int MONA_MPI_Barrier(MPI_Comm user_comm) {
                  MPI_Attr_delete
                  MPI_Attr_get
                  MPI_Attr_put
-                 MPI_Bcast
                  MPI_Bsend
                  MPI_Bsend_init
                  MPI_Cart_coords
