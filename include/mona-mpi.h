@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-MPI_Comm MPI_Register_mona_comm(mona_comm_t comm);
+int MPI_Register_mona_comm(mona_comm_t comm, MPI_Comm* newcomm);
 
 #ifdef __cplusplus
 }

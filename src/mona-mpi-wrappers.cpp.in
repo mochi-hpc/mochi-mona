@@ -1,11 +1,65 @@
 #include <stdexcept>
 #include <unordered_map>
 #include <algorithm>
+#include <iostream>
 #include <mona-coll.h>
 
 static std::unordered_map<MPI_Comm, MPI_Comm> _user_comm_to_mpi;
 static std::unordered_map<MPI_Comm, mona_comm_t> _user_comm_to_mona;
 static MPI_Comm last_user_comm = (MPI_Comm)42;
+
+static size_t get_datatype_size(MPI_Datatype dt) {
+    switch(dt) {
+    case MPI_CHAR:
+    case MPI_SIGNED_CHAR:
+    case MPI_UNSIGNED_CHAR:
+    case MPI_BYTE:
+        return sizeof(char);
+    case MPI_WCHAR:
+        return sizeof(wchar_t);
+    case MPI_SHORT:
+    case MPI_UNSIGNED_SHORT:
+        return sizeof(short);
+    case MPI_INT:
+    case MPI_UNSIGNED:
+        return sizeof(int);
+    case MPI_LONG:
+    case MPI_UNSIGNED_LONG:
+        return sizeof(long);
+    case MPI_LONG_LONG:
+    case MPI_UNSIGNED_LONG_LONG:
+        return sizeof(long long);
+    case MPI_FLOAT:
+        return sizeof(float);
+    case MPI_DOUBLE:
+        return sizeof(double);
+    case MPI_LONG_DOUBLE:
+        return sizeof(long double);
+    case MPI_INT8_T:
+    case MPI_UINT8_T:
+        return sizeof(int8_t);
+    case MPI_INT16_T:
+    case MPI_UINT16_T:
+        return sizeof(int16_t);
+    case MPI_INT32_T:
+    case MPI_UINT32_T:
+        return sizeof(int32_t);
+    case MPI_INT64_T:
+    case MPI_UINT64_T:
+        return sizeof(int64_t);
+    case MPI_C_BOOL:
+        return sizeof(_Bool);
+    case MPI_C_FLOAT_COMPLEX:
+        return sizeof(float _Complex);
+    case MPI_C_DOUBLE_COMPLEX:
+        return sizeof(double _Complex);
+    case MPI_C_LONG_DOUBLE_COMPLEX:
+        return sizeof(long double _Complex);
+    default:
+        break;
+    }
+    return 0;
+}
 
 static inline bool is_mona_comm(MPI_Comm user_comm) {
     return _user_comm_to_mona.count(user_comm);
@@ -63,16 +117,17 @@ static inline void deregister_mona_comm(mona_comm_t mona_comm) {
         _user_comm_to_mona.erase(it);
 }
 
-extern "C" MPI_Comm MPI_Register_mona_comm(mona_comm_t comm) {
+extern "C" int MPI_Register_mona_comm(mona_comm_t comm, MPI_Comm* newcomm) {
     auto it = std::find_if(_user_comm_to_mona.begin(),
                            _user_comm_to_mona.end(),
                            [comm](const auto& p) {
                                 return p.second == comm;
                             });
     if(it != _user_comm_to_mona.end())
-        return it->first;
+        *newcomm = it->first;
     else
-        return register_new_mona_comm(comm);
+        *newcomm = register_new_mona_comm(comm);
+    return 0;
 }
 
 // ------------------------------------------------------------------------ //
@@ -210,9 +265,10 @@ extern "C" MPI_Comm MPI_Register_mona_comm(mona_comm_t comm) {
                  MPI_Comm_free
                  MPI_Dist_graph_create}}
 static {{ret_type}} MONA_{{FUNCTION}}{{argTypeList}} {
-    throw std::runtime_error("MONA_{{FUNCTION}} not implemented");
-    {{ret_type}} ret;
-    return ret;
+    std::cerr << "MONA_{{FUNCTION}} not implemented" << std::endl;
+    return -1;
+    //{{ret_type}} ret;
+    //return ret;
 }
 {{endforeachfn}}
 
