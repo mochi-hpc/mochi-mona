@@ -216,12 +216,21 @@ static int MONA_MPI_Bcast(void* buffer, int count,
     return (int)mona_comm_bcast(mona_comm, buffer, count*type_size, root, 0);
 }
 
+static int MONA_MPI_Allgather(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+                              void *recvbuf, int recvcount, MPI_Datatype recvtype,
+                              MPI_Comm user_comm) {
+    mona_comm_t mona_comm = get_mona_comm_from(user_comm);
+    size_t sendtype_size = get_datatype_size(sendtype);
+    size_t recvtype_size = get_datatype_size(recvtype);
+    if(sendtype_size*sendcount != recvtype_size*recvcount) return -1;
+    return (int)mona_comm_allgather(mona_comm, sendbuf, sendtype_size*sendcount, recvbuf, 0);
+}
+
 // ------------------------------------------------------------------------ //
 // Default MONA implementation for non-supported functions
 // ------------------------------------------------------------------------ //
 
 {{foreachfn FUNCTION MPI_Abort
-                 MPI_Allgather
                  MPI_Allgatherv
                  MPI_Allreduce
                  MPI_Alltoall
