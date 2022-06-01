@@ -8,6 +8,7 @@
 
 #include <na.h>
 #include <abt.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {

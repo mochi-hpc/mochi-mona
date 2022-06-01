@@ -2,6 +2,7 @@
 #include "munit/munit.h"
 #include <na.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 

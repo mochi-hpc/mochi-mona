@@ -8,60 +8,104 @@
 
 static std::unordered_map<MPI_Comm, MPI_Comm> _user_comm_to_mpi;
 static std::unordered_map<MPI_Comm, mona_comm_t> _user_comm_to_mona;
-
 static MPI_Comm last_user_comm = (MPI_Comm)42;
 
-static size_t get_datatype_size(MPI_Datatype dt) {
-    switch(dt) {
-    case MPI_CHAR:
-    case MPI_SIGNED_CHAR:
-    case MPI_UNSIGNED_CHAR:
-    case MPI_BYTE:
-        return sizeof(char);
-    case MPI_WCHAR:
-        return sizeof(wchar_t);
-    case MPI_SHORT:
-    case MPI_UNSIGNED_SHORT:
-        return sizeof(short);
-    case MPI_INT:
-    case MPI_UNSIGNED:
-        return sizeof(int);
-    case MPI_LONG:
-    case MPI_UNSIGNED_LONG:
-        return sizeof(long);
-    case MPI_LONG_LONG:
-    case MPI_UNSIGNED_LONG_LONG:
-        return sizeof(long long);
-    case MPI_FLOAT:
-        return sizeof(float);
-    case MPI_DOUBLE:
-        return sizeof(double);
-    case MPI_LONG_DOUBLE:
-        return sizeof(long double);
-    case MPI_INT8_T:
-    case MPI_UINT8_T:
-        return sizeof(int8_t);
-    case MPI_INT16_T:
-    case MPI_UINT16_T:
-        return sizeof(int16_t);
-    case MPI_INT32_T:
-    case MPI_UINT32_T:
-        return sizeof(int32_t);
-    case MPI_INT64_T:
-    case MPI_UINT64_T:
-        return sizeof(int64_t);
-    case MPI_C_BOOL:
-        return sizeof(_Bool);
-    case MPI_C_FLOAT_COMPLEX:
-        return sizeof(float _Complex);
-    case MPI_C_DOUBLE_COMPLEX:
-        return sizeof(double _Complex);
-    case MPI_C_LONG_DOUBLE_COMPLEX:
-        return sizeof(long double _Complex);
-    default:
-        break;
+struct OperationKey {
+    MPI_Datatype datatype;
+    MPI_Op       mpi_op;
+    bool operator==(const OperationKey& other) const {
+        return other.datatype == datatype && other.mpi_op == mpi_op;
     }
+};
+
+namespace std {
+template <> struct hash<OperationKey>
+{
+    size_t operator()(const OperationKey& k) const
+    {
+        return hash<MPI_Datatype>()(k.datatype) ^ hash<MPI_Op>()(k.mpi_op);
+    }
+};
+}
+struct OperationValue {
+    mona_op_t op;
+    void*     args;
+};
+
+#define OP_MAPPING_FOR(__t1__, __t2__)                                \
+    { {MPI_##__t1__, MPI_MAX }, { mona_op_max_##__t2__, nullptr } },  \
+    { {MPI_##__t1__, MPI_MIN }, { mona_op_min_##__t2__, nullptr } },  \
+    { {MPI_##__t1__, MPI_SUM }, { mona_op_sum_##__t2__, nullptr } },  \
+    { {MPI_##__t1__, MPI_PROD }, { mona_op_prod_##__t2__, nullptr } },\
+    { {MPI_##__t1__, MPI_LAND }, { mona_op_land_##__t2__, nullptr } },\
+    { {MPI_##__t1__, MPI_BAND }, { mona_op_band_##__t2__, nullptr } },\
+    { {MPI_##__t1__, MPI_LOR }, { mona_op_lor_##__t2__, nullptr } },  \
+    { {MPI_##__t1__, MPI_BOR }, { mona_op_bor_##__t2__, nullptr } }
+
+static const std::unordered_map<OperationKey, OperationValue> _operations{
+    OP_MAPPING_FOR(INT8_T, i8),
+    OP_MAPPING_FOR(UINT8_T, u8),
+    OP_MAPPING_FOR(INT16_T, i16),
+    OP_MAPPING_FOR(UINT16_T, u16),
+    OP_MAPPING_FOR(INT32_T, i32),
+    OP_MAPPING_FOR(UINT32_T, u32),
+    OP_MAPPING_FOR(INT64_T, i64),
+    OP_MAPPING_FOR(UINT64_T, u64),
+    OP_MAPPING_FOR(FLOAT, f32),
+    OP_MAPPING_FOR(DOUBLE, f64)
+};
+
+struct TypeInfo {
+    MPI_Datatype closest;
+    size_t       size;
+};
+
+static const std::unordered_map<MPI_Datatype, TypeInfo> _type_info{
+    {MPI_CHAR, {MPI_INT8_T,1} },
+    {MPI_SIGNED_CHAR, {MPI_INT8_T,1} },
+    {MPI_UNSIGNED_CHAR, {MPI_UINT8_T,1} },
+    {MPI_BYTE, {MPI_UINT8_T,1} },
+    {MPI_WCHAR, {MPI_INT16_T,2} },
+    {MPI_SHORT, {MPI_INT16_T,2} },
+    {MPI_UNSIGNED_SHORT, {MPI_UINT16_T,2} },
+    {MPI_INT, {MPI_INT32_T,4} },
+    {MPI_UNSIGNED, {MPI_UINT32_T,4} },
+    {MPI_LONG, {MPI_INT64_T,8} },
+    {MPI_UNSIGNED_LONG, {MPI_UINT64_T,8} },
+    {MPI_LONG_LONG, {MPI_INT64_T,8} },
+    {MPI_UNSIGNED_LONG_LONG, {MPI_UINT64_T,8} },
+    {MPI_FLOAT, {MPI_FLOAT,4} },
+    {MPI_DOUBLE, {MPI_DOUBLE,8} },
+    {MPI_LONG_DOUBLE, {MPI_LONG_DOUBLE,16} },
+    {MPI_INT8_T, {MPI_INT8_T,1} },
+    {MPI_UINT8_T, {MPI_UINT8_T,1} },
+    {MPI_INT16_T, {MPI_INT16_T,2} },
+    {MPI_UINT16_T, {MPI_UINT16_T,2} },
+    {MPI_INT32_T, {MPI_INT32_T,4} },
+    {MPI_UINT32_T, {MPI_UINT32_T,4} },
+    {MPI_INT64_T, {MPI_INT64_T,8} },
+    {MPI_UINT64_T, {MPI_UINT64_T,8} },
+    {MPI_C_BOOL, {MPI_UINT8_T,1} },
+    {MPI_C_FLOAT_COMPLEX, {MPI_C_FLOAT_COMPLEX,8} },
+    {MPI_C_DOUBLE_COMPLEX, {MPI_C_DOUBLE_COMPLEX,16} },
+    {MPI_C_LONG_DOUBLE_COMPLEX, {MPI_C_LONG_DOUBLE_COMPLEX,32} }
+};
+
+static size_t get_datatype_size(MPI_Datatype dt) {
+    auto it = _type_info.find(dt);
+    if(it != _type_info.end())
+        return it->second.size;
     return 0;
+}
+
+static OperationValue get_mona_operation(MPI_Datatype dt, MPI_Op op) {
+    auto it = _type_info.find(dt);
+    if(it == _type_info.end())
+        return OperationValue{ nullptr, nullptr };
+    auto it2 = _operations.find(OperationKey{ it->second.closest, op });
+    if(it2 == _operations.end())
+        return OperationValue{ nullptr, nullptr };
+    return it2->second;
 }
 
 static inline bool is_mona_comm(MPI_Comm user_comm) {
@@ -297,14 +341,47 @@ static int MONA_MPI_Scatterv(const void *sendbuf, const int *sendcounts, const i
                                    recvbuf, recvcount*recvtype_size, root, 0);
 }
 
+static int MONA_MPI_Reduce(const void *sendbuf, void *recvbuf, int count,
+                           MPI_Datatype datatype, MPI_Op op, int root,
+                           MPI_Comm user_comm) {
+    mona_comm_t mona_comm = get_mona_comm_from(user_comm);
+    OperationValue mona_op = get_mona_operation(datatype, op);
+    if(!mona_op.op) return -1;
+    size_t typesize = get_datatype_size(datatype);
+    if(!typesize) return -1;
+    return (int)mona_comm_reduce(mona_comm, sendbuf, recvbuf, typesize, count,
+                                 mona_op.op, mona_op.args, root, 0);
+}
+
+static int MONA_MPI_Allreduce(const void *sendbuf, void *recvbuf, int count,
+                              MPI_Datatype datatype, MPI_Op op,
+                              MPI_Comm user_comm) {
+    mona_comm_t mona_comm = get_mona_comm_from(user_comm);
+    OperationValue mona_op = get_mona_operation(datatype, op);
+    if(!mona_op.op) return -1;
+    size_t typesize = get_datatype_size(datatype);
+    if(!typesize) return -1;
+    return (int)mona_comm_allreduce(mona_comm, sendbuf, recvbuf, typesize,
+                                    count, mona_op.op, mona_op.args, 0);
+}
+
+static int MONA_MPI_Alltoall(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+        void *recvbuf, int recvcount, MPI_Datatype recvtype, MPI_Comm user_comm) {
+    mona_comm_t mona_comm = get_mona_comm_from(user_comm);
+    size_t sendtype_size = get_datatype_size(sendtype);
+    size_t recvtype_size = get_datatype_size(recvtype);
+    if(sendtype_size == 0) return -1;
+    if(recvtype_size == 0) return -1;
+    if(sendtype_size*sendcount != recvtype_size*recvcount) return -1;
+    return (int)mona_comm_alltoall(mona_comm, sendbuf, sendtype_size*sendcount, recvbuf, 0);
+}
+
 // ------------------------------------------------------------------------ //
 // Default MONA implementation for non-supported functions
 // ------------------------------------------------------------------------ //
 
 {{foreachfn FUNCTION MPI_Abort
                  MPI_Allgatherv
-                 MPI_Allreduce
-                 MPI_Alltoall
                  MPI_Alltoallv
                  MPI_Alltoallw
                  MPI_Attr_delete
@@ -392,7 +469,6 @@ static int MONA_MPI_Scatterv(const void *sendbuf, const int *sendcounts, const i
                  MPI_Pack_size
                  MPI_Probe
                  MPI_Recv_init
-                 MPI_Reduce
                  MPI_Reduce_scatter
                  MPI_Reduce_scatter_block
                  MPI_Rsend
