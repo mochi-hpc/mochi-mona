@@ -6,7 +6,7 @@
 #ifndef __MONA_MPI_H
 #define __MONA_MPI_H
 
-#include <mona-mpi.h>
+#include <mona-coll.h>
 #include <mpi.h>
 
 #ifdef __cplusplus
