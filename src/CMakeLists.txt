@@ -51,12 +51,14 @@ if (ENABLE_MPI_WRAPPERS)
     target_include_directories (mona BEFORE PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
     list (APPEND MONA_TARGETS mona-mpi-wrappers)
+    set (DEST_DIR "${CMAKE_INSTALL_PREFIX}")
+    configure_file ("mona-mpi.pc.in" "mona-mpi.pc" @ONLY)
 endif ()
 
 #
 # installation stuff (packaging and install commands)
 #
-write_basic_package_version_file(
+write_basic_package_version_file (
     "mona-config-version.cmake"
     VERSION ${MONA_VERSION}
     COMPATIBILITY AnyNewerVersion)
@@ -87,6 +89,8 @@ install (FILES "${CMAKE_CURRENT_SOURCE_DIR}/../include/mona.h"
 if (ENABLE_MPI_WRAPPERS)
 install (FILES "${CMAKE_CURRENT_SOURCE_DIR}/../include/mona-mpi.h"
          DESTINATION include)
+install (FILES "${CMAKE_CURRENT_SOURCE_DIR}/mona-mpi.pc"
+         DESTINATION "lib/pkgconfig/")
 endif ()
 install (FILES "${CMAKE_CURRENT_BINARY_DIR}/mona.pc"
          DESTINATION "lib/pkgconfig/")
