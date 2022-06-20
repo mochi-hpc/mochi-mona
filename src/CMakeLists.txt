@@ -86,11 +86,11 @@ install (FILES "${CMAKE_CURRENT_BINARY_DIR}/mona-config.cmake"
 install (FILES "${CMAKE_CURRENT_SOURCE_DIR}/../include/mona.h"
                "${CMAKE_CURRENT_SOURCE_DIR}/../include/mona-coll.h"
          DESTINATION include)
+install (FILES "${CMAKE_CURRENT_BINARY_DIR}/mona.pc"
+         DESTINATION "lib/pkgconfig/")
 if (ENABLE_MPI_WRAPPERS)
 install (FILES "${CMAKE_CURRENT_SOURCE_DIR}/../include/mona-mpi.h"
          DESTINATION include)
-install (FILES "${CMAKE_CURRENT_SOURCE_DIR}/mona-mpi.pc"
+ install (FILES "${CMAKE_CURRENT_BINARY_DIR}/mona-mpi.pc"
          DESTINATION "lib/pkgconfig/")
 endif ()
-install (FILES "${CMAKE_CURRENT_BINARY_DIR}/mona.pc"
-         DESTINATION "lib/pkgconfig/")
