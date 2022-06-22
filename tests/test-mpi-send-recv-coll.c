@@ -182,6 +182,7 @@ static MunitResult test_isend_irecv(const MunitParameter params[], void* data)
         MPI_Request send_req = MPI_REQUEST_NULL;
         mpi_ret = MPI_Isend(buf, msg_len, MPI_BYTE, 1, 1234, mpi_comm, &send_req);
         munit_assert_int(mpi_ret, ==, 0);
+        printf("send_req = %d\n", send_req);
 
         MPI_Request recv_req = MPI_REQUEST_NULL;
         mpi_ret = MPI_Irecv(buf, 64, MPI_BYTE, 1, 1234, mpi_comm, &recv_req);
@@ -199,7 +200,6 @@ static MunitResult test_isend_irecv(const MunitParameter params[], void* data)
 
         mpi_ret = MPI_Wait(&recv_req, MPI_STATUS_IGNORE);
         munit_assert_int(mpi_ret, ==, 0);
-
         for(i = 0; i < 64; i++) {
             munit_assert_int(buf[i], ==, (i+1) % 32);
         }
@@ -220,7 +220,6 @@ static MunitResult test_isend_irecv(const MunitParameter params[], void* data)
         for(i=0; i < 64; i++) {
             buf[i] = (i+1) % 32;
         }
-
         mpi_ret = MPI_Send(buf, 64, MPI_BYTE, 0, 1234, mpi_comm);
         munit_assert_int(mpi_ret, ==,0);
     }
@@ -233,7 +232,7 @@ static MunitResult test_isend_irecv(const MunitParameter params[], void* data)
     return MUNIT_OK;
 }
 static MunitTest test_suite_tests[] = {
-    { (char*) "/send-recv", test_send_recv, test_context_setup, test_context_tear_down, MUNIT_TEST_OPTION_NONE, NULL },
+//    { (char*) "/send-recv", test_send_recv, test_context_setup, test_context_tear_down, MUNIT_TEST_OPTION_NONE, NULL },
     { (char*) "/isend-irecv", test_isend_irecv, test_context_setup, test_context_tear_down, MUNIT_TEST_OPTION_NONE, NULL },
     { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL }
 };

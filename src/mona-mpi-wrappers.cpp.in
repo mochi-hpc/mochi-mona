@@ -204,7 +204,12 @@ static inline bool is_mona_req(MPI_Request user_req) {
 }
 
 static inline mona_request_t get_mona_req_from(MPI_Request user_req) {
-    return _user_req_to_mona[user_req];
+    auto it = _user_req_to_mona.find(user_req);
+    if(it == _user_req_to_mona.end()) {
+        LOG("Warning: get_mona_req_from could not convert user_req\n");
+        return nullptr;
+    }
+    return it->second;
 }
 
 static inline MPI_Request get_mpi_req_from(MPI_Request user_req) {
@@ -315,21 +320,20 @@ static int MONA_MPI_Irecv(void *buf, int count, MPI_Datatype datatype,
     size_t dtype_size = get_datatype_size(datatype);
     if(dtype_size == 0) return -1;
     mona_comm_t mona_comm = get_mona_comm_from(user_comm);
-    size_t received_size = 0;
     mona_request_t mona_req;
     na_return_t ret = mona_comm_irecv(
-            mona_comm, buf, count*dtype_size, src, tag, &received_size, &mona_req);
+            mona_comm, buf, count*dtype_size, src, tag, nullptr, &mona_req);
     if(ret != NA_SUCCESS) return ret;
     *user_req = register_new_mona_req(mona_req);
     return 0;
 }
 
 static int MONA_MPI_Wait(MPI_Request* user_req, MPI_Status* status) {
-     mona_request_t mona_req = get_mona_req_from(*user_req);
-     if(!mona_req) return 0;
-     na_return_t ret = mona_wait(mona_req);
-     deregister_mona_req(mona_req);
-     return ret;
+    mona_request_t mona_req = get_mona_req_from(*user_req);
+    if(!mona_req) return 0;
+    na_return_t ret = mona_wait(mona_req);
+    deregister_mona_req(mona_req);
+    return ret;
 }
 
 static int MONA_MPI_Test(MPI_Request* user_req, int* flag, MPI_Status* status) {

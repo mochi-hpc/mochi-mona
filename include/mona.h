@@ -727,6 +727,57 @@ na_return_t mona_uirecv_mem(mona_instance_t mona,
                             mona_request_t* req);
 
 /**
+ * @brief High-level blocking uprob function. This function will
+ * wait until an unexpected message is ready to be received.
+ *
+ * Note: using a high-level function in conjunction with low-level
+ * (mona_msg_*) functions may lead to undefined behaviors and should
+ * be avoided.
+ *
+ * Because the caller may use MONA_ANY_SOURCE and/or MONA_ANY_TAG,
+ * the actual_src and actual_tag can be used to get the actual sender
+ * and tag. These parameters, as well as actual_size, may be set to
+ * NULL to be ignored.
+ *
+ * @param mona [IN/OUT]     Mona instance
+ * @param dest [IN]         source address
+ * @param tag [IN]          tag
+ * @param actual_size [OUT] actual received size
+ * @param actual_src [OUT]  actual source
+ * @param actual_tag [OUT]  actual tag
+ *
+ * @return NA_SUCCESS or corresponding NA error code
+ */
+na_return_t mona_uprob(mona_instance_t mona,
+                       na_addr_t       src,
+                       na_tag_t        tag,
+                       size_t*         actual_size,
+                       na_addr_t*      actual_src,
+                       na_tag_t*       actual_tag);
+
+/**
+ * @brief Same as mona_uprob but will not block,
+ * setting the value of flag instead.
+ *
+ * @param mona [IN/OUT]     Mona instance
+ * @param dest [IN]         source address
+ * @param tag [IN]          tag
+ * @param flag [OUT]        Whether a message is ready
+ * @param actual_size [OUT] actual received size
+ * @param actual_src [OUT]  actual source
+ * @param actual_tag [OUT]  actual tag
+ *
+ * @return NA_SUCCESS or corresponding NA error code
+ */
+na_return_t mona_uiprob(mona_instance_t mona,
+                        na_addr_t       src,
+                        na_tag_t        tag,
+                        int*            flag,
+                        size_t*         actual_size,
+                        na_addr_t*      actual_src,
+                        na_tag_t*       actual_tag);
+
+/**
  * Get the maximum size of messages supported by unexpected send/recv.
  * Small message size.
  *

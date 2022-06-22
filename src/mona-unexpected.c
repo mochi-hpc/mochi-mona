@@ -330,6 +330,56 @@ na_return_t mona_uisend_mem(mona_instance_t mona,
     return NA_SUCCESS;
 }
 
+// This function will search the queue for an unexpected message already received that
+// matches the src and tag. If such a message is found, the corresponding cached_msg_t
+// will be returned. Otherwise, NULL is returned.
+// If remove is set to true, the message will be removed from the queue.
+static cached_msg_t search_for_matching_unexpected_message(mona_instance_t mona,
+                                                           bool            remove,
+                                                           na_addr_t       src,
+                                                           na_tag_t        tag,
+                                                           size_t*    actual_size,
+                                                           na_addr_t* actual_src,
+                                                           na_tag_t*  actual_tag) {
+    cached_msg_t msg    = NULL; /* result */
+    na_return_t  na_ret = NA_SUCCESS;
+
+    pending_msg_t p_msg      = mona->unexpected.pending_msg_oldest;
+    pending_msg_t p_prev_msg = NULL;
+    while (p_msg) {
+        if ((tag == MONA_ANY_TAG || p_msg->recv_tag == tag)
+            && (src == MONA_ANY_SOURCE
+                || mona_addr_cmp(mona, src, p_msg->recv_addr))) {
+            break;
+        } else {
+            p_prev_msg = p_msg;
+            p_msg      = p_msg->cached_msg->next;
+        }
+    }
+    if (p_msg) { // matching message was found
+        msg = p_msg->cached_msg;
+        // copy size, source, and tag
+        if (actual_size) *actual_size = p_msg->recv_size;
+        if (actual_src) mona_addr_dup(mona, p_msg->recv_addr, actual_src);
+        if (actual_tag) *actual_tag = p_msg->recv_tag;
+        if (remove) {
+            // remove it from the queue of pending messages
+            if (p_prev_msg) p_prev_msg->cached_msg->next = p_msg->cached_msg->next;
+            if (p_msg == mona->unexpected.pending_msg_oldest)
+                mona->unexpected.pending_msg_oldest = p_msg->cached_msg->next;
+            if (p_msg == mona->unexpected.pending_msg_newest)
+                mona->unexpected.pending_msg_newest = p_prev_msg;
+            // free the pending message object
+            mona_addr_free(mona, p_msg->recv_addr);
+            free(p_msg);
+        }
+        // return the message
+        return msg;
+    } else {
+        return NULL;
+    }
+}
+
 static cached_msg_t wait_for_matching_unexpected_message(mona_instance_t mona,
                                                          na_addr_t       src,
                                                          na_tag_t        tag,
@@ -346,38 +396,12 @@ static cached_msg_t wait_for_matching_unexpected_message(mona_instance_t mona,
 
     // search in the queue of pending messages for one matching
 search_in_queue : {
-    pending_msg_t p_msg      = mona->unexpected.pending_msg_oldest;
-    pending_msg_t p_prev_msg = NULL;
-    while (p_msg) {
-        if ((tag == MONA_ANY_TAG || p_msg->recv_tag == tag)
-            && (src == MONA_ANY_SOURCE
-                || mona_addr_cmp(mona, src, p_msg->recv_addr))) {
-            break;
-        } else {
-            p_prev_msg = p_msg;
-            p_msg      = p_msg->cached_msg->next;
-        }
-    }
-    if (p_msg) { // matching message was found
-        msg = p_msg->cached_msg;
-        // remove it from the queue of pending messages
-        if (p_prev_msg) p_prev_msg->cached_msg->next = p_msg->cached_msg->next;
-        if (p_msg == mona->unexpected.pending_msg_oldest)
-            mona->unexpected.pending_msg_oldest = p_msg->cached_msg->next;
-        if (p_msg == mona->unexpected.pending_msg_newest)
-            mona->unexpected.pending_msg_newest = p_prev_msg;
-        // unlock the queue
+    msg = search_for_matching_unexpected_message(mona, true, src, tag, actual_size, actual_src, actual_tag);
+    if (msg) {
         ABT_mutex_unlock(mona->unexpected.pending_msg_mtx);
-        // copy size, source, and tag
-        if (actual_size) *actual_size = p_msg->recv_size;
-        if (actual_src) mona_addr_dup(mona, p_msg->recv_addr, actual_src);
-        if (actual_tag) *actual_tag = p_msg->recv_tag;
-        // free the pending message object
-        mona_addr_free(mona, p_msg->recv_addr);
-        free(p_msg);
-        // return the message
         return msg;
     }
+
 }
     // here the matching message wasn't found in the queue
     {
