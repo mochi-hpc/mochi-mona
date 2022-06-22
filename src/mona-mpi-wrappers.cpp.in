@@ -369,11 +369,16 @@ static int MONA_MPI_Reduce(const void *sendbuf, void *recvbuf, int count,
 static int MONA_MPI_Allreduce(const void *sendbuf, void *recvbuf, int count,
                               MPI_Datatype datatype, MPI_Op op,
                               MPI_Comm user_comm) {
+    LOG("MONA/MPI Calling Allreduce with sendbuf=%p, recvbuf=%p, count=%d, "
+        "datatype=%ld, op=%ld, user_comm=%ld\n", sendbuf, recvbuf, count,
+        (long)datatype, (long)op, (long)user_comm);
     mona_comm_t mona_comm = get_mona_comm_from(user_comm);
     OperationValue mona_op = get_mona_operation(datatype, op);
     if(!mona_op.op) return -1;
     size_t typesize = get_datatype_size(datatype);
     if(!typesize) return -1;
+    if(sendbuf == MPI_IN_PLACE)
+        sendbuf = MONA_IN_PLACE;
     return (int)mona_comm_allreduce(mona_comm, sendbuf, recvbuf, typesize,
                                     count, mona_op.op, mona_op.args, 0);
 }
