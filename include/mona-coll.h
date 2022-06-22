@@ -717,6 +717,14 @@ void mona_op_bor_f32(
 void mona_op_bor_f64(
     const void* in, void* inout, size_t typesize, size_t count, void* uargs);
 
+typedef struct {
+    double d;
+    int    i;
+} mona_double_int_t;
+
+void mona_op_maxloc_f64(
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs);
+
 #ifdef __cplusplus
 }
 #endif

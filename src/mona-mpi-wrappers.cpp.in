@@ -60,7 +60,8 @@ static const std::unordered_map<OperationKey, OperationValue> _operations{
     OP_MAPPING_FOR(INT64_T, i64),
     OP_MAPPING_FOR(UINT64_T, u64),
     OP_MAPPING_FOR(FLOAT, f32),
-    OP_MAPPING_FOR(DOUBLE, f64)
+    OP_MAPPING_FOR(DOUBLE, f64),
+    { {MPI_DOUBLE_INT, MPI_MAXLOC }, { mona_op_maxloc_f64, (void*)9 } }
 };
 
 struct TypeInfo {
@@ -96,7 +97,8 @@ static const std::unordered_map<MPI_Datatype, TypeInfo> _type_info{
     {MPI_C_BOOL, {MPI_UINT8_T,1} },
     {MPI_C_FLOAT_COMPLEX, {MPI_C_FLOAT_COMPLEX,8} },
     {MPI_C_DOUBLE_COMPLEX, {MPI_C_DOUBLE_COMPLEX,16} },
-    {MPI_C_LONG_DOUBLE_COMPLEX, {MPI_C_LONG_DOUBLE_COMPLEX,32} }
+    {MPI_C_LONG_DOUBLE_COMPLEX, {MPI_C_LONG_DOUBLE_COMPLEX,32} },
+    {MPI_DOUBLE_INT, {MPI_DOUBLE_INT,sizeof(mona_double_int_t) } }
 };
 
 static size_t get_datatype_size(MPI_Datatype dt) {
