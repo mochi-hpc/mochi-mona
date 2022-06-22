@@ -9,8 +9,12 @@
 static std::unordered_map<MPI_Comm, MPI_Comm> _user_comm_to_mpi;
 static std::unordered_map<MPI_Comm, mona_comm_t> _user_comm_to_mona;
 static MPI_Comm last_user_comm = (MPI_Comm)42;
-static bool enable_logging = false;
 
+static std::unordered_map<MPI_Request, MPI_Request> _user_req_to_mpi;
+static std::unordered_map<MPI_Request, mona_request_t> _user_req_to_mona;
+static MPI_Comm last_user_req = (MPI_Request)1337;
+
+static bool enable_logging = false;
 extern "C" int MPI_Mona_enable_logging() {
     enable_logging = true;
     return 0;
@@ -195,6 +199,55 @@ extern "C" int MPI_Register_mona_comm(mona_comm_t comm, MPI_Comm* newcomm) {
     return 0;
 }
 
+static inline bool is_mona_req(MPI_Request user_req) {
+    return _user_req_to_mona.count(user_req);
+}
+
+static inline mona_request_t get_mona_req_from(MPI_Request user_req) {
+    return _user_req_to_mona[user_req];
+}
+
+static inline MPI_Request get_mpi_req_from(MPI_Request user_req) {
+    if(user_req == MPI_REQUEST_NULL)
+        return user_req;
+    return _user_req_to_mpi[user_req];
+}
+
+static inline MPI_Request register_new_mpi_req(MPI_Request mpi_req) {
+    do {
+        last_user_req += 1;
+    } while(last_user_req == MPI_REQUEST_NULL);
+    _user_req_to_mpi[last_user_req] = mpi_req;
+    return last_user_req;
+}
+
+static inline void deregister_mpi_req(MPI_Request mpi_req) {
+    auto it = std::find_if(_user_req_to_mpi.begin(),
+                           _user_req_to_mpi.end(),
+                           [mpi_req](const auto& p) {
+                                return p.second == mpi_req;
+                            });
+    if(it != _user_req_to_mpi.end())
+        _user_req_to_mpi.erase(it);
+}
+
+static inline MPI_Request register_new_mona_req(mona_request_t mona_req) {
+    do {
+        last_user_req += 1;
+    } while(last_user_req == MPI_REQUEST_NULL);
+    _user_req_to_mona[last_user_req] = mona_req;
+    return last_user_req;
+}
+
+static inline void deregister_mona_req(mona_request_t mona_req) {
+    auto it = std::find_if(_user_req_to_mona.begin(),
+                           _user_req_to_mona.end(),
+                           [mona_req](const auto& p) {
+                                return p.second == mona_req;
+                            });
+    if(it != _user_req_to_mona.end())
+        _user_req_to_mona.erase(it);
+}
 // ------------------------------------------------------------------------ //
 // MONA implementation of a subset of MPI functions
 // ------------------------------------------------------------------------ //
@@ -230,6 +283,18 @@ static int MONA_MPI_Send(const void *buf, int count, MPI_Datatype datatype,
     return 0;
 }
 
+static int MONA_MPI_Isend(const void *buf, int count, MPI_Datatype datatype,
+                          int dest, int tag, MPI_Comm user_comm, MPI_Request* user_req) {
+    size_t dtype_size = get_datatype_size(datatype);
+    if(dtype_size == 0) return -1;
+    mona_comm_t mona_comm = get_mona_comm_from(user_comm);
+    mona_request_t mona_req;
+    na_return_t ret = mona_comm_isend(mona_comm, buf, count*dtype_size, dest, tag, &mona_req);
+    if(ret != NA_SUCCESS) return ret;
+    *user_req = register_new_mona_req(mona_req);
+    return 0;
+}
+
 static int MONA_MPI_Recv(void *buf, int count, MPI_Datatype datatype,
                          int src, int tag, MPI_Comm user_comm, MPI_Status* status) {
     size_t dtype_size = get_datatype_size(datatype);
@@ -241,6 +306,42 @@ static int MONA_MPI_Recv(void *buf, int count, MPI_Datatype datatype,
     if(status && status != MPI_STATUS_IGNORE) {
         PMPI_Status_set_elements(status, datatype, received_size/dtype_size);
         PMPI_Status_set_cancelled(status, 0);
+    }
+    return 0;
+}
+
+static int MONA_MPI_Irecv(void *buf, int count, MPI_Datatype datatype,
+                         int src, int tag, MPI_Comm user_comm, MPI_Request* user_req) {
+    size_t dtype_size = get_datatype_size(datatype);
+    if(dtype_size == 0) return -1;
+    mona_comm_t mona_comm = get_mona_comm_from(user_comm);
+    size_t received_size = 0;
+    mona_request_t mona_req;
+    na_return_t ret = mona_comm_irecv(
+            mona_comm, buf, count*dtype_size, src, tag, &received_size, &mona_req);
+    if(ret != NA_SUCCESS) return ret;
+    *user_req = register_new_mona_req(mona_req);
+    return 0;
+}
+
+static int MONA_MPI_Wait(MPI_Request* user_req, MPI_Status* status) {
+     mona_request_t mona_req = get_mona_req_from(*user_req);
+     if(!mona_req) return 0;
+     na_return_t ret = mona_wait(mona_req);
+     deregister_mona_req(mona_req);
+     return ret;
+}
+
+static int MONA_MPI_Test(MPI_Request* user_req, int* flag, MPI_Status* status) {
+     mona_request_t mona_req = get_mona_req_from(*user_req);
+     if(!mona_req) return -1;
+     return mona_test(mona_req, flag);
+}
+
+static int MONA_MPI_Request_free(MPI_Request* user_req) {
+    mona_request_t mona_req = get_mona_req_from(*user_req);
+    if(mona_req) {
+        return MONA_MPI_Wait(user_req, MPI_STATUS_IGNORE);
     }
     return 0;
 }
@@ -490,14 +591,12 @@ static int MONA_MPI_Alltoall(const void *sendbuf, int sendcount, MPI_Datatype se
                  MPI_Ineighbor_alltoallv
                  MPI_Ineighbor_alltoallw
                  MPI_Iprobe
-                 MPI_Irecv
                  MPI_Ireduce
                  MPI_Ireduce_scatter
                  MPI_Ireduce_scatter_block
                  MPI_Irsend
                  MPI_Iscatter
                  MPI_Iscatterv
-                 MPI_Isend
                  MPI_Issend
                  MPI_Mprobe
                  MPI_Neighbor_allgather
@@ -547,6 +646,8 @@ static {{ret_type}} MONA_{{FUNCTION}}{{argTypeList}} {
 #define CONVERT_TO_MPI_COMM(__comm__) \
         __comm__ = get_mpi_comm_from(__comm__)
 
+#define CONVERT_TO_MPI_REQ(__req__) \
+        __req__ = get_mpi_req_from(__req__)
 
 // MPI_Bcast
 // MPI_Allreduce
@@ -676,7 +777,8 @@ static {{ret_type}} MONA_{{FUNCTION}}{{argTypeList}} {
         LOG("MONA/MPI: Calling MONA wrapper for {{FUNCTION}}\n");
         {{ret_val}} = MONA_{{FUNCTION}}({{args}});
     } else {
-        {{applyToType MON_Comm CONVERT_TO_MPI_COMM}}
+        {{applyToType MPI_Comm CONVERT_TO_MPI_COMM}}
+        {{applyToType MPI_Request CONVERT_TO_MPI_REQ}}
         LOG("MONA/MPI: Calling MPI wrapper for {{FUNCTION}}\n");
         {{callfn}}
     }
@@ -828,3 +930,56 @@ _EXTERN_C_ int MPI_Allgather(const void *sendbuf, int sendcount, MPI_Datatype se
 
     return _wrap_py_return_val;
 }
+
+/* ================== C Wrappers for MPI_Request_free ================== */
+_EXTERN_C_ int PMPI_Request_free(MPI_Request* user_req);
+_EXTERN_C_ int MPI_Request_free(MPI_Request* user_req) {
+    int _wrap_py_return_val = 0;
+
+    int __req_is_mona = is_mona_req(*user_req);
+    if(__req_is_mona) {
+        LOG("MONA/MPI: Calling MONA wrapper for MPI_Request_free\n");
+        _wrap_py_return_val = MONA_MPI_Request_free(user_req);
+    } else {
+        LOG("MONA/MPI: Calling MPI wrapper for MPI_Request_free\n");
+        MPI_Request mpi_req = get_mpi_req_from(*user_req);
+        _wrap_py_return_val = MPI_Request_free(&mpi_req);
+        *user_req = MPI_REQUEST_NULL;
+    }
+    return _wrap_py_return_val;
+}
+
+/* ================== C Wrappers for MPI_Test ================== */
+_EXTERN_C_ int PMPI_Test(MPI_Request* user_req, int* flag, MPI_Status* status);
+_EXTERN_C_ int MPI_Test(MPI_Request* user_req, int* flag, MPI_Status* status) {
+    int _wrap_py_return_val = 0;
+
+    int __req_is_mona = is_mona_req(*user_req);
+    if(__req_is_mona) {
+        LOG("MONA/MPI: Calling MONA wrapper for MPI_Test\n");
+        _wrap_py_return_val = MONA_MPI_Test(user_req, flag, status);
+    } else {
+        LOG("MONA/MPI: Calling MPI wrapper for MPI_Test\n");
+        MPI_Request mpi_req = get_mpi_req_from(*user_req);
+        _wrap_py_return_val = MPI_Test(&mpi_req, flag, status);
+    }
+    return _wrap_py_return_val;
+}
+
+/* ================== C Wrappers for MPI_Wait ================== */
+_EXTERN_C_ int PMPI_Wait(MPI_Request* user_req, MPI_Status* status);
+_EXTERN_C_ int MPI_Wait(MPI_Request* user_req, MPI_Status* status) {
+    int _wrap_py_return_val = 0;
+
+    int __req_is_mona = is_mona_req(*user_req);
+    if(__req_is_mona) {
+        LOG("MONA/MPI: Calling MONA wrapper for MPI_Wait\n");
+        _wrap_py_return_val = MONA_MPI_Wait(user_req, status);
+    } else {
+        LOG("MONA/MPI: Calling MPI wrapper for MPI_Wait\n");
+        MPI_Request mpi_req = get_mpi_req_from(*user_req);
+        _wrap_py_return_val = MPI_Wait(&mpi_req, status);
+    }
+    return _wrap_py_return_val;
+}
+

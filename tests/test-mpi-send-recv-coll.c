@@ -151,8 +151,90 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
     return MUNIT_OK;
 }
 
+static MunitResult test_isend_irecv(const MunitParameter params[], void* data)
+{
+    (void)params;
+    test_context* context = (test_context*)data;
+    na_return_t ret;
+    mona_instance_t mona = context->mona;
+
+    int i;
+    char* buf = malloc(8192);
+    size_t msg_len = 8192;
+    mona_comm_t mona_comm;
+    MPI_Comm mpi_comm;
+    na_addr_t comm_addrs[2];
+    comm_addrs[0] = context->rank == 0 ? context->self_addr : context->other_addr;
+    comm_addrs[1] = context->rank == 0 ? context->other_addr : context->self_addr;
+
+    ret = mona_comm_create(mona, 2, comm_addrs, &mona_comm);
+    munit_assert_int(ret, ==, NA_SUCCESS);
+
+    int mpi_ret = MPI_Register_mona_comm(mona_comm, &mpi_comm);
+    munit_assert_int(mpi_ret, ==, 0);
+    MPI_Mona_enable_logging();
+
+    if(context->rank == 0) { // sender
+        for(i = 0; i < (int)msg_len; i++) {
+            buf[i] = i % 32;
+        }
+
+        MPI_Request send_req = MPI_REQUEST_NULL;
+        mpi_ret = MPI_Isend(buf, msg_len, MPI_BYTE, 1, 1234, mpi_comm, &send_req);
+        munit_assert_int(mpi_ret, ==, 0);
+
+        MPI_Request recv_req = MPI_REQUEST_NULL;
+        mpi_ret = MPI_Irecv(buf, 64, MPI_BYTE, 1, 1234, mpi_comm, &recv_req);
+        munit_assert_int(mpi_ret, ==, 0);
+
+        int flag;
+        mpi_ret = MPI_Test(&send_req, &flag, MPI_STATUS_IGNORE);
+        munit_assert_int(mpi_ret, ==, 0);
+
+        mpi_ret = MPI_Test(&recv_req, &flag, MPI_STATUS_IGNORE);
+        munit_assert_int(mpi_ret, ==, 0);
+
+        mpi_ret = MPI_Wait(&send_req, MPI_STATUS_IGNORE);
+        munit_assert_int(mpi_ret, ==, 0);
+
+        mpi_ret = MPI_Wait(&recv_req, MPI_STATUS_IGNORE);
+        munit_assert_int(mpi_ret, ==, 0);
+
+        for(i = 0; i < 64; i++) {
+            munit_assert_int(buf[i], ==, (i+1) % 32);
+        }
+
+    } else { // receiver
+
+        MPI_Request recv_req = MPI_REQUEST_NULL;
+        mpi_ret = MPI_Irecv(buf, msg_len, MPI_BYTE, 0, 1234, mpi_comm, &recv_req);
+        munit_assert_int(mpi_ret, ==, 0);
+
+        mpi_ret = MPI_Wait(&recv_req, MPI_STATUS_IGNORE);
+        munit_assert_int(mpi_ret, ==, 0);
+
+        for(i = 0; i < (int)msg_len; i++) {
+            munit_assert_int(buf[i], ==, i % 32);
+        }
+
+        for(i=0; i < 64; i++) {
+            buf[i] = (i+1) % 32;
+        }
+
+        mpi_ret = MPI_Send(buf, 64, MPI_BYTE, 0, 1234, mpi_comm);
+        munit_assert_int(mpi_ret, ==,0);
+    }
+
+    mpi_ret = MPI_Comm_free(&mpi_comm);
+    munit_assert_int(mpi_ret, ==, 0);
+
+    ret = mona_comm_free(mona_comm);
+    munit_assert_int(ret, ==, NA_SUCCESS);
+    return MUNIT_OK;
+}
 static MunitTest test_suite_tests[] = {
     { (char*) "/send-recv", test_send_recv, test_context_setup, test_context_tear_down, MUNIT_TEST_OPTION_NONE, NULL },
+    { (char*) "/isend-irecv", test_isend_irecv, test_context_setup, test_context_tear_down, MUNIT_TEST_OPTION_NONE, NULL },
     { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL }
 };
 
