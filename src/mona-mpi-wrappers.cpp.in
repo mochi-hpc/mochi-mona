@@ -528,9 +528,9 @@ static {{ret_type}} MONA_{{FUNCTION}}{{argTypeList}} {
 
 // MPI_Bcast
 // MPI_Allreduce
+// MPI_Allgather
 
 {{fn    FUNCTION MPI_Abort
-                 MPI_Allgather
                  MPI_Allgatherv
                  MPI_Alltoall
                  MPI_Alltoallv
@@ -751,6 +751,15 @@ _EXTERN_C_ int MPI_Allreduce(const void *sendbuf, void *recvbuf, int count, MPI_
         (long)datatype, (long)op, (long)comm);
     IS_MONA_COMM(comm);
 
+    {
+        auto sendtypesize = get_datatype_size(datatype);
+        LOG("sendbuf data:\n");
+        for(size_t i=0; i < sendtypesize*count; i++) {
+            LOG("%0X ", ((const char*)sendbuf)[i]);
+        }
+        LOG("\n");
+    }
+
     if(__is_mona_comm) {
         LOG("MONA/MPI: Calling MONA wrapper for MPI_Allreduce\n");
         _wrap_py_return_val = MONA_MPI_Allreduce(sendbuf, recvbuf, count, datatype, op, comm);
@@ -759,6 +768,15 @@ _EXTERN_C_ int MPI_Allreduce(const void *sendbuf, void *recvbuf, int count, MPI_
         LOG("MONA/MPI: Calling MPI wrapper for MPI_Allreduce\n");
         _wrap_py_return_val = PMPI_Allreduce(sendbuf, recvbuf, count, datatype, op, comm);
     }
+    {
+        auto recvtypesize = get_datatype_size(datatype);
+        LOG("recvbuf data:\n");
+        for(size_t i=0; i < recvtypesize*count; i++) {
+            LOG("%0X ", ((const char*)recvbuf)[i]);
+        }
+        LOG("\n");
+    }
+
     return _wrap_py_return_val;
 }
 
@@ -772,6 +790,15 @@ _EXTERN_C_ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int roo
         (long)datatype, root, (long)comm);
     IS_MONA_COMM(comm);
 
+    {
+        auto sendtypesize = get_datatype_size(datatype);
+        LOG("sendbuf data:\n");
+        for(size_t i=0; i < sendtypesize*count; i++) {
+            LOG("%0X ", ((const char*)buffer)[i]);
+        }
+        LOG("\n");
+    }
+
     if(__is_mona_comm) {
         LOG("MONA/MPI: Calling MONA wrapper for MPI_Bcast\n");
         _wrap_py_return_val = MONA_MPI_Bcast(buffer, count, datatype, root, comm);
@@ -780,5 +807,54 @@ _EXTERN_C_ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int roo
         LOG("MONA/MPI: Calling MPI wrapper for MPI_Bcast\n");
         _wrap_py_return_val = PMPI_Bcast(buffer, count, datatype, root, comm);
     }
+    {
+        auto sendtypesize = get_datatype_size(datatype);
+        LOG("recvbuf data:\n");
+        for(size_t i=0; i < sendtypesize*count; i++) {
+            LOG("%0X ", ((const char*)buffer)[i]);
+        }
+        LOG("\n");
+    }
+
+    return _wrap_py_return_val;
+}
+
+/* ================== C Wrappers for MPI_Allgather ================== */
+_EXTERN_C_ int PMPI_Allgather(const void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf, int recvcount, MPI_Datatype recvtype, MPI_Comm comm);
+_EXTERN_C_ int MPI_Allgather(const void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf, int recvcount, MPI_Datatype recvtype, MPI_Comm comm) {
+    int _wrap_py_return_val = 0;
+
+    IS_MONA_COMM(comm);
+    LOG("MONA/MPI Calling Allgather with sendbuf=%p, sendcount=%d, "
+        "sendtype=%ld, recvbuf=%p, recvcount=%d, recvtype=%ld, user_comm=%ld\n",
+        sendbuf, sendcount, (long)sendtype, recvbuf, recvcount, (long)recvtype,
+        (long)comm);
+
+    {
+        auto sendtypesize = get_datatype_size(sendtype);
+        LOG("sendbuf data:\n");
+        for(size_t i=0; i < sendtypesize*sendcount; i++) {
+            LOG("%0X ", ((const char*)sendbuf)[i]);
+        }
+        LOG("\n");
+    }
+
+    if(__is_mona_comm) {
+        LOG("MONA/MPI: Calling MONA wrapper for MPI_Allgather\n");
+        _wrap_py_return_val = MONA_MPI_Allgather(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm);
+    } else {
+
+        LOG("MONA/MPI: Calling MPI wrapper for MPI_Allgather\n");
+        _wrap_py_return_val = PMPI_Allgather(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm);
+    }
+    {
+        auto recvtypesize = get_datatype_size(recvtype);
+        LOG("recvbuf data:\n");
+        for(size_t i=0; i < recvtypesize*recvcount; i++) {
+            LOG("%0X ", ((const char*)recvbuf)[i]);
+        }
+        LOG("\n");
+    }
+
     return _wrap_py_return_val;
 }

@@ -106,6 +106,13 @@ static MunitResult test_allreduce(const MunitParameter params[], void* data)
     munit_assert_int(ret, ==, 0);
     munit_assert_int(recv_val, ==, size*(size-1));
 
+    int32_t send_val2 = rank*2;
+    int32_t recv_val2 = 0;
+
+    ret = MPI_Allreduce(&send_val2, &recv_val2, 1, MPI_INT, MPI_MAX, context->mpi_comm);
+    munit_assert_int(ret, ==, 0);
+    munit_assert_int(recv_val2, ==, (size-1)*2);
+
     return MUNIT_OK;
 }
 
