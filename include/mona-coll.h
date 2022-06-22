@@ -431,6 +431,39 @@ na_return_t mona_comm_iallgather(mona_comm_t     comm,
                                  mona_request_t* req);
 
 /**
+ * @brief Gather data from all processes to all processes.
+ *
+ * @param comm [IN] Communicator
+ * @param sendbuf [IN] Data to send
+ * @param sendsize [IN] Size of the data to send
+ * @param recvbuf [OUT] Buffer in which to receive data
+ * @param recvsizes [IN] Sizes of data to receive from each process
+ * @param displs [IN] Displacement
+ * @param tag [IN] Tag of the operation
+ *
+ * @return NA_SUCCESS or corresponding error code (see na.h)
+ */
+na_return_t mona_comm_allgatherv(mona_comm_t   comm,
+                                 const void*   sendbuf,
+                                 size_t        sendsize,
+                                 void*         recvbuf,
+                                 const size_t* recvsizes,
+                                 const size_t* displs,
+                                 na_tag_t      tag);
+
+/**
+ * @see Non-blocking version of mona_comm_allgatherv.
+ */
+na_return_t mona_comm_iallgatherv(mona_comm_t     comm,
+                                  const void*     sendbuf,
+                                  size_t          sendsize,
+                                  void*           recvbuf,
+                                  const size_t*   recvsizes,
+                                  const size_t*   displs,
+                                  na_tag_t        tag,
+                                  mona_request_t* req);
+
+/**
  * @brief Reduce data down to the root process using
  * the specified operation. Because operations are type-sensitive,
  * the data size is split into a count and a type size.
