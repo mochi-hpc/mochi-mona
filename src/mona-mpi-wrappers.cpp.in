@@ -325,6 +325,27 @@ static int MONA_MPI_Gatherv(const void *sendbuf, int sendcount, MPI_Datatype sen
             recvbuf, m_recv_sizes.data(), m_displ.data(), root, 0);
 }
 
+static int MONA_MPI_Allgatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+                            void *recvbuf, const int *recvcounts, const int *displs,
+                            MPI_Datatype recvtype, MPI_Comm user_comm) {
+    mona_comm_t mona_comm = get_mona_comm_from(user_comm);
+    size_t sendtype_size = get_datatype_size(sendtype);
+    size_t recvtype_size = get_datatype_size(recvtype);
+    if(sendtype_size == 0) return -1;
+    if(recvtype_size == 0) return -1;
+    int n = 0;
+    na_return_t ret = mona_comm_size(mona_comm, &n);
+    if(ret != NA_SUCCESS) return ret;
+    std::vector<size_t> m_recv_sizes(n);
+    std::vector<size_t> m_displ(n);
+    for(int i=0; i < n; i++) {
+        m_recv_sizes[i] = (size_t)recvcounts[i]*recvtype_size;
+        m_displ[i] = (size_t)displs[i]*recvtype_size;
+    }
+    return (int)mona_comm_allgatherv(mona_comm, sendbuf, sendtype_size*sendcount,
+            recvbuf, m_recv_sizes.data(), m_displ.data(), 0);
+}
+
 static int MONA_MPI_Scatter(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
                             void *recvbuf, int recvcount, MPI_Datatype recvtype, int root,
                             MPI_Comm user_comm) {
@@ -401,7 +422,6 @@ static int MONA_MPI_Alltoall(const void *sendbuf, int sendcount, MPI_Datatype se
 // ------------------------------------------------------------------------ //
 
 {{foreachfn FUNCTION MPI_Abort
-                 MPI_Allgatherv
                  MPI_Alltoallv
                  MPI_Alltoallw
                  MPI_Attr_delete
