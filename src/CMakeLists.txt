@@ -9,7 +9,7 @@ set (mona-pkg "share/cmake/mona")
 #
 set (MONA_VERSION_MAJOR 0)
 set (MONA_VERSION_MINOR 2)
-set (MONA_VERSION_PATCH 0)
+set (MONA_VERSION_PATCH 2)
 set (mona-vers "${MONA_VERSION_MAJOR}.${MONA_VERSION_MINOR}")
 set (MONA_VERSION "${mona-vers}.${MONA_VERSION_PATCH}")
 
