@@ -101,21 +101,23 @@ static const std::unordered_map<MPI_Datatype, TypeInfo> _type_info{
 
 static size_t get_datatype_size(MPI_Datatype dt) {
     auto it = _type_info.find(dt);
-    if(it != _type_info.end())
+    if(it != _type_info.end()) {
+        LOG("MONA/MPI: Type size for datatype %ld is %lu\n", (long)dt, it->second.size);
         return it->second.size;
-    LOG("MONA/MPI: Could not find type size for datatype %ld", (long)dt);
+    }
+    LOG("MONA/MPI: Could not find type size for datatype %ld\n", (long)dt);
     return 0;
 }
 
 static OperationValue get_mona_operation(MPI_Datatype dt, MPI_Op op) {
     auto it = _type_info.find(dt);
     if(it == _type_info.end()) {
-        LOG("MONA/MPI: Could not find type info for datatype %ld", (long)dt);
+        LOG("MONA/MPI: Could not find type info for datatype %ld\n", (long)dt);
         return OperationValue{ nullptr, nullptr };
     }
     auto it2 = _operations.find(OperationKey{ it->second.closest, op });
     if(it2 == _operations.end()) {
-        LOG("MONA/MPI: Could not find operation for MPI_op %ld", (long)op);
+        LOG("MONA/MPI: Could not find operation for MPI_op %ld\n", (long)op);
         return OperationValue{ nullptr, nullptr };
     }
     return it2->second;
@@ -269,6 +271,9 @@ static int MONA_MPI_Barrier(MPI_Comm user_comm) {
 
 static int MONA_MPI_Bcast(void* buffer, int count,
                           MPI_Datatype datatype, int root, MPI_Comm user_comm) {
+    LOG("MONA/MPI Calling Bcast with buffer=%p, count=%d, "
+        "datatype=%ld, root=%d, user_comm=%ld\n", buffer, count,
+        (long)datatype, root, (long)user_comm);
     mona_comm_t mona_comm = get_mona_comm_from(user_comm);
     size_t type_size = get_datatype_size(datatype);
     if(type_size == 0) return -1;
@@ -649,8 +654,8 @@ static {{ret_type}} MONA_{{FUNCTION}}{{argTypeList}} {
                  MPI_Dist_graph_create}}
     {{applyToType MPI_Comm IS_MONA_COMM}}
     if(__is_mona_comm) {
-        {{ret_val}} = MONA_{{FUNCTION}}({{args}});
         LOG("MONA/MPI: Calling MONA wrapper for {{FUNCTION}}\n");
+        {{ret_val}} = MONA_{{FUNCTION}}({{args}});
     } else {
         {{applyToType MON_Comm CONVERT_TO_MPI_COMM}}
         LOG("MONA/MPI: Calling MPI wrapper for {{FUNCTION}}\n");
@@ -666,8 +671,8 @@ _EXTERN_C_ int MPI_Comm_disconnect(MPI_Comm *comm) {
     IS_MONA_COMM(*comm);
 
     if(__is_mona_comm) {
-        _wrap_py_return_val = MONA_MPI_Comm_disconnect(comm);
         LOG("MONA/MPI: Calling MONA wrapper for MPI_Comm_disconnect\n");
+        _wrap_py_return_val = MONA_MPI_Comm_disconnect(comm);
     } else {
         MPI_Comm mpi_comm = get_mpi_comm_from(*comm);
         LOG("MONA/MPI: Calling MPI wrapper for MPI_Comm_disconnect\n");
