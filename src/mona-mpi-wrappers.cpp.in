@@ -372,9 +372,6 @@ static int MONA_MPI_Reduce(const void *sendbuf, void *recvbuf, int count,
 static int MONA_MPI_Allreduce(const void *sendbuf, void *recvbuf, int count,
                               MPI_Datatype datatype, MPI_Op op,
                               MPI_Comm user_comm) {
-    LOG("MONA/MPI Calling Allreduce with sendbuf=%p, recvbuf=%p, count=%d, "
-        "datatype=%ld, op=%ld, user_comm=%ld\n", sendbuf, recvbuf, count,
-        (long)datatype, (long)op, (long)user_comm);
     mona_comm_t mona_comm = get_mona_comm_from(user_comm);
     OperationValue mona_op = get_mona_operation(datatype, op);
     if(!mona_op.op) return -1;
@@ -528,10 +525,13 @@ static {{ret_type}} MONA_{{FUNCTION}}{{argTypeList}} {
 #define CONVERT_TO_MPI_COMM(__comm__) \
         __comm__ = get_mpi_comm_from(__comm__)
 
+
+// MPI_Bcast
+// MPI_Allreduce
+
 {{fn    FUNCTION MPI_Abort
                  MPI_Allgather
                  MPI_Allgatherv
-                 MPI_Allreduce
                  MPI_Alltoall
                  MPI_Alltoallv
                  MPI_Alltoallw
@@ -539,7 +539,6 @@ static {{ret_type}} MONA_{{FUNCTION}}{{argTypeList}} {
                  MPI_Attr_get
                  MPI_Attr_put
                  MPI_Barrier
-                 MPI_Bcast
                  MPI_Bsend
                  MPI_Bsend_init
                  MPI_Cart_coords
@@ -738,6 +737,48 @@ _EXTERN_C_ int MPI_Intercomm_create(MPI_Comm local_comm, int local_leader, MPI_C
         *newintercomm = register_new_mpi_comm(*newintercomm);
     } else {
         _wrap_py_return_val = -1;
+    }
+    return _wrap_py_return_val;
+}
+
+/* ================== C Wrappers for MPI_Allreduce ================== */
+_EXTERN_C_ int PMPI_Allreduce(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm);
+_EXTERN_C_ int MPI_Allreduce(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm) {
+    int _wrap_py_return_val = 0;
+
+    LOG("MONA/MPI Calling Allreduce with sendbuf=%p, recvbuf=%p, count=%d, "
+        "datatype=%ld, op=%ld, user_comm=%ld\n", sendbuf, recvbuf, count,
+        (long)datatype, (long)op, (long)comm);
+    IS_MONA_COMM(comm);
+
+    if(__is_mona_comm) {
+        LOG("MONA/MPI: Calling MONA wrapper for MPI_Allreduce\n");
+        _wrap_py_return_val = MONA_MPI_Allreduce(sendbuf, recvbuf, count, datatype, op, comm);
+    } else {
+
+        LOG("MONA/MPI: Calling MPI wrapper for MPI_Allreduce\n");
+        _wrap_py_return_val = PMPI_Allreduce(sendbuf, recvbuf, count, datatype, op, comm);
+    }
+    return _wrap_py_return_val;
+}
+
+/* ================== C Wrappers for MPI_Bcast ================== */
+_EXTERN_C_ int PMPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm comm);
+_EXTERN_C_ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm comm) {
+    int _wrap_py_return_val = 0;
+
+    LOG("MONA/MPI Calling Bcast with buffer=%p, count=%d, "
+        "datatype=%ld, root=%d, user_comm=%ld\n", buffer, count,
+        (long)datatype, root, (long)comm);
+    IS_MONA_COMM(comm);
+
+    if(__is_mona_comm) {
+        LOG("MONA/MPI: Calling MONA wrapper for MPI_Bcast\n");
+        _wrap_py_return_val = MONA_MPI_Bcast(buffer, count, datatype, root, comm);
+    } else {
+
+        LOG("MONA/MPI: Calling MPI wrapper for MPI_Bcast\n");
+        _wrap_py_return_val = PMPI_Bcast(buffer, count, datatype, root, comm);
     }
     return _wrap_py_return_val;
 }
