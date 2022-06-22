@@ -41,14 +41,14 @@ struct OperationValue {
 };
 
 #define OP_MAPPING_FOR(__t1__, __t2__)                                \
-    { {MPI_##__t1__, MPI_MAX }, { mona_op_max_##__t2__, nullptr } },  \
-    { {MPI_##__t1__, MPI_MIN }, { mona_op_min_##__t2__, nullptr } },  \
-    { {MPI_##__t1__, MPI_SUM }, { mona_op_sum_##__t2__, nullptr } },  \
-    { {MPI_##__t1__, MPI_PROD }, { mona_op_prod_##__t2__, nullptr } },\
-    { {MPI_##__t1__, MPI_LAND }, { mona_op_land_##__t2__, nullptr } },\
-    { {MPI_##__t1__, MPI_BAND }, { mona_op_band_##__t2__, nullptr } },\
-    { {MPI_##__t1__, MPI_LOR }, { mona_op_lor_##__t2__, nullptr } },  \
-    { {MPI_##__t1__, MPI_BOR }, { mona_op_bor_##__t2__, nullptr } }
+    { {MPI_##__t1__, MPI_MAX }, { mona_op_max_##__t2__, (void*)1 } },  \
+    { {MPI_##__t1__, MPI_MIN }, { mona_op_min_##__t2__, (void*)2 } },  \
+    { {MPI_##__t1__, MPI_SUM }, { mona_op_sum_##__t2__, (void*)3 } },  \
+    { {MPI_##__t1__, MPI_PROD }, { mona_op_prod_##__t2__, (void*)4 } },\
+    { {MPI_##__t1__, MPI_LAND }, { mona_op_land_##__t2__, (void*)5 } },\
+    { {MPI_##__t1__, MPI_BAND }, { mona_op_band_##__t2__, (void*)6 } },\
+    { {MPI_##__t1__, MPI_LOR }, { mona_op_lor_##__t2__, (void*)7 } },  \
+    { {MPI_##__t1__, MPI_BOR }, { mona_op_bor_##__t2__, (void*)8 } }
 
 static const std::unordered_map<OperationKey, OperationValue> _operations{
     OP_MAPPING_FOR(INT8_T, i8),
@@ -120,6 +120,7 @@ static OperationValue get_mona_operation(MPI_Datatype dt, MPI_Op op) {
         LOG("MONA/MPI: Could not find operation for MPI_op %ld\n", (long)op);
         return OperationValue{ nullptr, nullptr };
     }
+    LOG("MONA/MPI: Found operation of type %lu\n", (intptr_t)(it2->second.args));
     return it2->second;
 }
 
@@ -271,9 +272,6 @@ static int MONA_MPI_Barrier(MPI_Comm user_comm) {
 
 static int MONA_MPI_Bcast(void* buffer, int count,
                           MPI_Datatype datatype, int root, MPI_Comm user_comm) {
-    LOG("MONA/MPI Calling Bcast with buffer=%p, count=%d, "
-        "datatype=%ld, root=%d, user_comm=%ld\n", buffer, count,
-        (long)datatype, root, (long)user_comm);
     mona_comm_t mona_comm = get_mona_comm_from(user_comm);
     size_t type_size = get_datatype_size(datatype);
     if(type_size == 0) return -1;
