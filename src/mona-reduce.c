@@ -114,7 +114,11 @@ static na_return_t radix_k_tree_reduce(int32_t     k,
     rel_rank  = (rank - root);
     if (rel_rank < 0) rel_rank += comm_size;
 
-    if (count == 0 || comm_size == 1) return na_ret;
+    if (count == 0 || comm_size == 1) {
+        if(sendbuf != MONA_IN_PLACE)
+            memcpy(recvbuf, sendbuf, count*typesize);
+        return na_ret;
+    }
 
     char*           tempBuf         = NULL;
     mona_request_t* reqs            = NULL;
