@@ -62,6 +62,7 @@ static void* test_context_setup(const MunitParameter params[], void* user_data)
 
     MPI_Comm mpi_comm;
     MPI_Register_mona_comm(mona_comm, &mpi_comm);
+    MPI_Mona_enable_logging();
 
     test_context* context = (test_context*)calloc(1, sizeof(*context));
     context->mona = mona;

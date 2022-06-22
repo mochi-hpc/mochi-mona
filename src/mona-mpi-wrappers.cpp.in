@@ -9,6 +9,14 @@
 static std::unordered_map<MPI_Comm, MPI_Comm> _user_comm_to_mpi;
 static std::unordered_map<MPI_Comm, mona_comm_t> _user_comm_to_mona;
 static MPI_Comm last_user_comm = (MPI_Comm)42;
+static bool enable_logging = false;
+
+extern "C" int MPI_Mona_enable_logging() {
+    enable_logging = true;
+    return 0;
+}
+
+#define LOG(...) if(enable_logging) fprintf(stderr, __VA_ARGS__)
 
 struct OperationKey {
     MPI_Datatype datatype;
@@ -95,16 +103,21 @@ static size_t get_datatype_size(MPI_Datatype dt) {
     auto it = _type_info.find(dt);
     if(it != _type_info.end())
         return it->second.size;
+    LOG("MONA/MPI: Could not find type size for datatype %ld", (long)dt);
     return 0;
 }
 
 static OperationValue get_mona_operation(MPI_Datatype dt, MPI_Op op) {
     auto it = _type_info.find(dt);
-    if(it == _type_info.end())
+    if(it == _type_info.end()) {
+        LOG("MONA/MPI: Could not find type info for datatype %ld", (long)dt);
         return OperationValue{ nullptr, nullptr };
+    }
     auto it2 = _operations.find(OperationKey{ it->second.closest, op });
-    if(it2 == _operations.end())
+    if(it2 == _operations.end()) {
+        LOG("MONA/MPI: Could not find operation for MPI_op %ld", (long)op);
         return OperationValue{ nullptr, nullptr };
+    }
     return it2->second;
 }
 
@@ -632,8 +645,10 @@ static {{ret_type}} MONA_{{FUNCTION}}{{argTypeList}} {
     {{applyToType MPI_Comm IS_MONA_COMM}}
     if(__is_mona_comm) {
         {{ret_val}} = MONA_{{FUNCTION}}({{args}});
+        LOG("MONA/MPI: Calling MONA wrapper for {{FUNCTION}}\n");
     } else {
         {{applyToType MON_Comm CONVERT_TO_MPI_COMM}}
+        LOG("MONA/MPI: Calling MPI wrapper for {{FUNCTION}}\n");
         {{callfn}}
     }
 {{endfn}}
@@ -647,8 +662,10 @@ _EXTERN_C_ int MPI_Comm_disconnect(MPI_Comm *comm) {
 
     if(__is_mona_comm) {
         _wrap_py_return_val = MONA_MPI_Comm_disconnect(comm);
+        LOG("MONA/MPI: Calling MONA wrapper for MPI_Comm_disconnect\n");
     } else {
         MPI_Comm mpi_comm = get_mpi_comm_from(*comm);
+        LOG("MONA/MPI: Calling MPI wrapper for MPI_Comm_disconnect\n");
         _wrap_py_return_val = PMPI_Comm_disconnect(&mpi_comm);
     }
     return _wrap_py_return_val;
@@ -662,9 +679,11 @@ _EXTERN_C_ int MPI_Comm_free(MPI_Comm *comm) {
     IS_MONA_COMM(*comm);
 
     if(__is_mona_comm) {
+        LOG("MONA/MPI: Calling MONA wrapper for MPI_Comm_free\n");
         _wrap_py_return_val = MONA_MPI_Comm_free(comm);
     } else {
         MPI_Comm mpi_comm = get_mpi_comm_from(*comm);
+        LOG("MONA/MPI: Calling MPI wrapper for MPI_Comm_free\n");
         _wrap_py_return_val = PMPI_Comm_free(&mpi_comm);
     }
     return _wrap_py_return_val;
@@ -679,8 +698,10 @@ _EXTERN_C_ int MPI_Comm_compare(MPI_Comm comm1, MPI_Comm comm2, int *result) {
     int __comm2_is_mona = is_mona_comm(comm2);
 
     if(__comm1_is_mona && __comm2_is_mona) {
+        LOG("MONA/MPI: Calling MONA wrapper for MPI_Comm_compare\n");
         _wrap_py_return_val = MONA_MPI_Comm_compare(comm1, comm2, result);
     } else if(!__comm2_is_mona && !__comm2_is_mona) {
+        LOG("MONA/MPI: Calling MPI wrapper for MPI_Comm_compare\n");
         MPI_Comm mpi_comm1 = get_mpi_comm_from(comm1);
         MPI_Comm mpi_comm2 = get_mpi_comm_from(comm2);
         _wrap_py_return_val = PMPI_Comm_compare(mpi_comm1, mpi_comm2, result);
@@ -699,8 +720,10 @@ _EXTERN_C_ int MPI_Intercomm_create(MPI_Comm local_comm, int local_leader, MPI_C
     int __is_mona_peer_comm = is_mona_comm(peer_comm);
 
     if(__is_mona_local_comm && __is_mona_peer_comm) {
+        LOG("MONA/MPI: Calling MONA wrapper for MPI_Intercomm_create\n");
         _wrap_py_return_val = MONA_MPI_Intercomm_create(local_comm, local_leader, peer_comm, remote_leader, tag, newintercomm);
     } else if(!__is_mona_local_comm && !__is_mona_peer_comm) {
+        LOG("MONA/MPI: Calling MPI wrapper for MPI_Intercomm_create\n");
         MPI_Comm mpi_local_comm = get_mpi_comm_from(local_comm);
         MPI_Comm mpi_peer_comm = get_mpi_comm_from(peer_comm);
         _wrap_py_return_val = PMPI_Intercomm_create(mpi_local_comm, local_leader, mpi_peer_comm, remote_leader, tag, newintercomm);

@@ -81,6 +81,7 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
 
     int mpi_ret = MPI_Register_mona_comm(mona_comm, &mpi_comm);
     munit_assert_int(mpi_ret, ==, 0);
+    MPI_Mona_enable_logging();
 
     if(context->rank == 0) { // sender
         for(i = 0; i < (int)msg_len; i++) {

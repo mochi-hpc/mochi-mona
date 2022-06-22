@@ -15,6 +15,8 @@ extern "C" {
 
 int MPI_Register_mona_comm(mona_comm_t comm, MPI_Comm* newcomm);
 
+int MPI_Mona_enable_logging();
+
 #ifdef __cplusplus
 }
 #endif
