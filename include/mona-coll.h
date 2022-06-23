@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 #define MONA_IN_PLACE ((void*)-1)
+#define MONA_ANY_SOURCE ((int)-1)
 
 /**
  * @brief Handle for a group of processes. Contrary to MPI, messages
