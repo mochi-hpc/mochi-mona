@@ -407,48 +407,54 @@ static cached_msg_t receive_new_unexpected_message(mona_instance_t mona,
     na_tag_t  recv_tag  = 0;
     // get message from cache
 retry:
-    //msg = get_msg_from_cache(mona, false);
-    // issue unexpected recv
+    // issue non-blocking unexpected recv
     {
-        size_t    prob_size;
-        na_addr_t prob_addr;
-        na_tag_t  prob_tag;
+        if(!mona->unexpected.prob_msg)
+            mona->unexpected.prob_msg = get_msg_from_cache(mona, false);
+        if(!mona->unexpected.prob_id)
+            mona->unexpected.prob_id = get_op_id_from_cache(mona);
+        na_op_id_t* op_id    = mona->unexpected.prob_id->op_id;
 
-        mona_request_t prob_req = MONA_REQUEST_NULL;
-        cached_msg_t   prob_msg = get_msg_from_cache(mona, false);
-        cached_op_id_t prob_id  = get_op_id_from_cache(mona);
-        na_op_id_t*    op_id    = prob_id->op_id;
+        na_ret = mona_msg_irecv_unexpected(mona,
+                mona->unexpected.prob_msg->buffer, msg_size,
+                mona->unexpected.prob_msg->plugin_data,
+                &mona->unexpected.prob_addr,
+                &mona->unexpected.prob_tag,
+                &mona->unexpected.prob_size,
+                op_id, &mona->unexpected.prob_req);
 
-        na_ret = mona_msg_irecv_unexpected(mona, prob_msg->buffer, msg_size,
-                                           prob_msg->plugin_data, &prob_addr, &prob_tag,
-                                           &prob_size, op_id, &prob_req);
         if (na_ret != NA_SUCCESS) {
-            return_msg_to_cache(mona, prob_msg, false);
-            return_op_id_to_cache(mona, prob_id);
+            return_msg_to_cache(mona, mona->unexpected.prob_msg, false);
+            mona->unexpected.prob_msg = NULL;
+            return_op_id_to_cache(mona, mona->unexpected.prob_id);
+            mona->unexpected.prob_id = NULL;
             goto error;
         }
 
-        na_ret = mona_wait(prob_req);
-        return_op_id_to_cache(mona, prob_id);
+        na_ret = mona_wait(mona->unexpected.prob_req);
+        return_op_id_to_cache(mona, mona->unexpected.prob_id);
+        mona->unexpected.prob_id = NULL;
 
         if (na_ret != NA_SUCCESS) {
-            return_msg_to_cache(mona, prob_msg, false);
+            return_msg_to_cache(mona, mona->unexpected.prob_msg, false);
+            mona->unexpected.prob_msg = NULL;
+            mona->unexpected.prob_req = MONA_REQUEST_NULL;
             goto error;
         } else {
-            msg = prob_msg;
+            msg = mona->unexpected.prob_msg;
+            mona->unexpected.prob_msg = NULL;
+            // msg will be put back in the cache later
         }
 
-        recv_addr = prob_addr;
-        recv_size = prob_size;
-        recv_tag  = prob_tag;
+        recv_addr = mona->unexpected.prob_addr;
+        recv_size = mona->unexpected.prob_size;
+        recv_tag  = mona->unexpected.prob_tag;
+
+        mona->unexpected.prob_addr = NA_ADDR_NULL;
+        mona->unexpected.prob_size = 0;
+        mona->unexpected.prob_tag  = 0;
     }
 
-    /*
-    na_ret = mona_msg_recv_unexpected(mona, msg->buffer, msg_size,
-                                       msg->plugin_data, &recv_addr, &recv_tag,
-                                       &recv_size);
-    if (na_ret != NA_SUCCESS) goto error;
-    */
     // check is received message is matching and we are not just probing
     if ((!probe) // not probbing
      && (tag == MONA_ANY_TAG || recv_tag == tag) // matching tag

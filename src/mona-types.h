@@ -65,6 +65,13 @@ typedef struct mona_instance {
         ABT_mutex     pending_msg_mtx;
         ABT_cond      pending_msg_cv;
         bool          pending_msg_queue_active; // a thread is queuing messages
+        // pending request and data from a probe for new messages
+        na_addr_t      prob_addr;
+        size_t         prob_size;
+        na_tag_t       prob_tag;
+        mona_request_t prob_req;
+        cached_msg_t   prob_msg;
+        cached_op_id_t prob_id;
     } unexpected;
     // expected send/recv data
     struct {
