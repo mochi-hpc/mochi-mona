@@ -17,7 +17,7 @@ static na_return_t setup_teams(mona_comm_t comm)
     comm->local.rank    = 0;
     comm->local.addrs   = calloc(sizeof(na_addr_t), comm->all.size);
     comm->leader_rank   = 0;
-
+    comm->use_unexpected_msg = true;
     comm->hints.reduce_radix = 2;
 
     char   addr_str[256];
@@ -225,8 +225,13 @@ na_return_t mona_comm_isend(mona_comm_t     comm,
                             mona_request_t* req)
 {
     if (dest < 0 || (unsigned)dest >= comm->all.size) return NA_INVALID_ARG;
-    return mona_isend(comm->mona, buf, size, comm->all.addrs[dest], 0, tag,
-                      req);
+    if (comm->use_unexpected_msg) {
+        return mona_uisend(comm->mona, buf, size, comm->all.addrs[dest], 0, tag,
+                          req);
+    } else {
+        return mona_isend(comm->mona, buf, size, comm->all.addrs[dest], 0, tag,
+                          req);
+    }
 }
 
 na_return_t mona_comm_recv(mona_comm_t comm,
