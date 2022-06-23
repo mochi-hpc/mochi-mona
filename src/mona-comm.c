@@ -243,7 +243,7 @@ na_return_t mona_comm_recv(mona_comm_t comm,
                            int*        actual_src,
                            na_tag_t*   actual_tag)
 {
-    if (src < MONA_ANY_SOURCE || (unsigned)src >= comm->all.size) return NA_INVALID_ARG;
+    if (src < MONA_ANY_SOURCE || src >= (int)comm->all.size) return NA_INVALID_ARG;
     na_return_t na_ret;
     if (comm->use_unexpected_msg) {
         na_addr_t actual_addr = NA_ADDR_NULL;
@@ -324,7 +324,7 @@ na_return_t mona_comm_probe(mona_comm_t comm,
                             int*        actual_src,
                             na_tag_t*   actual_tag)
 {
-    if (src < MONA_ANY_SOURCE || (unsigned)src >= comm->all.size) return NA_INVALID_ARG;
+    if (src < MONA_ANY_SOURCE || src >= (int)comm->all.size) return NA_INVALID_ARG;
     na_return_t na_ret;
     if (comm->use_unexpected_msg) {
 
@@ -359,7 +359,7 @@ na_return_t mona_comm_iprobe(mona_comm_t comm,
                              int*        actual_src,
                              na_tag_t*   actual_tag)
 {
-    if (src < MONA_ANY_SOURCE || (unsigned)src >= comm->all.size) return NA_INVALID_ARG;
+    if (src < MONA_ANY_SOURCE || src >= (int)comm->all.size) return NA_INVALID_ARG;
     na_return_t na_ret;
     if (comm->use_unexpected_msg) {
 
