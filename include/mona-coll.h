@@ -208,6 +208,41 @@ na_return_t mona_comm_irecv(mona_comm_t     comm,
                             mona_request_t* req);
 
 /**
+ * @brief Probe for a message from a source rank.
+ *
+ * MONA_ANY_SOURCE and MONA_ANY_TAG may be used
+ * to probe for messages from any process or with any tag.
+ *
+ * actual_size, actual_src, actual_tag may be
+ * ignored by passing NULL.
+ *
+ * @param comm [IN] Communicator
+ * @param src [IN] Source rank
+ * @param tag [IN] Tag
+ * @param actual_size [OUT] Size received
+ * @param actual_src [OUT] Rank that sent the message
+ * @param actual_tag [OUT] Actual tag
+ *
+ * @return NA_SUCCESS or corresponding error code (see na.h)
+ */
+na_return_t mona_comm_probe(mona_comm_t comm,
+                            int         src,
+                            na_tag_t    tag,
+                            size_t*     actual_size,
+                            int*        actual_src,
+                            na_tag_t*   actual_tag);
+
+/**
+ * @see Non-blocking version of mona_comm_probe.
+ */
+na_return_t mona_comm_iprobe(mona_comm_t     comm,
+                             int             src,
+                             na_tag_t        tag,
+                             int*            flag,
+                             size_t*         actual_size,
+                             int*            actual_src,
+                             na_tag_t*       actual_tag);
+/**
  * @brief Issue a send and a receive in parallel.
  *
  * @param comm [IN] Communicator
