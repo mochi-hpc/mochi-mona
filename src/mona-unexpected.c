@@ -342,7 +342,6 @@ static cached_msg_t search_for_matching_unexpected_message(mona_instance_t mona,
                                                            na_addr_t* actual_src,
                                                            na_tag_t*  actual_tag) {
     cached_msg_t msg    = NULL; /* result */
-    na_return_t  na_ret = NA_SUCCESS;
 
     pending_msg_t p_msg      = mona->unexpected.pending_msg_oldest;
     pending_msg_t p_prev_msg = NULL;
@@ -380,77 +379,63 @@ static cached_msg_t search_for_matching_unexpected_message(mona_instance_t mona,
     }
 }
 
-static cached_msg_t wait_for_matching_unexpected_message(mona_instance_t mona,
-                                                         na_addr_t       src,
-                                                         na_tag_t        tag,
-                                                         size_t*    actual_size,
-                                                         na_addr_t* actual_src,
-                                                         na_tag_t*  actual_tag)
-{
+// This function will block on a call to receive new unexpected messages.
+// If probe is set to false, the function will block until a MATCHING new
+// message arrives, and will return it.
+// If probe is set to true, the function will block until any new message
+// arrives, and will return a cached_msg_t if a matching message was
+// received, or NULL if the received message wasn't matching.
+//
+// If the returned cached_msg_t is not NULL, actual_size, actual_src and
+// actual_tag will be set.
+//
+// This function requires mona->unexpected.pending_msg_mtx to be unlocked
+// and will unlock it before returning.
+static cached_msg_t receive_new_unexpected_message(mona_instance_t mona,
+                                                   bool            probe,
+                                                   na_addr_t       src,
+                                                   na_tag_t        tag,
+                                                   size_t*    actual_size,
+                                                   na_addr_t* actual_src,
+                                                   na_tag_t*  actual_tag) {
     cached_msg_t msg      = NULL; /* result */
     size_t       msg_size = mona_msg_get_max_unexpected_size(mona);
     na_return_t  na_ret   = NA_SUCCESS;
 
-    // lock the queue of pending messages
-    ABT_mutex_lock(mona->unexpected.pending_msg_mtx);
-
-    // search in the queue of pending messages for one matching
-search_in_queue : {
-    msg = search_for_matching_unexpected_message(mona, true, src, tag, actual_size, actual_src, actual_tag);
-    if (msg) {
-        ABT_mutex_unlock(mona->unexpected.pending_msg_mtx);
-        return msg;
-    }
-
-}
-    // here the matching message wasn't found in the queue
-    {
-        // if another thread is actively issuing unexpected recv, wait for the
-        // queue to update
-        if (mona->unexpected.pending_msg_queue_active) {
-            ABT_cond_wait(mona->unexpected.pending_msg_cv,
-                          mona->unexpected.pending_msg_mtx);
-            if (mona->unexpected.pending_msg_queue_active) goto search_in_queue;
-        }
-    }
-    // here no matching message was found and there isn't any other threads
-    // updating the queue so this thread will take the responsibility for
-    // actively listening for messages
-    mona->unexpected.pending_msg_queue_active = true;
-    ABT_mutex_unlock(mona->unexpected.pending_msg_mtx);
-recv_new_message : {
     size_t    recv_size = 0;
     na_addr_t recv_addr = NA_ADDR_NULL;
     na_tag_t  recv_tag  = 0;
     // get message from cache
+retry:
     msg = get_msg_from_cache(mona, false);
     // issue unexpected recv
     na_ret = mona_msg_recv_unexpected(mona, msg->buffer, msg_size,
                                       msg->plugin_data, &recv_addr, &recv_tag,
                                       &recv_size);
     if (na_ret != NA_SUCCESS) goto error;
-    // check is received message is matching
-    if ((tag == MONA_ANY_TAG || recv_tag == tag)
-        && (src == MONA_ANY_SOURCE || mona_addr_cmp(mona, src, recv_addr))) {
+    // check is received message is matching and we are not just probing
+    if ((!probe) // not probbing
+     && (tag == MONA_ANY_TAG || recv_tag == tag) // matching tag
+     && (src == MONA_ANY_SOURCE || mona_addr_cmp(mona, src, recv_addr))) // matching source
+    {
         // received message matches
-        // notify other threads that this thread won't be updating the queue
-        // anymore
+        // notify other threads that this thread won't be updating the queue anymore
         ABT_mutex_lock(mona->unexpected.pending_msg_mtx);
         mona->unexpected.pending_msg_queue_active = false;
         ABT_mutex_unlock(mona->unexpected.pending_msg_mtx);
         ABT_cond_broadcast(mona->unexpected.pending_msg_cv);
         // copy size, source, and tag
         if (actual_size) *actual_size = recv_size;
+        if (actual_tag) *actual_tag = recv_tag;
         if (actual_src)
             *actual_src = recv_addr;
         else
             mona_addr_free(mona, recv_addr);
-        if (actual_tag) *actual_tag = recv_tag;
-        // return the message
         return msg;
 
-    } else {
-        // received message doesn't match, create a pending message...
+    } else { // message not matching or we are only probbing
+
+        // create a pending message...
         pending_msg_t p_msg = (pending_msg_t)malloc(sizeof(*p_msg));
         p_msg->cached_msg   = msg;
         p_msg->recv_size    = recv_size;
@@ -467,17 +452,61 @@ recv_new_message : {
             mona->unexpected.pending_msg_newest                   = p_msg;
         }
         // notify other threads that the queue has been updated
+        if(probe)
+            mona->unexpected.pending_msg_queue_active = false;
         ABT_mutex_unlock(mona->unexpected.pending_msg_mtx);
         ABT_cond_broadcast(mona->unexpected.pending_msg_cv);
-        goto recv_new_message;
+        if (probe) return NULL;
+        else goto retry;
     }
-}
     // error handling
 error:
     if (msg) return_msg_to_cache(mona, msg, false);
     ABT_mutex_unlock(mona->unexpected.pending_msg_mtx);
     ABT_cond_broadcast(mona->unexpected.pending_msg_cv);
     return NULL;
+}
+
+
+static cached_msg_t check_for_matching_unexpected_message(mona_instance_t mona,
+                                                          bool            probe,
+                                                          na_addr_t       src,
+                                                          na_tag_t        tag,
+                                                          size_t*    actual_size,
+                                                          na_addr_t* actual_src,
+                                                          na_tag_t*  actual_tag)
+{
+    cached_msg_t msg      = NULL; /* result */
+
+    // lock the queue of pending messages
+    ABT_mutex_lock(mona->unexpected.pending_msg_mtx);
+
+    // search in the queue of pending messages for one matching
+search_in_queue:
+    msg = search_for_matching_unexpected_message(mona, !probe, src, tag, actual_size, actual_src, actual_tag);
+    if (msg) {
+        ABT_mutex_unlock(mona->unexpected.pending_msg_mtx);
+        return msg;
+    }
+
+    // here the matching message wasn't found in the queue
+    // if another thread is actively issuing unexpected recv, wait for the
+    // queue to update
+    if (mona->unexpected.pending_msg_queue_active) {
+        ABT_cond_wait(mona->unexpected.pending_msg_cv,
+                      mona->unexpected.pending_msg_mtx);
+        if (mona->unexpected.pending_msg_queue_active) goto search_in_queue;
+    }
+
+    // here no matching message was found and there isn't any other threads
+    // updating the queue so this thread will take the responsibility for
+    // actively listening for messages.
+    mona->unexpected.pending_msg_queue_active = true;
+    ABT_mutex_unlock(mona->unexpected.pending_msg_mtx);
+
+    return receive_new_unexpected_message(
+        mona, probe, src, tag, actual_size,
+        actual_src, actual_tag);
 }
 
 na_return_t mona_urecv(mona_instance_t mona,
@@ -575,7 +604,7 @@ na_return_t mona_urecv_nc(mona_instance_t mona,
     for (i = 0; i < count; i++) { max_data_size += buf_sizes[i]; }
 
     // wait for a matching unexpected message to come around
-    msg = wait_for_matching_unexpected_message(mona, src, tag, &recv_size,
+    msg = check_for_matching_unexpected_message(mona, false, src, tag, &recv_size,
                                                &recv_addr, &recv_tag);
     if (!msg) return NA_PROTOCOL_ERROR;
 
@@ -758,7 +787,7 @@ na_return_t mona_urecv_mem(mona_instance_t mona,
     na_tag_t        recv_tag      = 0;
 
     // wait for a matching unexpected message to come around
-    msg = wait_for_matching_unexpected_message(mona, src, tag, &recv_size,
+    msg = check_for_matching_unexpected_message(mona, false, src, tag, &recv_size,
                                                &recv_addr, &recv_tag);
     if (!msg) return NA_PROTOCOL_ERROR;
 
