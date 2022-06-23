@@ -20,7 +20,7 @@ na_return_t mona_comm_sendrecv(mona_comm_t comm,
     na_return_t    na_ret;
 
     na_ret = mona_comm_irecv(comm, recvbuf, recvsize, source, recvtag,
-                             actual_recvsize, &sendreq);
+                             actual_recvsize, NULL, NULL, &sendreq);
     if (na_ret != NA_SUCCESS) return na_ret;
 
     na_ret = mona_comm_send(comm, sendbuf, sendsize, dest, sendtag);

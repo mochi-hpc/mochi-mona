@@ -69,7 +69,7 @@ static na_return_t binary_tree_reduce(mona_comm_t comm,
                 source = (source + lroot) % comm_size;
 
                 na_ret = mona_comm_recv(comm, tempSrc, typesize * count, source,
-                                        tag, NULL);
+                                        tag, NULL, NULL, NULL);
                 if (na_ret != NA_SUCCESS) { goto finish; }
                 // for the first iteration, the recv buffer have already stored
                 // the value from the send buffer
@@ -151,7 +151,7 @@ static na_return_t radix_k_tree_reduce(int32_t     k,
                 char*           buf = tempBuf + (typesize * count * (i - 1));
                 mona_request_t* req = reqs + (i - 1);
                 na_ret = mona_comm_irecv(comm, buf, typesize * count, src, tag,
-                                         NULL, req);
+                                         NULL, NULL, NULL, req);
                 if (na_ret != NA_SUCCESS) { goto finish; }
             }
             for (int i = 1; i < (int)k; i++) {

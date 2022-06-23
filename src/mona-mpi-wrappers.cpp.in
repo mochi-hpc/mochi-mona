@@ -306,7 +306,8 @@ static int MONA_MPI_Recv(void *buf, int count, MPI_Datatype datatype,
     if(dtype_size == 0) return -1;
     mona_comm_t mona_comm = get_mona_comm_from(user_comm);
     size_t received_size = 0;
-    na_return_t ret = mona_comm_recv(mona_comm, buf, count*dtype_size, src, tag, &received_size);
+    na_return_t ret = mona_comm_recv(mona_comm, buf,
+            count*dtype_size, src, tag, &received_size, nullptr, nullptr);
     if(ret != NA_SUCCESS) return ret;
     if(status && status != MPI_STATUS_IGNORE) {
         PMPI_Status_set_elements(status, datatype, received_size/dtype_size);
@@ -322,7 +323,8 @@ static int MONA_MPI_Irecv(void *buf, int count, MPI_Datatype datatype,
     mona_comm_t mona_comm = get_mona_comm_from(user_comm);
     mona_request_t mona_req;
     na_return_t ret = mona_comm_irecv(
-            mona_comm, buf, count*dtype_size, src, tag, nullptr, &mona_req);
+            mona_comm, buf, count*dtype_size,
+            src, tag, nullptr, nullptr, nullptr, &mona_req);
     if(ret != NA_SUCCESS) return ret;
     *user_req = register_new_mona_req(mona_req);
     return 0;

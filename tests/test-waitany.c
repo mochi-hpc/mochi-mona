@@ -119,7 +119,7 @@ static MunitResult test_waitany(const MunitParameter params[], void* data)
             continue;
         }
         ret = mona_comm_irecv(context->comm, recvbuf+i*256, 256, i, 0,
-                              NULL, recvreqs+i);
+                              NULL, NULL, NULL, recvreqs+i);
         munit_assert_int(ret, ==, NA_SUCCESS);
     }
 

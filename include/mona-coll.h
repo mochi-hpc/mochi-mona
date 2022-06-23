@@ -179,6 +179,8 @@ na_return_t mona_comm_isend(mona_comm_t     comm,
  * @param src [IN] Source rank
  * @param tag [IN] Tag
  * @param actual_size [OUT] Size received
+ * @param actual_src [OUT] Rank that sent the message
+ * @param actual_tag [OUT] Actual tag
  *
  * @return NA_SUCCESS or corresponding error code (see na.h)
  */
@@ -187,7 +189,9 @@ na_return_t mona_comm_recv(mona_comm_t comm,
                            size_t      size,
                            int         src,
                            na_tag_t    tag,
-                           size_t*     actual_size);
+                           size_t*     actual_size,
+                           int*        actual_src,
+                           na_tag_t*   actual_tag);
 
 /**
  * @see Non-blocking version of mona_comm_recv.
@@ -198,6 +202,8 @@ na_return_t mona_comm_irecv(mona_comm_t     comm,
                             int             src,
                             na_tag_t        tag,
                             size_t*         actual_size,
+                            int*            actual_src,
+                            na_tag_t*       actual_tag,
                             mona_request_t* req);
 
 /**

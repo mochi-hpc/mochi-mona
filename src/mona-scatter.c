@@ -43,7 +43,7 @@ na_return_t mona_comm_scatter(mona_comm_t comm,
             if (na_ret != NA_SUCCESS) goto finish;
         }
     } else {
-        na_ret = mona_comm_recv(comm, recvbuf, size, root, tag, NULL);
+        na_ret = mona_comm_recv(comm, recvbuf, size, root, tag, NULL, NULL, NULL);
     }
 finish:
     free(reqs);
@@ -127,7 +127,7 @@ na_return_t mona_comm_scatterv(mona_comm_t   comm,
             if (na_ret != NA_SUCCESS) goto finish;
         }
     } else {
-        na_ret = mona_comm_recv(comm, recvbuf, recvsize, root, tag, NULL);
+        na_ret = mona_comm_recv(comm, recvbuf, recvsize, root, tag, NULL, NULL, NULL);
     }
 finish:
     free(reqs);

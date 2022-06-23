@@ -234,7 +234,9 @@ na_return_t mona_comm_recv(mona_comm_t comm,
                            size_t      size,
                            int         src,
                            na_tag_t    tag,
-                           size_t*     actual_size)
+                           size_t*     actual_size,
+                           int*        actual_src,
+                           na_tag_t*   actual_tag)
 {
     if (src < 0 || (unsigned)src >= comm->all.size) return NA_INVALID_ARG;
     na_return_t na_ret;
@@ -255,6 +257,8 @@ typedef struct irecv_args {
     int            src;
     na_tag_t       tag;
     size_t*        actual_size;
+    int*           actual_src;
+    na_tag_t*      actual_tag;
     mona_request_t req;
 } irecv_args;
 
@@ -263,7 +267,8 @@ static void irecv_thread(void* x)
     irecv_args* args = (irecv_args*)x;
     na_return_t na_ret
         = mona_comm_recv(args->comm, args->buf, args->size, args->src,
-                         args->tag, args->actual_size);
+                         args->tag, args->actual_size, args->actual_src,
+                         args->actual_tag);
     ABT_eventual_set(args->req->eventual, &na_ret, sizeof(na_ret));
     free(args);
 }
@@ -274,6 +279,8 @@ na_return_t mona_comm_irecv(mona_comm_t     comm,
                             int             src,
                             na_tag_t        tag,
                             size_t*         actual_size,
+                            int*            actual_src,
+                            na_tag_t*       actual_tag,
                             mona_request_t* req)
 {
     NB_OP_INIT(irecv_args);
@@ -283,5 +290,7 @@ na_return_t mona_comm_irecv(mona_comm_t     comm,
     args->src         = src;
     args->tag         = tag;
     args->actual_size = actual_size;
+    args->actual_src  = actual_src;
+    args->actual_tag  = actual_tag;
     NB_OP_POST(irecv_thread);
 }
