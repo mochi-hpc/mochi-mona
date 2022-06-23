@@ -419,7 +419,10 @@ na_return_t mona_wait(mona_request_t req)
 int mona_test(mona_request_t req, int* flag)
 {
     if (req == MONA_REQUEST_NULL) return ABT_ERR_OTHER;
-    return ABT_eventual_test(req->eventual, NULL, flag);
+    int ret = ABT_eventual_test(req->eventual, NULL, flag);
+    if (ret == ABT_SUCCESS && !flag)
+        ABT_thread_yield();
+    return ret;
 }
 
 na_return_t mona_wait_any(size_t count, mona_request_t* reqs, size_t* index)

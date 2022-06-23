@@ -788,7 +788,7 @@ na_return_t mona_urecv_mem(mona_instance_t mona,
 
     // wait for a matching unexpected message to come around
     msg = check_for_matching_unexpected_message(mona, false, src, tag, &recv_size,
-                                               &recv_addr, &recv_tag);
+                                                &recv_addr, &recv_tag);
     if (!msg) return NA_PROTOCOL_ERROR;
 
     // At this point, we know msg is the message we are looking for
@@ -931,6 +931,7 @@ na_return_t mona_uiprobe(mona_instance_t mona,
 
     if(!msg) {
         if(flag) *flag = 0;
+        ABT_thread_yield();
         return NA_SUCCESS;
     }
 
