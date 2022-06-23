@@ -305,13 +305,22 @@ static int MONA_MPI_Recv(void *buf, int count, MPI_Datatype datatype,
     size_t dtype_size = get_datatype_size(datatype);
     if(dtype_size == 0) return -1;
     mona_comm_t mona_comm = get_mona_comm_from(user_comm);
-    size_t received_size = 0;
+
+    src = (src == MPI_ANY_SOURCE) ? MONA_ANY_SOURCE : src;
+    tag = (tag == MPI_ANY_TAG) ? MONA_ANY_TAG : tag;
+    size_t   received_size = 0;
+    int      received_src  = src;
+    na_tag_t received_tag  = tag;
+    int* received_src_ptr  = (src == MONA_ANY_SOURCE) ? &received_src : NULL;
+
     na_return_t ret = mona_comm_recv(mona_comm, buf,
-            count*dtype_size, src, tag, &received_size, nullptr, nullptr);
+            count*dtype_size, src, tag, &received_size, received_src_ptr, &received_tag);
     if(ret != NA_SUCCESS) return ret;
     if(status && status != MPI_STATUS_IGNORE) {
         PMPI_Status_set_elements(status, datatype, received_size/dtype_size);
         PMPI_Status_set_cancelled(status, 0);
+        status->MPI_SOURCE = received_src;
+        status->MPI_TAG = received_tag;
     }
     return 0;
 }
@@ -322,6 +331,10 @@ static int MONA_MPI_Irecv(void *buf, int count, MPI_Datatype datatype,
     if(dtype_size == 0) return -1;
     mona_comm_t mona_comm = get_mona_comm_from(user_comm);
     mona_request_t mona_req;
+    src = (src == MPI_ANY_SOURCE) ? MONA_ANY_SOURCE : src;
+    tag = (tag == MPI_ANY_TAG) ? MONA_ANY_TAG : tag;
+    // XXX we are loosing information about actual source, tag, and size,
+    // that we won't be able to provide to MPI_Wait.
     na_return_t ret = mona_comm_irecv(
             mona_comm, buf, count*dtype_size,
             src, tag, nullptr, nullptr, nullptr, &mona_req);
@@ -336,6 +349,50 @@ static int MONA_MPI_Wait(MPI_Request* user_req, MPI_Status* status) {
     na_return_t ret = mona_wait(mona_req);
     deregister_mona_req(mona_req);
     return ret;
+}
+
+static int MONA_MPI_Probe(int source, int tag, MPI_Comm user_comm, MPI_Status* status) {
+     mona_comm_t mona_comm = get_mona_comm_from(user_comm);
+     source = (source == MPI_ANY_SOURCE) ? MONA_ANY_SOURCE : source;
+     tag = (tag == MPI_ANY_TAG) ? MONA_ANY_TAG : tag;
+     size_t   actual_size;
+     int      actual_src = source;
+     int*     actual_src_ptr = (source == MONA_ANY_SOURCE) ? &actual_src : NULL;
+     na_tag_t actual_tag;
+     na_return_t ret = mona_comm_probe(
+        mona_comm, source, tag, &actual_size, actual_src_ptr, &actual_tag);
+     if(ret != NA_SUCCESS) return ret;
+     if(status && status != MPI_STATUS_IGNORE) {
+        status->MPI_ERROR = 0;
+        status->MPI_TAG = actual_tag;
+        status->MPI_SOURCE = actual_src;
+        PMPI_Status_set_elements(status, MPI_BYTE, actual_size);
+        PMPI_Status_set_cancelled(status, 0);
+     }
+     return NA_SUCCESS;
+}
+
+static int MONA_MPI_Iprobe(int source, int tag, MPI_Comm user_comm, int* flag, MPI_Status* status) {
+     mona_comm_t mona_comm = get_mona_comm_from(user_comm);
+     source = (source == MPI_ANY_SOURCE) ? MONA_ANY_SOURCE : source;
+     tag = (tag == MPI_ANY_TAG) ? MONA_ANY_TAG : tag;
+     size_t   actual_size = 0;
+     int      actual_src = source;
+     int*     actual_src_ptr = (source == MONA_ANY_SOURCE) ? &actual_src : NULL;
+     na_tag_t actual_tag;
+     int uflag = 0;
+     na_return_t ret = mona_comm_iprobe(
+        mona_comm, source, tag, &uflag, &actual_size, actual_src_ptr, &actual_tag);
+     if(ret != NA_SUCCESS) return ret;
+     if(flag) *flag = uflag;
+     if(uflag && status && status != MPI_STATUS_IGNORE) {
+        status->MPI_ERROR = 0;
+        status->MPI_TAG = actual_tag;
+        status->MPI_SOURCE = actual_src;
+        PMPI_Status_set_elements(status, MPI_BYTE, actual_size);
+        PMPI_Status_set_cancelled(status, 0);
+     }
+     return NA_SUCCESS;
 }
 
 static int MONA_MPI_Test(MPI_Request* user_req, int* flag, MPI_Status* status) {
@@ -596,7 +653,6 @@ static int MONA_MPI_Alltoall(const void *sendbuf, int sendcount, MPI_Datatype se
                  MPI_Ineighbor_alltoall
                  MPI_Ineighbor_alltoallv
                  MPI_Ineighbor_alltoallw
-                 MPI_Iprobe
                  MPI_Ireduce
                  MPI_Ireduce_scatter
                  MPI_Ireduce_scatter_block
@@ -612,7 +668,6 @@ static int MONA_MPI_Alltoall(const void *sendbuf, int sendcount, MPI_Datatype se
                  MPI_Neighbor_alltoallw
                  MPI_Pack
                  MPI_Pack_size
-                 MPI_Probe
                  MPI_Recv_init
                  MPI_Reduce_scatter
                  MPI_Reduce_scatter_block
