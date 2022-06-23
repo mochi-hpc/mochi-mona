@@ -910,3 +910,60 @@ na_return_t mona_uirecv_mem(mona_instance_t mona,
     }
     return NA_SUCCESS;
 }
+
+na_return_t mona_uiprobe(mona_instance_t mona,
+                         na_addr_t       src,
+                         na_tag_t        tag,
+                         int*            flag,
+                         size_t*         actual_size,
+                         na_addr_t*      actual_src,
+                         na_tag_t*       actual_tag)
+{
+    cached_msg_t    msg           = NULL;
+    size_t          recv_size     = 0;
+    na_addr_t       recv_addr     = NA_ADDR_NULL;
+    na_tag_t        recv_tag      = 0;
+    size_t          header_size   = mona_msg_get_unexpected_header_size(mona);
+
+    // wait for a matching unexpected message to come around
+    msg = check_for_matching_unexpected_message(mona, true, src, tag, &recv_size,
+                                                &recv_addr, &recv_tag);
+
+    if(!msg) {
+        if(flag) *flag = 0;
+        return NA_SUCCESS;
+    }
+
+    char* p = msg->buffer + header_size;
+
+    if (*p == HL_MSG_SMALL) { // small message, embedded data
+
+        p += 1;
+        recv_size -= header_size + 1;
+
+    } else if (*p == HL_MSG_LARGE) { // large message, using RDMA transfer
+
+        p += 1 + sizeof(size_t); // skipping header + mem handle size
+        // read the size of the data associated with the mem handle
+        memcpy(&recv_size, p, sizeof(recv_size));
+    }
+
+    if(flag) *flag = 1;
+    if(actual_size) *actual_size = recv_size;
+    if(actual_src) *actual_src = recv_addr;
+    if(actual_tag) *actual_tag = recv_tag;
+    return NA_SUCCESS;
+}
+
+na_return_t mona_uprobe(mona_instance_t mona,
+                        na_addr_t       src,
+                        na_tag_t        tag,
+                        size_t*         actual_size,
+                        na_addr_t*      actual_src,
+                        na_tag_t*       actual_tag) {
+    int flag = 0;
+    na_return_t ret = NA_SUCCESS;
+    while(flag == 0 && ret == NA_SUCCESS)
+        ret = mona_uiprobe(mona, src, tag, &flag, actual_size, actual_src, actual_tag);
+    return ret;
+}

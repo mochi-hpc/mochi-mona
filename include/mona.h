@@ -748,12 +748,12 @@ na_return_t mona_uirecv_mem(mona_instance_t mona,
  *
  * @return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_uprob(mona_instance_t mona,
-                       na_addr_t       src,
-                       na_tag_t        tag,
-                       size_t*         actual_size,
-                       na_addr_t*      actual_src,
-                       na_tag_t*       actual_tag);
+na_return_t mona_uprobe(mona_instance_t mona,
+                        na_addr_t       src,
+                        na_tag_t        tag,
+                        size_t*         actual_size,
+                        na_addr_t*      actual_src,
+                        na_tag_t*       actual_tag);
 
 /**
  * @brief Same as mona_uprob but will not block,
@@ -769,13 +769,13 @@ na_return_t mona_uprob(mona_instance_t mona,
  *
  * @return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_uiprob(mona_instance_t mona,
-                        na_addr_t       src,
-                        na_tag_t        tag,
-                        int*            flag,
-                        size_t*         actual_size,
-                        na_addr_t*      actual_src,
-                        na_tag_t*       actual_tag);
+na_return_t mona_uiprobe(mona_instance_t mona,
+                         na_addr_t       src,
+                         na_tag_t        tag,
+                         int*            flag,
+                         size_t*         actual_size,
+                         na_addr_t*      actual_src,
+                         na_tag_t*       actual_tag);
 
 /**
  * Get the maximum size of messages supported by unexpected send/recv.
