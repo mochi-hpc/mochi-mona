@@ -376,10 +376,10 @@ static int MONA_MPI_Probe(int source, int tag, MPI_Comm user_comm, MPI_Status* s
 }
 
 static int MONA_MPI_Iprobe(int source, int tag, MPI_Comm user_comm, int* flag, MPI_Status* status) {
-    LOG("MONA/MPI: MONA_MPI_Iprobe with source %d and tag %d\n", source, tag);
     mona_comm_t mona_comm = get_mona_comm_from(user_comm);
     source = (source == MPI_ANY_SOURCE) ? MONA_ANY_SOURCE : source;
     tag = (tag == MPI_ANY_TAG) ? MONA_ANY_TAG : tag;
+    LOG("MONA/MPI: MONA_MPI_Iprobe with source %d and tag %d\n", source, tag);
     size_t   actual_size = 0;
     int      actual_src = source;
     int*     actual_src_ptr = (source == MONA_ANY_SOURCE) ? &actual_src : NULL;
