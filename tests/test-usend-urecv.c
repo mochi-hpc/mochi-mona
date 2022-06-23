@@ -119,12 +119,10 @@ static MunitResult test_usend_urecv_probe(const MunitParameter params[], void* d
             buf[i] = i % 32;
         }
         int flag = 0;
-        /*
         ret = mona_uiprobe(mona, MONA_ANY_ADDR, MONA_ANY_TAG, &flag,
                            NULL, NULL, NULL);
         munit_assert_int(ret, ==, NA_SUCCESS);
         munit_assert_int(flag, ==, 0);
-        */
 
         ret = mona_usend(mona, buf, msg_len, context->other_addr, 0, 1234);
         munit_assert_int(ret, ==, NA_SUCCESS);

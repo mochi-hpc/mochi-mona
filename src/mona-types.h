@@ -66,6 +66,7 @@ typedef struct mona_instance {
         ABT_cond      pending_msg_cv;
         bool          pending_msg_queue_active; // a thread is queuing messages
         // pending request and data from a probe for new messages
+        bool           prob_active;
         na_addr_t      prob_addr;
         size_t         prob_size;
         na_tag_t       prob_tag;

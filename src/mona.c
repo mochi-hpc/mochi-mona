@@ -179,6 +179,7 @@ mona_instance_t mona_init_na_pool(na_class_t*   na_class,
                             &(mona->progress_thread));
     if (ret != ABT_SUCCESS) goto error;
 
+    mona->unexpected.prob_active = false;
     mona->unexpected.prob_addr = NA_ADDR_NULL;
     mona->unexpected.prob_size = 0;
     mona->unexpected.prob_tag  = 0;
