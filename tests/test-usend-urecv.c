@@ -120,7 +120,7 @@ static MunitResult test_usend_urecv_probe(const MunitParameter params[], void* d
         }
         int flag = 0;
         /*
-        ret = mona_uiprobe(mona, MONA_ANY_SOURCE, MONA_ANY_TAG, &flag,
+        ret = mona_uiprobe(mona, MONA_ANY_ADDR, MONA_ANY_TAG, &flag,
                            NULL, NULL, NULL);
         munit_assert_int(ret, ==, NA_SUCCESS);
         munit_assert_int(flag, ==, 0);
@@ -133,7 +133,7 @@ static MunitResult test_usend_urecv_probe(const MunitParameter params[], void* d
         na_tag_t probe_tag   = 0;
         na_addr_t probe_addr = NA_ADDR_NULL;
         while(flag == 0) {
-            ret = mona_uiprobe(mona, MONA_ANY_SOURCE, MONA_ANY_TAG, &flag,
+            ret = mona_uiprobe(mona, MONA_ANY_ADDR, MONA_ANY_TAG, &flag,
                     &probe_size, &probe_addr, &probe_tag);
             munit_assert_int(ret, ==, NA_SUCCESS);
         }

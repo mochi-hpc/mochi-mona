@@ -347,7 +347,7 @@ static cached_msg_t search_for_matching_unexpected_message(mona_instance_t mona,
     pending_msg_t p_prev_msg = NULL;
     while (p_msg) {
         if ((tag == MONA_ANY_TAG || p_msg->recv_tag == tag)
-            && (src == MONA_ANY_SOURCE
+            && (src == MONA_ANY_ADDR
                 || mona_addr_cmp(mona, src, p_msg->recv_addr))) {
             break;
         } else {
@@ -416,7 +416,7 @@ retry:
     // check is received message is matching and we are not just probing
     if ((!probe) // not probbing
      && (tag == MONA_ANY_TAG || recv_tag == tag) // matching tag
-     && (src == MONA_ANY_SOURCE || mona_addr_cmp(mona, src, recv_addr))) // matching source
+     && (src == MONA_ANY_ADDR || mona_addr_cmp(mona, src, recv_addr))) // matching source
     {
         // received message matches
         // notify other threads that this thread won't be updating the queue anymore

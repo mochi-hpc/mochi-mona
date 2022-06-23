@@ -20,7 +20,7 @@ typedef struct mona_request*  mona_request_t;
 #define MONA_INSTANCE_NULL ((mona_instance_t)NULL)
 #define MONA_REQUEST_NULL  ((mona_request_t)NULL)
 
-#define MONA_ANY_SOURCE NA_ADDR_NULL
+#define MONA_ANY_ADDR   NA_ADDR_NULL
 #define MONA_ANY_TAG    0xFFFFFFFF
 
 /**
