@@ -170,9 +170,26 @@ static MunitResult test_usend_urecv_probe(const MunitParameter params[], void* d
     return MUNIT_OK;
 }
 
+static MunitResult test_only_probe(const MunitParameter params[], void* data)
+{
+    (void)params;
+    test_context* context = (test_context*)data;
+    na_return_t ret;
+    mona_instance_t mona = context->mona;
+
+    int flag = 0;
+    ret = mona_uiprobe(mona, MONA_ANY_ADDR, MONA_ANY_TAG, &flag,
+                       NULL, NULL, NULL);
+    munit_assert_int(ret, ==, NA_SUCCESS);
+    munit_assert_int(flag, ==, 0);
+
+    return MUNIT_OK;
+}
+
 static MunitTest test_suite_tests[] = {
     { (char*) "/hl", test_usend_urecv, test_context_setup, test_context_tear_down, MUNIT_TEST_OPTION_NONE, NULL },
-    { (char*) "/probe", test_usend_urecv_probe, test_context_setup, test_context_tear_down, MUNIT_TEST_OPTION_NONE, NULL },
+    { (char*) "/send_recv_probe", test_usend_urecv_probe, test_context_setup, test_context_tear_down, MUNIT_TEST_OPTION_NONE, NULL },
+    { (char*) "/only_probe", test_only_probe, test_context_setup, test_context_tear_down, MUNIT_TEST_OPTION_NONE, NULL },
     { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL }
 };
 

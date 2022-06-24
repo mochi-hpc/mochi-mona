@@ -210,6 +210,18 @@ error:
 
 na_return_t mona_finalize(mona_instance_t mona)
 {
+    if(mona->unexpected.prob_active) {
+        na_return_t na_ret = NA_Cancel(
+            mona->na_class, mona->na_context, mona->unexpected.prob_id->op_id);
+        if(na_ret != NA_SUCCESS) {
+            fprintf(stderr, "WARNING: MoNA could not cancel probe operation\n");
+        } else {
+            mona_wait(mona->unexpected.prob_req);
+            return_op_id_to_cache(mona, mona->unexpected.prob_id);
+            return_msg_to_cache(mona, mona->unexpected.prob_msg, false);
+        }
+    }
+
     mona->finalize_flag = true;
     ABT_thread_join(mona->progress_thread);
 
