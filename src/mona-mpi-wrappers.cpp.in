@@ -1009,7 +1009,7 @@ _EXTERN_C_ int MPI_Request_free(MPI_Request* user_req) {
     } else {
         LOG("MONA/MPI: Calling MPI wrapper for MPI_Request_free\n");
         MPI_Request mpi_req = get_mpi_req_from(*user_req);
-        _wrap_py_return_val = MPI_Request_free(&mpi_req);
+        _wrap_py_return_val = PMPI_Request_free(&mpi_req);
         *user_req = MPI_REQUEST_NULL;
     }
     return _wrap_py_return_val;
@@ -1027,7 +1027,7 @@ _EXTERN_C_ int MPI_Test(MPI_Request* user_req, int* flag, MPI_Status* status) {
     } else {
         LOG("MONA/MPI: Calling MPI wrapper for MPI_Test\n");
         MPI_Request mpi_req = get_mpi_req_from(*user_req);
-        _wrap_py_return_val = MPI_Test(&mpi_req, flag, status);
+        _wrap_py_return_val = PMPI_Test(&mpi_req, flag, status);
     }
     return _wrap_py_return_val;
 }
@@ -1044,7 +1044,7 @@ _EXTERN_C_ int MPI_Wait(MPI_Request* user_req, MPI_Status* status) {
     } else {
         LOG("MONA/MPI: Calling MPI wrapper for MPI_Wait\n");
         MPI_Request mpi_req = get_mpi_req_from(*user_req);
-        _wrap_py_return_val = MPI_Wait(&mpi_req, status);
+        _wrap_py_return_val = PMPI_Wait(&mpi_req, status);
     }
     return _wrap_py_return_val;
 }
