@@ -795,14 +795,12 @@ static {{ret_type}} MONA_{{FUNCTION}}{{argTypeList}} {
                  MPI_Ineighbor_alltoallv
                  MPI_Ineighbor_alltoallw
                  MPI_Iprobe
-                 MPI_Irecv
                  MPI_Ireduce
                  MPI_Ireduce_scatter
                  MPI_Ireduce_scatter_block
                  MPI_Irsend
                  MPI_Iscatter
                  MPI_Iscatterv
-                 MPI_Isend
                  MPI_Issend
                  MPI_Mprobe
                  MPI_Neighbor_allgather
@@ -844,7 +842,6 @@ static {{ret_type}} MONA_{{FUNCTION}}{{argTypeList}} {
         {{ret_val}} = MONA_{{FUNCTION}}({{args}});
     } else {
         {{applyToType MPI_Comm CONVERT_TO_MPI_COMM}}
-        {{applyToType MPI_Request CONVERT_TO_MPI_REQ}}
         LOG("MONA/MPI: Calling MPI wrapper for {{FUNCTION}}\n");
         {{callfn}}
     }
@@ -1049,3 +1046,46 @@ _EXTERN_C_ int MPI_Wait(MPI_Request* user_req, MPI_Status* status) {
     return _wrap_py_return_val;
 }
 
+/* ================== C Wrappers for MPI_Isend ================== */
+_EXTERN_C_ int PMPI_Isend(const void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm, MPI_Request *user_request);
+_EXTERN_C_ int MPI_Isend(const void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm, MPI_Request *user_request) {
+    int _wrap_py_return_val = 0;
+
+    IS_MONA_COMM(comm);
+
+    if(__is_mona_comm) {
+        LOG("MONA/MPI: Calling MONA wrapper for MPI_Isend\n");
+        _wrap_py_return_val = MONA_MPI_Isend(buf, count, datatype, dest, tag, comm, user_request);
+    } else {
+        CONVERT_TO_MPI_COMM(comm);
+
+
+        LOG("MONA/MPI: Calling MPI wrapper for MPI_Isend\n");
+        MPI_Request mpi_request;
+        _wrap_py_return_val = PMPI_Isend(buf, count, datatype, dest, tag, comm, &mpi_request);
+        *user_request = register_new_mpi_req(mpi_request);
+    }
+    return _wrap_py_return_val;
+}
+
+/* ================== C Wrappers for MPI_Irecv ================== */
+_EXTERN_C_ int PMPI_Irecv(void *buf, int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm, MPI_Request *user_request);
+_EXTERN_C_ int MPI_Irecv(void *buf, int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm, MPI_Request *user_request) {
+    int _wrap_py_return_val = 0;
+
+    IS_MONA_COMM(comm);
+
+    if(__is_mona_comm) {
+        LOG("MONA/MPI: Calling MONA wrapper for MPI_Irecv\n");
+        _wrap_py_return_val = MONA_MPI_Irecv(buf, count, datatype, source, tag, comm, user_request);
+    } else {
+        CONVERT_TO_MPI_COMM(comm);
+
+
+        LOG("MONA/MPI: Calling MPI wrapper for MPI_Irecv\n");
+        MPI_Request mpi_request;
+        _wrap_py_return_val = PMPI_Irecv(buf, count, datatype, source, tag, comm, &mpi_request);
+        *user_request = register_new_mpi_req(mpi_request);
+    }
+    return _wrap_py_return_val;
+}
