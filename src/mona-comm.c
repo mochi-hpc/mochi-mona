@@ -133,7 +133,7 @@ finish:
     return na_ret;
 
 error:
-    for (j = 0; j < i; j++) { mona_addr_free(mona, tmp->all.addrs[i]); }
+    for (j = 0; j < i; j++) { mona_addr_free(mona, tmp->all.addrs[j]); }
     free(tmp->all.addrs);
     free(tmp);
     goto finish;
