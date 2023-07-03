@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
 
     char addr_str[128];
     size_t addr_size = 128;
-    na_addr_t addr = NA_ADDR_NULL;
+    mona_addr_t addr = MONA_ADDR_NULL;
     ret = mona_addr_self(mona, &addr);
     ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not get self address");
 
@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
     ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not free address");
 
     char* all_addr_str = malloc(128*size);
-    na_addr_t* all_addr = malloc(sizeof(na_addr_t)*size);
+    mona_addr_t* all_addr = malloc(sizeof(mona_addr_t)*size);
 
     MPI_Allgather(addr_str, 128, MPI_BYTE, all_addr_str, 128, MPI_BYTE, MPI_COMM_WORLD);
 

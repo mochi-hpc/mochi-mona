@@ -24,8 +24,8 @@ static na_return_t alltoall_mem(mona_comm_t comm,
     int          rank      = team->rank;
     size_t       offset    = 0;
 
-    na_mem_handle_t sendmem = NA_MEM_HANDLE_NULL;
-    na_mem_handle_t recvmem = NA_MEM_HANDLE_NULL;
+    mona_mem_handle_t sendmem = MONA_MEM_HANDLE_NULL;
+    mona_mem_handle_t recvmem = MONA_MEM_HANDLE_NULL;
 
     mona_request_t* reqs = malloc(2 * comm_size * sizeof(*reqs));
 
@@ -73,11 +73,11 @@ static na_return_t alltoall_mem(mona_comm_t comm,
     }
 
 finish:
-    if (sendmem != NA_MEM_HANDLE_NULL) {
+    if (sendmem != MONA_MEM_HANDLE_NULL) {
         mona_mem_deregister(comm->mona, sendmem);
         mona_mem_handle_free(comm->mona, sendmem);
     }
-    if (recvmem != NA_MEM_HANDLE_NULL) {
+    if (recvmem != MONA_MEM_HANDLE_NULL) {
         mona_mem_deregister(comm->mona, recvmem);
         mona_mem_handle_free(comm->mona, recvmem);
     }

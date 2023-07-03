@@ -5,8 +5,8 @@
 typedef struct {
     mona_instance_t mona;
     int rank;
-    na_addr_t self_addr;
-    na_addr_t other_addr;
+    mona_addr_t self_addr;
+    mona_addr_t other_addr;
 } test_context;
 
 static void* test_context_setup(const MunitParameter params[], void* user_data)
@@ -82,7 +82,7 @@ static MunitResult test_send_recv_unexpected(const MunitParameter params[], void
     } else { // receiver
         na_tag_t  tag         = 0;
         size_t actual_size = 0;
-        na_addr_t source_addr = NA_ADDR_NULL;
+        mona_addr_t source_addr = MONA_ADDR_NULL;
 
         ret = mona_msg_recv_unexpected(
                 mona, buf, msg_len, plugin_data,

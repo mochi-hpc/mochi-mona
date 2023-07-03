@@ -5,8 +5,8 @@
 typedef struct {
     mona_instance_t mona;
     int rank;
-    na_addr_t self_addr;
-    na_addr_t other_addr;
+    mona_addr_t self_addr;
+    mona_addr_t other_addr;
 } test_context;
 
 static void* test_context_setup(const MunitParameter params[], void* user_data)
@@ -68,7 +68,7 @@ static MunitResult test_put_get(const MunitParameter params[], void* data)
     size_t msg_len = mona_msg_get_max_unexpected_size(mona);
     char* msg_buf = (char*)mona_msg_buf_alloc(mona, msg_len, &plugin_data);
     char* bulk_buf = (char*)calloc(1024, 1);
-    na_mem_handle_t mem_handle = NA_MEM_HANDLE_NULL;
+    mona_mem_handle_t mem_handle = MONA_MEM_HANDLE_NULL;
 
     ret = mona_mem_handle_create(mona, bulk_buf, 1024, NA_MEM_READWRITE, &mem_handle);
     munit_assert_int(ret, ==, NA_SUCCESS);
@@ -122,7 +122,7 @@ static MunitResult test_put_get(const MunitParameter params[], void* data)
         munit_assert_int(ret, ==, NA_SUCCESS);
 
         // deserialize remote memory handle
-        na_mem_handle_t remote_mem_handle = NA_MEM_HANDLE_NULL;
+        mona_mem_handle_t remote_mem_handle = MONA_MEM_HANDLE_NULL;
         ret = mona_mem_handle_deserialize(mona, &remote_mem_handle,
                 msg_buf + mona_msg_get_unexpected_header_size(mona),
                 mem_handle_size);

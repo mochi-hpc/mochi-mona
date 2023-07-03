@@ -30,7 +30,7 @@ typedef struct pending_msg* pending_msg_t;
 typedef struct pending_msg {
     cached_msg_t cached_msg;
     size_t       recv_size;
-    na_addr_t    recv_addr;
+    mona_addr_t  recv_addr;
     na_tag_t     recv_tag;
 } pending_msg;
 
@@ -67,7 +67,7 @@ typedef struct mona_instance {
         bool          pending_msg_queue_active; // a thread is queuing messages
         // pending request and data from a probe for new messages
         bool           prob_active;
-        na_addr_t      prob_addr;
+        mona_addr_t    prob_addr;
         size_t         prob_size;
         na_tag_t       prob_tag;
         mona_request_t prob_req;
@@ -89,7 +89,7 @@ typedef struct mona_instance {
 typedef struct mona_request {
     ABT_eventual    eventual;
     mona_instance_t mona;
-    na_addr_t*      source_addr;
+    mona_addr_t*    source_addr;
     na_tag_t*       tag;
     size_t*         size;
     mona_request_t  next; // for the request cache
@@ -117,7 +117,7 @@ static inline cached_op_id_t get_op_id_from_cache(mona_instance_t mona)
         mona->op_id_cache = id->next;
         id->next          = NULL;
     } else {
-        na_op_id_t* op_id = NA_Op_create(mona->na_class);
+        na_op_id_t* op_id = NA_Op_create(mona->na_class, 0);
         id                = (cached_op_id_t)calloc(1, sizeof(*id));
         id->op_id         = op_id;
     }

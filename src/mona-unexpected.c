@@ -14,7 +14,7 @@
 na_return_t mona_usend(mona_instance_t mona,
                        const void*     buf,
                        size_t          buf_size,
-                       na_addr_t       dest,
+                       mona_addr_t     dest,
                        uint8_t         dest_id,
                        na_tag_t        tag)
 {
@@ -25,7 +25,7 @@ struct uisend_args {
     mona_instance_t mona;
     const void*     buf;
     size_t          buf_size;
-    na_addr_t       dest;
+    mona_addr_t     dest;
     uint8_t         dest_id;
     na_tag_t        tag;
     mona_request_t  req;
@@ -43,7 +43,7 @@ static void uisend_thread(void* x)
 na_return_t mona_uisend(mona_instance_t mona,
                         const void*     buf,
                         size_t          buf_size,
-                        na_addr_t       dest,
+                        mona_addr_t     dest,
                         uint8_t         dest_id,
                         na_tag_t        tag,
                         mona_request_t* req)
@@ -75,12 +75,12 @@ na_return_t mona_usend_nc(mona_instance_t    mona,
                           size_t             count,
                           const void* const* buffers,
                           const size_t*      buf_sizes,
-                          na_addr_t          dest,
+                          mona_addr_t        dest,
                           uint8_t            dest_id,
                           na_tag_t           tag)
 {
     na_return_t     na_ret      = NA_SUCCESS;
-    na_mem_handle_t mem_handle  = NA_MEM_HANDLE_NULL;
+    mona_mem_handle_t mem_handle  = MONA_MEM_HANDLE_NULL;
     size_t          header_size = mona_msg_get_unexpected_header_size(mona) + 1;
     size_t          msg_size    = header_size;
     size_t          data_size   = 0;
@@ -138,7 +138,7 @@ na_return_t mona_usend_nc(mona_instance_t    mona,
     }
 
 finish:
-    if (mem_handle != NA_MEM_HANDLE_NULL) {
+    if (mem_handle != MONA_MEM_HANDLE_NULL) {
         mona_mem_handle_free(mona, mem_handle);
     }
     return_msg_to_cache(mona, msg, false);
@@ -150,7 +150,7 @@ struct uisend_nc_args {
     size_t             count;
     const void* const* buffers;
     const size_t*      buf_sizes;
-    na_addr_t          dest;
+    mona_addr_t        dest;
     uint8_t            dest_id;
     na_tag_t           tag;
     mona_request_t     req;
@@ -170,7 +170,7 @@ na_return_t mona_uisend_nc(mona_instance_t    mona,
                            size_t             count,
                            const void* const* buffers,
                            const size_t*      buf_sizes,
-                           na_addr_t          dest,
+                           mona_addr_t        dest,
                            uint8_t            dest_id,
                            na_tag_t           tag,
                            mona_request_t*    req)
@@ -200,10 +200,10 @@ na_return_t mona_uisend_nc(mona_instance_t    mona,
 }
 
 na_return_t mona_usend_mem(mona_instance_t mona,
-                           na_mem_handle_t mem,
+                           mona_mem_handle_t mem,
                            size_t          size,
                            size_t          offset,
-                           na_addr_t       dest,
+                           mona_addr_t     dest,
                            uint8_t         dest_id,
                            na_tag_t        tag)
 {
@@ -277,10 +277,10 @@ finish:
 
 struct uisend_mem_args {
     mona_instance_t mona;
-    na_mem_handle_t mem;
+    mona_mem_handle_t mem;
     size_t          size;
     size_t          offset;
-    na_addr_t       dest;
+    mona_addr_t     dest;
     uint8_t         dest_id;
     na_tag_t        tag;
     mona_request_t  req;
@@ -297,10 +297,10 @@ static void uisend_mem_thread(void* x)
 }
 
 na_return_t mona_uisend_mem(mona_instance_t mona,
-                            na_mem_handle_t mem,
+                            mona_mem_handle_t mem,
                             size_t          size,
                             size_t          offset,
-                            na_addr_t       dest,
+                            mona_addr_t     dest,
                             uint8_t         dest_id,
                             na_tag_t        tag,
                             mona_request_t* req)
@@ -336,11 +336,11 @@ na_return_t mona_uisend_mem(mona_instance_t mona,
 // If remove is set to true, the message will be removed from the queue.
 static cached_msg_t search_for_matching_unexpected_message(mona_instance_t mona,
                                                            bool            remove,
-                                                           na_addr_t       src,
+                                                           mona_addr_t     src,
                                                            na_tag_t        tag,
-                                                           size_t*    actual_size,
-                                                           na_addr_t* actual_src,
-                                                           na_tag_t*  actual_tag) {
+                                                           size_t*      actual_size,
+                                                           mona_addr_t* actual_src,
+                                                           na_tag_t*    actual_tag) {
     cached_msg_t msg    = NULL; /* result */
 
     pending_msg_t p_msg      = mona->unexpected.pending_msg_oldest;
@@ -393,18 +393,18 @@ static cached_msg_t search_for_matching_unexpected_message(mona_instance_t mona,
 // and will unlock it before returning.
 static cached_msg_t receive_new_unexpected_message(mona_instance_t mona,
                                                    bool            probe,
-                                                   na_addr_t       src,
+                                                   mona_addr_t     src,
                                                    na_tag_t        tag,
-                                                   size_t*    actual_size,
-                                                   na_addr_t* actual_src,
-                                                   na_tag_t*  actual_tag) {
+                                                   size_t*      actual_size,
+                                                   mona_addr_t* actual_src,
+                                                   na_tag_t*    actual_tag) {
     cached_msg_t msg      = NULL; /* result */
     size_t       msg_size = mona_msg_get_max_unexpected_size(mona);
     na_return_t  na_ret   = NA_SUCCESS;
 
-    size_t    recv_size = 0;
-    na_addr_t recv_addr = NA_ADDR_NULL;
-    na_tag_t  recv_tag  = 0;
+    size_t      recv_size = 0;
+    mona_addr_t recv_addr = MONA_ADDR_NULL;
+    na_tag_t    recv_tag  = 0;
 retry:
     // issue non-blocking unexpected recv
     if(!mona->unexpected.prob_active) {
@@ -465,7 +465,7 @@ retry:
     recv_size = mona->unexpected.prob_size;
     recv_tag  = mona->unexpected.prob_tag;
 
-    mona->unexpected.prob_addr = NA_ADDR_NULL;
+    mona->unexpected.prob_addr = MONA_ADDR_NULL;
     mona->unexpected.prob_size = 0;
     mona->unexpected.prob_tag  = 0;
 
@@ -526,11 +526,11 @@ error:
 
 static cached_msg_t check_for_matching_unexpected_message(mona_instance_t mona,
                                                           bool            probe,
-                                                          na_addr_t       src,
+                                                          mona_addr_t     src,
                                                           na_tag_t        tag,
-                                                          size_t*    actual_size,
-                                                          na_addr_t* actual_src,
-                                                          na_tag_t*  actual_tag)
+                                                          size_t*      actual_size,
+                                                          mona_addr_t* actual_src,
+                                                          na_tag_t*    actual_tag)
 {
     cached_msg_t msg      = NULL; /* result */
 
@@ -568,10 +568,10 @@ search_in_queue:
 na_return_t mona_urecv(mona_instance_t mona,
                        void*           buf,
                        size_t          size,
-                       na_addr_t       src,
+                       mona_addr_t     src,
                        na_tag_t        tag,
                        size_t*         actual_size,
-                       na_addr_t*      actual_src,
+                       mona_addr_t*    actual_src,
                        na_tag_t*       actual_tag)
 {
     return mona_urecv_nc(mona, 1, &buf, &size, src, tag, actual_size,
@@ -582,10 +582,10 @@ struct uirecv_args {
     mona_instance_t mona;
     void*           buf;
     size_t          size;
-    na_addr_t       src;
+    mona_addr_t     src;
     na_tag_t        tag;
     size_t*         actual_size;
-    na_addr_t*      actual_src;
+    mona_addr_t*    actual_src;
     na_tag_t*       actual_tag;
     mona_request_t  req;
 };
@@ -603,10 +603,10 @@ static void uirecv_thread(void* x)
 na_return_t mona_uirecv(mona_instance_t mona,
                         void*           buf,
                         size_t          size,
-                        na_addr_t       src,
+                        mona_addr_t     src,
                         na_tag_t        tag,
                         size_t*         actual_size,
-                        na_addr_t*      actual_src,
+                        mona_addr_t*    actual_src,
                         na_tag_t*       actual_tag,
                         mona_request_t* req)
 {
@@ -639,22 +639,22 @@ na_return_t mona_urecv_nc(mona_instance_t mona,
                           size_t          count,
                           void**          buffers,
                           const size_t*   buf_sizes,
-                          na_addr_t       src,
+                          mona_addr_t     src,
                           na_tag_t        tag,
                           size_t*         actual_size,
-                          na_addr_t*      actual_src,
+                          mona_addr_t*    actual_src,
                           na_tag_t*       actual_tag)
 {
 
-    na_return_t     na_ret        = NA_SUCCESS;
-    na_mem_handle_t mem_handle    = NA_MEM_HANDLE_NULL;
-    na_mem_handle_t remote_handle = NA_MEM_HANDLE_NULL;
-    size_t          header_size   = mona_msg_get_unexpected_header_size(mona);
-    cached_msg_t    msg           = NULL;
-    size_t          recv_size     = 0;
-    na_addr_t       recv_addr     = NA_ADDR_NULL;
-    na_tag_t        recv_tag      = 0;
-    size_t          max_data_size = 0;
+    na_return_t     na_ret          = NA_SUCCESS;
+    mona_mem_handle_t mem_handle    = MONA_MEM_HANDLE_NULL;
+    mona_mem_handle_t remote_handle = MONA_MEM_HANDLE_NULL;
+    size_t          header_size     = mona_msg_get_unexpected_header_size(mona);
+    cached_msg_t    msg             = NULL;
+    size_t          recv_size       = 0;
+    mona_addr_t     recv_addr       = MONA_ADDR_NULL;
+    na_tag_t        recv_tag        = 0;
+    size_t          max_data_size   = 0;
     unsigned        i;
 
     for (i = 0; i < count; i++) { max_data_size += buf_sizes[i]; }
@@ -751,13 +751,13 @@ na_return_t mona_urecv_nc(mona_instance_t mona,
         *actual_src = recv_addr;
     else
         mona_addr_free(mona, recv_addr);
-    recv_addr = NA_ADDR_NULL;
+    recv_addr = MONA_ADDR_NULL;
 
 finish:
-    if (recv_addr != NA_ADDR_NULL) mona_addr_free(mona, recv_addr);
-    if (mem_handle != NA_MEM_HANDLE_NULL)
+    if (recv_addr != MONA_ADDR_NULL) mona_addr_free(mona, recv_addr);
+    if (mem_handle != MONA_MEM_HANDLE_NULL)
         mona_mem_handle_free(mona, mem_handle);
-    if (remote_handle != NA_MEM_HANDLE_NULL)
+    if (remote_handle != MONA_MEM_HANDLE_NULL)
         mona_mem_handle_free(mona, remote_handle);
     return_msg_to_cache(mona, msg, false);
     return na_ret;
@@ -768,10 +768,10 @@ struct uirecv_nc_args {
     size_t          count;
     void**          buffers;
     const size_t*   buf_sizes;
-    na_addr_t       src;
+    mona_addr_t     src;
     na_tag_t        tag;
     size_t*         actual_size;
-    na_addr_t*      actual_src;
+    mona_addr_t*    actual_src;
     na_tag_t*       actual_tag;
     mona_request_t  req;
 };
@@ -790,10 +790,10 @@ na_return_t mona_uirecv_nc(mona_instance_t mona,
                            size_t          count,
                            void**          buffers,
                            const size_t*   buf_sizes,
-                           na_addr_t       src,
+                           mona_addr_t     src,
                            na_tag_t        tag,
                            size_t*         actual_size,
-                           na_addr_t*      actual_src,
+                           mona_addr_t*    actual_src,
                            na_tag_t*       actual_tag,
                            mona_request_t* req)
 {
@@ -824,22 +824,22 @@ na_return_t mona_uirecv_nc(mona_instance_t mona,
 }
 
 na_return_t mona_urecv_mem(mona_instance_t mona,
-                           na_mem_handle_t mem,
+                           mona_mem_handle_t mem,
                            size_t          size,
                            size_t          offset,
-                           na_addr_t       src,
+                           mona_addr_t     src,
                            na_tag_t        tag,
                            size_t*         actual_size,
-                           na_addr_t*      actual_src,
+                           mona_addr_t*    actual_src,
                            na_tag_t*       actual_tag)
 {
 
     na_return_t     na_ret        = NA_SUCCESS;
-    na_mem_handle_t remote_handle = NA_MEM_HANDLE_NULL;
+    mona_mem_handle_t remote_handle = MONA_MEM_HANDLE_NULL;
     size_t          header_size   = mona_msg_get_unexpected_header_size(mona);
     cached_msg_t    msg           = NULL;
     size_t          recv_size     = 0;
-    na_addr_t       recv_addr     = NA_ADDR_NULL;
+    mona_addr_t     recv_addr     = MONA_ADDR_NULL;
     na_tag_t        recv_tag      = 0;
 
     // wait for a matching unexpected message to come around
@@ -896,11 +896,11 @@ na_return_t mona_urecv_mem(mona_instance_t mona,
         *actual_src = recv_addr;
     else
         mona_addr_free(mona, recv_addr);
-    recv_addr = NA_ADDR_NULL;
+    recv_addr = MONA_ADDR_NULL;
 
 finish:
-    if (recv_addr != NA_ADDR_NULL) mona_addr_free(mona, recv_addr);
-    if (remote_handle != NA_MEM_HANDLE_NULL)
+    if (recv_addr != MONA_ADDR_NULL) mona_addr_free(mona, recv_addr);
+    if (remote_handle != MONA_MEM_HANDLE_NULL)
         mona_mem_handle_free(mona, remote_handle);
     return_msg_to_cache(mona, msg, false);
     return na_ret;
@@ -908,13 +908,13 @@ finish:
 
 struct uirecv_mem_args {
     mona_instance_t mona;
-    na_mem_handle_t mem;
+    mona_mem_handle_t mem;
     size_t          size;
     size_t          offset;
-    na_addr_t       src;
+    mona_addr_t     src;
     na_tag_t        tag;
     size_t*         actual_size;
-    na_addr_t*      actual_src;
+    mona_addr_t*    actual_src;
     na_tag_t*       actual_tag;
     mona_request_t  req;
 };
@@ -930,13 +930,13 @@ static void uirecv_mem_thread(void* x)
 }
 
 na_return_t mona_uirecv_mem(mona_instance_t mona,
-                            na_mem_handle_t mem,
+                            mona_mem_handle_t mem,
                             size_t          size,
                             size_t          offset,
-                            na_addr_t       src,
+                            mona_addr_t     src,
                             na_tag_t        tag,
                             size_t*         actual_size,
-                            na_addr_t*      actual_src,
+                            mona_addr_t*    actual_src,
                             na_tag_t*       actual_tag,
                             mona_request_t* req)
 {
@@ -968,16 +968,16 @@ na_return_t mona_uirecv_mem(mona_instance_t mona,
 }
 
 na_return_t mona_uiprobe(mona_instance_t mona,
-                         na_addr_t       src,
+                         mona_addr_t     src,
                          na_tag_t        tag,
                          int*            flag,
                          size_t*         actual_size,
-                         na_addr_t*      actual_src,
+                         mona_addr_t*    actual_src,
                          na_tag_t*       actual_tag)
 {
     cached_msg_t    msg           = NULL;
     size_t          recv_size     = 0;
-    na_addr_t       recv_addr     = NA_ADDR_NULL;
+    mona_addr_t     recv_addr     = MONA_ADDR_NULL;
     na_tag_t        recv_tag      = 0;
     size_t          header_size   = mona_msg_get_unexpected_header_size(mona);
 
@@ -1013,10 +1013,10 @@ na_return_t mona_uiprobe(mona_instance_t mona,
 }
 
 na_return_t mona_uprobe(mona_instance_t mona,
-                        na_addr_t       src,
+                        mona_addr_t     src,
                         na_tag_t        tag,
                         size_t*         actual_size,
-                        na_addr_t*      actual_src,
+                        mona_addr_t*    actual_src,
                         na_tag_t*       actual_tag) {
     int flag = 0;
     na_return_t ret = NA_SUCCESS;

@@ -6,8 +6,8 @@
 typedef struct {
     mona_instance_t mona;
     int rank;
-    na_addr_t self_addr;
-    na_addr_t other_addr;
+    mona_addr_t self_addr;
+    mona_addr_t other_addr;
 } test_context;
 
 static void* test_context_setup(const MunitParameter params[], void* user_data)
@@ -129,7 +129,7 @@ static MunitResult test_usend_urecv_probe(const MunitParameter params[], void* d
 
         size_t probe_size    = 0;
         na_tag_t probe_tag   = 0;
-        na_addr_t probe_addr = NA_ADDR_NULL;
+        mona_addr_t probe_addr = MONA_ADDR_NULL;
         while(flag == 0) {
             ret = mona_uiprobe(mona, MONA_ANY_ADDR, MONA_ANY_TAG, &flag,
                     &probe_size, &probe_addr, &probe_tag);

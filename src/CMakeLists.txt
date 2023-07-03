@@ -8,8 +8,8 @@ set (mona-pkg "share/cmake/mona")
 # library version set here (e.g. for shared libs).
 #
 set (MONA_VERSION_MAJOR 0)
-set (MONA_VERSION_MINOR 2)
-set (MONA_VERSION_PATCH 2)
+set (MONA_VERSION_MINOR 3)
+set (MONA_VERSION_PATCH 0)
 set (mona-vers "${MONA_VERSION_MAJOR}.${MONA_VERSION_MINOR}")
 set (MONA_VERSION "${mona-vers}.${MONA_VERSION_PATCH}")
 
@@ -27,7 +27,7 @@ add_library (mona
             ${CMAKE_CURRENT_SOURCE_DIR}/mona-reduce.c
             ${CMAKE_CURRENT_SOURCE_DIR}/mona-allreduce.c
             ${CMAKE_CURRENT_SOURCE_DIR}/mona-sendrecv.c)
-target_link_libraries (mona mercury PkgConfig::ARGOBOTS)
+target_link_libraries (mona na PkgConfig::ARGOBOTS)
 target_include_directories (mona PUBLIC $<INSTALL_INTERFACE:include>)
 
 # local include's BEFORE, in case old incompatable .h files in prefix/include

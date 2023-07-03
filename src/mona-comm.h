@@ -13,7 +13,7 @@
 typedef struct mona_team {
     size_t     size;
     size_t     rank;
-    na_addr_t* addrs;
+    mona_addr_t* addrs;
 } mona_team_t;
 
 typedef struct mona_comm {

@@ -7,8 +7,8 @@
 typedef struct {
     mona_instance_t mona;
     int rank;
-    na_addr_t self_addr;
-    na_addr_t other_addr;
+    mona_addr_t self_addr;
+    mona_addr_t other_addr;
 } test_context;
 
 static void* test_context_setup(const MunitParameter params[], void* user_data)

@@ -52,7 +52,7 @@ typedef void (*mona_op_t)(const void*, void*, size_t, size_t, void*);
  */
 na_return_t mona_comm_create(mona_instance_t  mona,
                              size_t           count,
-                             const na_addr_t* peers,
+                             const mona_addr_t* peers,
                              mona_comm_t*     comm);
 
 /**
@@ -111,7 +111,7 @@ na_return_t mona_comm_set_use_unexpected_msg(mona_comm_t comm, bool flag);
  * @return NA_SUCCESS or corresponding error code (see na.h)
  */
 na_return_t
-mona_comm_addr(mona_comm_t comm, int rank, na_addr_t* addr, bool copy);
+mona_comm_addr(mona_comm_t comm, int rank, mona_addr_t* addr, bool copy);
 
 /**
  * @brief Duplicate the communicator.

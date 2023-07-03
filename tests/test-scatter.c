@@ -19,7 +19,7 @@ static void* test_context_setup(const MunitParameter params[], void* user_data)
     ABT_init(0, NULL);
     mona_instance_t mona = mona_init("ofi+tcp", false, NULL);
 
-    na_addr_t self_addr;
+    mona_addr_t self_addr;
     ret = mona_addr_self(mona, &self_addr);
     munit_assert_int(ret, ==, NA_SUCCESS);
 
@@ -37,7 +37,7 @@ static void* test_context_setup(const MunitParameter params[], void* user_data)
                   other_addr_str, 128, MPI_BYTE,
                   MPI_COMM_WORLD);
 
-    na_addr_t* other_addr = malloc(num_procs*sizeof(*other_addr));
+    mona_addr_t* other_addr = malloc(num_procs*sizeof(*other_addr));
 
     int i;
     for(i = 0; i < num_procs; i++) {

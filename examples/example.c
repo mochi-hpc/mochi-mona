@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 
     char addr_str[128];
     size_t addr_size = 128;
-    na_addr_t addr = NA_ADDR_NULL;
+    mona_addr_t addr = MONA_ADDR_NULL;
     ret = mona_addr_self(mona, &addr);
     ASSERT_MESSAGE(ret == NA_SUCCESS, "Could not get self address");
 
@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
     } else {
         MPI_Send(addr_str, 128, MPI_CHAR, 0, 0, MPI_COMM_WORLD);
 
-        na_addr_t source_addr = NA_ADDR_NULL;
+        mona_addr_t source_addr = MONA_ADDR_NULL;
         na_tag_t  tag = 0;
         size_t actual_size = 0;
 

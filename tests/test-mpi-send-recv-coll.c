@@ -7,8 +7,8 @@
 typedef struct {
     mona_instance_t mona;
     int rank;
-    na_addr_t self_addr;
-    na_addr_t other_addr;
+    mona_addr_t self_addr;
+    mona_addr_t other_addr;
 } test_context;
 
 static void* test_context_setup(const MunitParameter params[], void* user_data)
@@ -68,7 +68,7 @@ static MunitResult test_send_recv(const MunitParameter params[], void* data)
     size_t msg_len = 8192;
     mona_comm_t mona_comm;
     MPI_Comm mpi_comm;
-    na_addr_t comm_addrs[2];
+    mona_addr_t comm_addrs[2];
     comm_addrs[0] = context->rank == 0 ? context->self_addr : context->other_addr;
     comm_addrs[1] = context->rank == 0 ? context->other_addr : context->self_addr;
 
@@ -161,7 +161,7 @@ static MunitResult test_isend_irecv(const MunitParameter params[], void* data)
     size_t msg_len = 8192;
     mona_comm_t mona_comm;
     MPI_Comm mpi_comm;
-    na_addr_t comm_addrs[2];
+    mona_addr_t comm_addrs[2];
     comm_addrs[0] = context->rank == 0 ? context->self_addr : context->other_addr;
     comm_addrs[1] = context->rank == 0 ? context->other_addr : context->self_addr;
 

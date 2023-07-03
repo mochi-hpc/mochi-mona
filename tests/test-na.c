@@ -10,10 +10,10 @@ typedef struct {
     na_class_t*   na_class;
     na_context_t* na_context;
     int           rank;
-    na_addr_t     self_addr;
-    na_addr_t     other_addr;
+    na_addr_t*    self_addr;
+    na_addr_t*    other_addr;
     na_op_id_t*   op_id;
-    size_t     msg_len;
+    size_t        msg_len;
     char*         buf;
     void*         plugin_data;
     int           stop;
@@ -54,9 +54,9 @@ static void* test_context_setup(const MunitParameter params[], void* user_data)
     context->msg_len = MIN(NA_Msg_get_max_expected_size(context->na_class),
                          2*NA_Msg_get_max_unexpected_size(context->na_class));
     context->buf = (char*)NA_Msg_buf_alloc(context->na_class,
-            context->msg_len, &(context->plugin_data));
+            context->msg_len, 0, &(context->plugin_data));
 
-    context->op_id = NA_Op_create(context->na_class);
+    context->op_id = NA_Op_create(context->na_class, 0);
 
     return context;
 }
@@ -80,16 +80,14 @@ static void test_context_tear_down(void* fixture)
     MPI_Finalize();
 }
 
-static int sender_callback(const struct na_cb_info *info) {
+static void sender_callback(const struct na_cb_info *info) {
     test_context* context = (test_context*)(info->arg);
     context->stop = 1;
-    return NA_SUCCESS;
 }
 
-static int receiver_callback(const struct na_cb_info *info) {
+static void receiver_callback(const struct na_cb_info *info) {
     test_context* context = (test_context*)(info->arg);
     context->stop = 1;
-    return NA_SUCCESS;
 }
 
 static MunitResult test_send_recv_expected(const MunitParameter params[], void* data)
@@ -144,7 +142,7 @@ static MunitResult test_send_recv_expected(const MunitParameter params[], void* 
         unsigned int actual_count = 0;
         na_return_t trigger_ret;
         do {
-            trigger_ret = NA_Trigger(context->na_context, 0, 1, NULL, &actual_count);
+            trigger_ret = NA_Trigger(context->na_context, 1, &actual_count);
         } while ((trigger_ret == NA_SUCCESS) && actual_count && !context->stop);
 
         ret = NA_Progress(context->na_class, context->na_context, 0);
