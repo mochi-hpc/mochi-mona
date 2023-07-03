@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-#define MONA_IN_PLACE ((void*)-1)
+#define MONA_IN_PLACE   ((void*)-1)
 #define MONA_ANY_SOURCE ((int)-1)
 
 /**
@@ -50,10 +50,10 @@ typedef void (*mona_op_t)(const void*, void*, size_t, size_t, void*);
  *
  * @return NA_SUCCESS or corresponding error code (see na.h)
  */
-na_return_t mona_comm_create(mona_instance_t  mona,
-                             size_t           count,
+na_return_t mona_comm_create(mona_instance_t    mona,
+                             size_t             count,
                              const mona_addr_t* peers,
-                             mona_comm_t*     comm);
+                             mona_comm_t*       comm);
 
 /**
  * @brief Free a communicator.
@@ -235,13 +235,13 @@ na_return_t mona_comm_probe(mona_comm_t comm,
 /**
  * @see Non-blocking version of mona_comm_probe.
  */
-na_return_t mona_comm_iprobe(mona_comm_t     comm,
-                             int             src,
-                             na_tag_t        tag,
-                             int*            flag,
-                             size_t*         actual_size,
-                             int*            actual_src,
-                             na_tag_t*       actual_tag);
+na_return_t mona_comm_iprobe(mona_comm_t comm,
+                             int         src,
+                             na_tag_t    tag,
+                             int*        flag,
+                             size_t*     actual_size,
+                             int*        actual_src,
+                             na_tag_t*   actual_tag);
 /**
  * @brief Issue a send and a receive in parallel.
  *

@@ -115,8 +115,8 @@ static na_return_t radix_k_tree_reduce(int32_t     k,
     if (rel_rank < 0) rel_rank += comm_size;
 
     if (count == 0 || comm_size == 1) {
-        if(sendbuf != MONA_IN_PLACE)
-            memcpy(recvbuf, sendbuf, count*typesize);
+        if (sendbuf != MONA_IN_PLACE)
+            memcpy(recvbuf, sendbuf, count * typesize);
         return na_ret;
     }
 
@@ -440,15 +440,15 @@ DEFINE_OPERATOR(mona_op_bor_f32, mona_op_bor, 4)
 DEFINE_OPERATOR(mona_op_bor_f64, mona_op_bor, 8)
 
 void mona_op_maxloc_f64(
-    const void* in, void* inout, size_t typesize,
-    size_t count, void* uargs) {
+    const void* in, void* inout, size_t typesize, size_t count, void* uargs)
+{
     (void)uargs;
-    (void)typesize; // we should assert that typesize == sizeof(mona_double_int_t)
-    mona_double_int_t* in_t = (mona_double_int_t*)in;
+    (void)
+        typesize; // we should assert that typesize == sizeof(mona_double_int_t)
+    mona_double_int_t* in_t    = (mona_double_int_t*)in;
     mona_double_int_t* inout_t = (mona_double_int_t*)inout;
-    size_t i;
+    size_t             i;
     for (i = 0; i < count; i++) {
-        if(inout_t[i].d < in_t[i].d)
-            inout_t[i] = in_t[i];
+        if (inout_t[i].d < in_t[i].d) inout_t[i] = in_t[i];
     }
 }

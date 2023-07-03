@@ -11,8 +11,8 @@
 #include <string.h>
 
 typedef struct mona_team {
-    size_t     size;
-    size_t     rank;
+    size_t       size;
+    size_t       rank;
     mona_addr_t* addrs;
 } mona_team_t;
 

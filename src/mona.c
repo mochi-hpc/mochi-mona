@@ -21,8 +21,7 @@ static void mona_progress_loop(void* uarg)
     while (!mona->finalize_flag) {
 
         do {
-            trigger_ret
-                = NA_Trigger(mona->na_context, 1, &actual_count);
+            trigger_ret = NA_Trigger(mona->na_context, 1, &actual_count);
         } while ((trigger_ret == NA_SUCCESS) && actual_count
                  && !mona->finalize_flag);
 
@@ -180,12 +179,12 @@ mona_instance_t mona_init_na_pool(na_class_t*   na_class,
     if (ret != ABT_SUCCESS) goto error;
 
     mona->unexpected.prob_active = false;
-    mona->unexpected.prob_addr = MONA_ADDR_NULL;
-    mona->unexpected.prob_size = 0;
-    mona->unexpected.prob_tag  = 0;
-    mona->unexpected.prob_req  = MONA_REQUEST_NULL;
-    mona->unexpected.prob_msg  = NULL;
-    mona->unexpected.prob_id   = NULL;
+    mona->unexpected.prob_addr   = MONA_ADDR_NULL;
+    mona->unexpected.prob_size   = 0;
+    mona->unexpected.prob_tag    = 0;
+    mona->unexpected.prob_req    = MONA_REQUEST_NULL;
+    mona->unexpected.prob_msg    = NULL;
+    mona->unexpected.prob_id     = NULL;
 
 finish:
     return mona;
@@ -210,10 +209,10 @@ error:
 
 na_return_t mona_finalize(mona_instance_t mona)
 {
-    if(mona->unexpected.prob_active) {
-        na_return_t na_ret = NA_Cancel(
-            mona->na_class, mona->na_context, mona->unexpected.prob_id->op_id);
-        if(na_ret != NA_SUCCESS) {
+    if (mona->unexpected.prob_active) {
+        na_return_t na_ret = NA_Cancel(mona->na_class, mona->na_context,
+                                       mona->unexpected.prob_id->op_id);
+        if (na_ret != NA_SUCCESS) {
             fprintf(stderr, "WARNING: MoNA could not cancel probe operation\n");
         } else {
             mona_wait(mona->unexpected.prob_req);
@@ -443,8 +442,7 @@ int mona_test(mona_request_t req, int* flag)
 {
     if (req == MONA_REQUEST_NULL) return ABT_ERR_OTHER;
     int ret = ABT_eventual_test(req->eventual, NULL, flag);
-    if (ret == ABT_SUCCESS && !flag)
-        ABT_thread_yield();
+    if (ret == ABT_SUCCESS && !flag) ABT_thread_yield();
     return ret;
 }
 
@@ -488,12 +486,12 @@ try_again:
 static na_return_t mona_msg_isend_unexpected_internal(mona_instance_t mona,
                                                       const void*     buf,
                                                       size_t          buf_size,
-                                                      void*           plugin_data,
-                                                      mona_addr_t     dest_addr,
-                                                      uint8_t         dest_id,
-                                                      na_tag_t        tag,
-                                                      na_op_id_t*     op_id,
-                                                      mona_request_t  req)
+                                                      void*       plugin_data,
+                                                      mona_addr_t dest_addr,
+                                                      uint8_t     dest_id,
+                                                      na_tag_t    tag,
+                                                      na_op_id_t* op_id,
+                                                      mona_request_t req)
 {
     int          ret;
     na_return_t  na_ret;
@@ -553,12 +551,12 @@ na_return_t mona_msg_isend_unexpected(mona_instance_t mona,
 static na_return_t mona_msg_irecv_unexpected_internal(mona_instance_t mona,
                                                       void*           buf,
                                                       size_t          buf_size,
-                                                      void*           plugin_data,
-                                                      mona_addr_t*    source_addr,
-                                                      na_tag_t*       tag,
-                                                      size_t*         size,
-                                                      na_op_id_t*     op_id,
-                                                      mona_request_t  req)
+                                                      void*        plugin_data,
+                                                      mona_addr_t* source_addr,
+                                                      na_tag_t*    tag,
+                                                      size_t*      size,
+                                                      na_op_id_t*  op_id,
+                                                      mona_request_t req)
 {
     int          ret;
     na_return_t  na_ret;
@@ -795,14 +793,15 @@ na_return_t mona_mem_handle_create_segments(mona_instance_t    mona,
                                          segment_count, flags, mem_handle);
 }
 
-na_return_t mona_mem_handle_free(mona_instance_t mona,
+na_return_t mona_mem_handle_free(mona_instance_t   mona,
                                  mona_mem_handle_t mem_handle)
 {
     NA_Mem_handle_free(mona->na_class, mem_handle);
     return NA_SUCCESS;
 }
 
-na_return_t mona_mem_register(mona_instance_t mona, mona_mem_handle_t mem_handle)
+na_return_t mona_mem_register(mona_instance_t   mona,
+                              mona_mem_handle_t mem_handle)
 {
 #ifdef NA_VERSION_MAJOR
     #if NA_VERSION_MAJOR >= 3
@@ -816,44 +815,44 @@ na_return_t mona_mem_register(mona_instance_t mona, mona_mem_handle_t mem_handle
 #endif
 }
 
-na_return_t mona_mem_deregister(mona_instance_t mona,
+na_return_t mona_mem_deregister(mona_instance_t   mona,
                                 mona_mem_handle_t mem_handle)
 {
     return NA_Mem_deregister(mona->na_class, mem_handle);
 }
 
-size_t mona_mem_handle_get_serialize_size(mona_instance_t mona,
+size_t mona_mem_handle_get_serialize_size(mona_instance_t   mona,
                                           mona_mem_handle_t mem_handle)
 {
     return NA_Mem_handle_get_serialize_size(mona->na_class, mem_handle);
 }
 
-na_return_t mona_mem_handle_serialize(mona_instance_t mona,
-                                      void*           buf,
-                                      size_t          buf_size,
+na_return_t mona_mem_handle_serialize(mona_instance_t   mona,
+                                      void*             buf,
+                                      size_t            buf_size,
                                       mona_mem_handle_t mem_handle)
 {
     return NA_Mem_handle_serialize(mona->na_class, buf, buf_size, mem_handle);
 }
 
-na_return_t mona_mem_handle_deserialize(mona_instance_t  mona,
+na_return_t mona_mem_handle_deserialize(mona_instance_t    mona,
                                         mona_mem_handle_t* mem_handle,
-                                        const void*      buf,
-                                        size_t           buf_size)
+                                        const void*        buf,
+                                        size_t             buf_size)
 {
     return NA_Mem_handle_deserialize(mona->na_class, mem_handle, buf, buf_size);
 }
 
-static na_return_t mona_iput_internal(mona_instance_t mona,
+static na_return_t mona_iput_internal(mona_instance_t   mona,
                                       mona_mem_handle_t local_mem_handle,
-                                      na_offset_t     local_offset,
+                                      na_offset_t       local_offset,
                                       mona_mem_handle_t remote_mem_handle,
-                                      na_offset_t     remote_offset,
-                                      size_t          data_size,
-                                      mona_addr_t     remote_addr,
-                                      uint8_t         remote_id,
-                                      na_op_id_t*     op_id,
-                                      mona_request_t  req)
+                                      na_offset_t       remote_offset,
+                                      size_t            data_size,
+                                      mona_addr_t       remote_addr,
+                                      uint8_t           remote_id,
+                                      na_op_id_t*       op_id,
+                                      mona_request_t    req)
 {
     int          ret;
     na_return_t  na_ret;
@@ -873,14 +872,14 @@ static na_return_t mona_iput_internal(mona_instance_t mona,
                   remote_offset, data_size, remote_addr, remote_id, op_id);
 }
 
-na_return_t mona_put(mona_instance_t mona,
+na_return_t mona_put(mona_instance_t   mona,
                      mona_mem_handle_t local_mem_handle,
-                     na_offset_t     local_offset,
+                     na_offset_t       local_offset,
                      mona_mem_handle_t remote_mem_handle,
-                     na_offset_t     remote_offset,
-                     size_t          data_size,
-                     mona_addr_t     remote_addr,
-                     uint8_t         remote_id)
+                     na_offset_t       remote_offset,
+                     size_t            data_size,
+                     mona_addr_t       remote_addr,
+                     uint8_t           remote_id)
 {
     mona_request   req    = MONA_REQUEST_INITIALIZER;
     cached_op_id_t id     = get_op_id_from_cache(mona);
@@ -895,16 +894,16 @@ finish:
     return na_ret;
 }
 
-na_return_t mona_iput(mona_instance_t mona,
+na_return_t mona_iput(mona_instance_t   mona,
                       mona_mem_handle_t local_mem_handle,
-                      na_offset_t     local_offset,
+                      na_offset_t       local_offset,
                       mona_mem_handle_t remote_mem_handle,
-                      na_offset_t     remote_offset,
-                      size_t          data_size,
-                      mona_addr_t     remote_addr,
-                      uint8_t         remote_id,
-                      na_op_id_t*     op_id,
-                      mona_request_t* req)
+                      na_offset_t       remote_offset,
+                      size_t            data_size,
+                      mona_addr_t       remote_addr,
+                      uint8_t           remote_id,
+                      na_op_id_t*       op_id,
+                      mona_request_t*   req)
 {
     mona_request_t tmp_req = get_req_from_cache(mona);
     tmp_req->eventual      = ABT_EVENTUAL_NULL;
@@ -919,16 +918,16 @@ na_return_t mona_iput(mona_instance_t mona,
     return na_ret;
 }
 
-static na_return_t mona_iget_internal(mona_instance_t mona,
+static na_return_t mona_iget_internal(mona_instance_t   mona,
                                       mona_mem_handle_t local_mem_handle,
-                                      na_offset_t     local_offset,
+                                      na_offset_t       local_offset,
                                       mona_mem_handle_t remote_mem_handle,
-                                      na_offset_t     remote_offset,
-                                      size_t          data_size,
-                                      mona_addr_t     remote_addr,
-                                      uint8_t         remote_id,
-                                      na_op_id_t*     op_id,
-                                      mona_request_t  req)
+                                      na_offset_t       remote_offset,
+                                      size_t            data_size,
+                                      mona_addr_t       remote_addr,
+                                      uint8_t           remote_id,
+                                      na_op_id_t*       op_id,
+                                      mona_request_t    req)
 {
     int          ret;
     na_return_t  na_ret;
@@ -948,14 +947,14 @@ static na_return_t mona_iget_internal(mona_instance_t mona,
                   remote_offset, data_size, remote_addr, remote_id, op_id);
 }
 
-na_return_t mona_get(mona_instance_t mona,
+na_return_t mona_get(mona_instance_t   mona,
                      mona_mem_handle_t local_mem_handle,
-                     na_offset_t     local_offset,
+                     na_offset_t       local_offset,
                      mona_mem_handle_t remote_mem_handle,
-                     na_offset_t     remote_offset,
-                     size_t          data_size,
-                     mona_addr_t     remote_addr,
-                     uint8_t         remote_id)
+                     na_offset_t       remote_offset,
+                     size_t            data_size,
+                     mona_addr_t       remote_addr,
+                     uint8_t           remote_id)
 {
     mona_request   req    = MONA_REQUEST_INITIALIZER;
     cached_op_id_t id     = get_op_id_from_cache(mona);
@@ -970,16 +969,16 @@ finish:
     return na_ret;
 }
 
-na_return_t mona_iget(mona_instance_t mona,
+na_return_t mona_iget(mona_instance_t   mona,
                       mona_mem_handle_t local_mem_handle,
-                      na_offset_t     local_offset,
+                      na_offset_t       local_offset,
                       mona_mem_handle_t remote_mem_handle,
-                      na_offset_t     remote_offset,
-                      size_t          data_size,
-                      mona_addr_t     remote_addr,
-                      uint8_t         remote_id,
-                      na_op_id_t*     op_id,
-                      mona_request_t* req)
+                      na_offset_t       remote_offset,
+                      size_t            data_size,
+                      mona_addr_t       remote_addr,
+                      uint8_t           remote_id,
+                      na_op_id_t*       op_id,
+                      mona_request_t*   req)
 {
     mona_request_t tmp_req = get_req_from_cache(mona);
     tmp_req->eventual      = ABT_EVENTUAL_NULL;

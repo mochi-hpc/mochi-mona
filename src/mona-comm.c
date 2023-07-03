@@ -10,13 +10,13 @@ static na_return_t setup_teams(mona_comm_t comm)
     na_return_t na_ret      = NA_SUCCESS;
     char**      known_nodes = calloc(sizeof(char*), comm->all.size);
 
-    comm->leaders.size  = 0;
-    comm->leaders.rank  = 0;
-    comm->leaders.addrs = calloc(sizeof(mona_addr_t), comm->all.size);
-    comm->local.size    = 0;
-    comm->local.rank    = 0;
-    comm->local.addrs   = calloc(sizeof(mona_addr_t), comm->all.size);
-    comm->leader_rank   = 0;
+    comm->leaders.size       = 0;
+    comm->leaders.rank       = 0;
+    comm->leaders.addrs      = calloc(sizeof(mona_addr_t), comm->all.size);
+    comm->local.size         = 0;
+    comm->local.rank         = 0;
+    comm->local.addrs        = calloc(sizeof(mona_addr_t), comm->all.size);
+    comm->leader_rank        = 0;
     comm->use_unexpected_msg = true;
     comm->hints.reduce_radix = 2;
 
@@ -65,8 +65,8 @@ static na_return_t setup_teams(mona_comm_t comm)
     }
 
 finish:
-    comm->leaders.addrs
-        = realloc(comm->leaders.addrs, sizeof(mona_addr_t) * comm->leaders.size);
+    comm->leaders.addrs = realloc(comm->leaders.addrs,
+                                  sizeof(mona_addr_t) * comm->leaders.size);
     comm->local.addrs
         = realloc(comm->local.addrs, sizeof(mona_addr_t) * comm->local.size);
     free(known_nodes);
@@ -78,10 +78,10 @@ error:
     goto finish;
 }
 
-na_return_t mona_comm_create(mona_instance_t  mona,
-                             size_t           count,
+na_return_t mona_comm_create(mona_instance_t    mona,
+                             size_t             count,
                              const mona_addr_t* peers,
-                             mona_comm_t*     comm)
+                             mona_comm_t*       comm)
 {
     na_return_t na_ret;
     unsigned    i = 0, j = 0, k = 0;
@@ -197,7 +197,7 @@ na_return_t mona_comm_subset(mona_comm_t  comm,
 {
     if (size > comm->all.size) return NA_INVALID_ARG;
     mona_addr_t* addrs = alloca(size * sizeof(*addrs));
-    unsigned   i;
+    unsigned     i;
     for (i = 0; i < size; i++) { addrs[i] = comm->all.addrs[ranks[i]]; }
     return mona_comm_create(comm->mona, size, addrs, new_comm);
 }
@@ -227,7 +227,7 @@ na_return_t mona_comm_isend(mona_comm_t     comm,
     if (dest < 0 || (unsigned)dest >= comm->all.size) return NA_INVALID_ARG;
     if (comm->use_unexpected_msg) {
         return mona_uisend(comm->mona, buf, size, comm->all.addrs[dest], 0, tag,
-                          req);
+                           req);
     } else {
         return mona_isend(comm->mona, buf, size, comm->all.addrs[dest], 0, tag,
                           req);
@@ -243,20 +243,24 @@ na_return_t mona_comm_recv(mona_comm_t comm,
                            int*        actual_src,
                            na_tag_t*   actual_tag)
 {
-    if (src < MONA_ANY_SOURCE || src >= (int)comm->all.size) return NA_INVALID_ARG;
+    if (src < MONA_ANY_SOURCE || src >= (int)comm->all.size)
+        return NA_INVALID_ARG;
     na_return_t na_ret;
     if (comm->use_unexpected_msg) {
-        mona_addr_t actual_addr = MONA_ADDR_NULL;
-        mona_addr_t* actual_addr_ptr = (src == MONA_ANY_SOURCE && actual_src) ? &actual_addr : NULL;
-        mona_addr_t source_addr = (src == MONA_ANY_SOURCE) ? MONA_ANY_ADDR : comm->all.addrs[src];
+        mona_addr_t  actual_addr = MONA_ADDR_NULL;
+        mona_addr_t* actual_addr_ptr
+            = (src == MONA_ANY_SOURCE && actual_src) ? &actual_addr : NULL;
+        mona_addr_t source_addr
+            = (src == MONA_ANY_SOURCE) ? MONA_ANY_ADDR : comm->all.addrs[src];
 
         na_ret = mona_urecv(comm->mona, buf, size, source_addr, tag,
                             actual_size, actual_addr_ptr, actual_tag);
-        if(na_ret != NA_SUCCESS) return na_ret;
-        if(actual_addr_ptr) {
+        if (na_ret != NA_SUCCESS) return na_ret;
+        if (actual_addr_ptr) {
             *actual_src = MONA_ANY_SOURCE;
-            for(int i=0; i < (int)comm->all.size; i++) {
-                if(mona_addr_cmp(comm->mona, comm->all.addrs[i], actual_addr)) {
+            for (int i = 0; i < (int)comm->all.size; i++) {
+                if (mona_addr_cmp(comm->mona, comm->all.addrs[i],
+                                  actual_addr)) {
                     *actual_src = i;
                     break;
                 }
@@ -264,7 +268,7 @@ na_return_t mona_comm_recv(mona_comm_t comm,
             mona_addr_free(comm->mona, actual_addr);
         }
     } else {
-        if(tag == MONA_ANY_TAG || src == MONA_ANY_SOURCE)
+        if (tag == MONA_ANY_TAG || src == MONA_ANY_SOURCE)
             return NA_PROTOCOL_ERROR;
         na_ret = mona_recv(comm->mona, buf, size, comm->all.addrs[src], tag,
                            actual_size);
@@ -286,11 +290,10 @@ typedef struct irecv_args {
 
 static void irecv_thread(void* x)
 {
-    irecv_args* args = (irecv_args*)x;
-    na_return_t na_ret
-        = mona_comm_recv(args->comm, args->buf, args->size, args->src,
-                         args->tag, args->actual_size, args->actual_src,
-                         args->actual_tag);
+    irecv_args* args   = (irecv_args*)x;
+    na_return_t na_ret = mona_comm_recv(args->comm, args->buf, args->size,
+                                        args->src, args->tag, args->actual_size,
+                                        args->actual_src, args->actual_tag);
     ABT_eventual_set(args->req->eventual, &na_ret, sizeof(na_ret));
     free(args);
 }
@@ -324,21 +327,25 @@ na_return_t mona_comm_probe(mona_comm_t comm,
                             int*        actual_src,
                             na_tag_t*   actual_tag)
 {
-    if (src < MONA_ANY_SOURCE || src >= (int)comm->all.size) return NA_INVALID_ARG;
+    if (src < MONA_ANY_SOURCE || src >= (int)comm->all.size)
+        return NA_INVALID_ARG;
     na_return_t na_ret;
     if (comm->use_unexpected_msg) {
 
-        mona_addr_t actual_addr = MONA_ADDR_NULL;
-        mona_addr_t* actual_addr_ptr = (src == MONA_ANY_SOURCE && actual_src) ? &actual_addr : NULL;
-        mona_addr_t source_addr = (src == MONA_ANY_SOURCE) ? MONA_ANY_ADDR : comm->all.addrs[src];
+        mona_addr_t  actual_addr = MONA_ADDR_NULL;
+        mona_addr_t* actual_addr_ptr
+            = (src == MONA_ANY_SOURCE && actual_src) ? &actual_addr : NULL;
+        mona_addr_t source_addr
+            = (src == MONA_ANY_SOURCE) ? MONA_ANY_ADDR : comm->all.addrs[src];
 
-        na_ret = mona_uprobe(comm->mona, source_addr, tag,
-                             actual_size, actual_addr_ptr, actual_tag);
-        if(na_ret != NA_SUCCESS) return na_ret;
-        if(actual_addr_ptr) {
+        na_ret = mona_uprobe(comm->mona, source_addr, tag, actual_size,
+                             actual_addr_ptr, actual_tag);
+        if (na_ret != NA_SUCCESS) return na_ret;
+        if (actual_addr_ptr) {
             *actual_src = MONA_ANY_SOURCE;
-            for(int i=0; i < (int)comm->all.size; i++) {
-                if(mona_addr_cmp(comm->mona, comm->all.addrs[i], actual_addr)) {
+            for (int i = 0; i < (int)comm->all.size; i++) {
+                if (mona_addr_cmp(comm->mona, comm->all.addrs[i],
+                                  actual_addr)) {
                     *actual_src = i;
                     break;
                 }
@@ -359,25 +366,29 @@ na_return_t mona_comm_iprobe(mona_comm_t comm,
                              int*        actual_src,
                              na_tag_t*   actual_tag)
 {
-    if (src < MONA_ANY_SOURCE || src >= (int)comm->all.size) return NA_INVALID_ARG;
+    if (src < MONA_ANY_SOURCE || src >= (int)comm->all.size)
+        return NA_INVALID_ARG;
     na_return_t na_ret;
     if (comm->use_unexpected_msg) {
 
-        mona_addr_t actual_addr = MONA_ADDR_NULL;
-        mona_addr_t* actual_addr_ptr = (src == MONA_ANY_SOURCE && actual_src) ? &actual_addr : NULL;
-        mona_addr_t source_addr = (src == MONA_ANY_SOURCE) ? MONA_ANY_ADDR : comm->all.addrs[src];
+        mona_addr_t  actual_addr = MONA_ADDR_NULL;
+        mona_addr_t* actual_addr_ptr
+            = (src == MONA_ANY_SOURCE && actual_src) ? &actual_addr : NULL;
+        mona_addr_t source_addr
+            = (src == MONA_ANY_SOURCE) ? MONA_ANY_ADDR : comm->all.addrs[src];
 
         int uflag = 0;
-        na_ret = mona_uiprobe(comm->mona, source_addr, tag, &uflag,
-                              actual_size, actual_addr_ptr, actual_tag);
-        if(na_ret != NA_SUCCESS) return na_ret;
-        if(flag) *flag = uflag;
-        if(!uflag) return NA_SUCCESS;
+        na_ret = mona_uiprobe(comm->mona, source_addr, tag, &uflag, actual_size,
+                              actual_addr_ptr, actual_tag);
+        if (na_ret != NA_SUCCESS) return na_ret;
+        if (flag) *flag = uflag;
+        if (!uflag) return NA_SUCCESS;
 
-        if(actual_addr_ptr) {
+        if (actual_addr_ptr) {
             *actual_src = MONA_ANY_SOURCE;
-            for(int i=0; i < (int)comm->all.size; i++) {
-                if(mona_addr_cmp(comm->mona, comm->all.addrs[i], actual_addr)) {
+            for (int i = 0; i < (int)comm->all.size; i++) {
+                if (mona_addr_cmp(comm->mona, comm->all.addrs[i],
+                                  actual_addr)) {
                     *actual_src = i;
                     break;
                 }

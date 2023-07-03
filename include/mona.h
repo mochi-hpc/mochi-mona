@@ -24,8 +24,8 @@ typedef struct mona_request*  mona_request_t;
 #define MONA_ADDR_NULL       ((mona_addr_t)NULL)
 #define MONA_MEM_HANDLE_NULL ((mona_mem_handle_t)NULL)
 
-#define MONA_ANY_ADDR   MONA_ADDR_NULL
-#define MONA_ANY_TAG    0xFFFFFFFF
+#define MONA_ANY_ADDR MONA_ADDR_NULL
+#define MONA_ANY_TAG  0xFFFFFFFF
 
 /**
  * @brief Initialize a Mona instance.
@@ -581,25 +581,25 @@ na_return_t mona_uisend_nc(mona_instance_t    mona,
  *
  * @return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_usend_mem(mona_instance_t mona,
+na_return_t mona_usend_mem(mona_instance_t   mona,
                            mona_mem_handle_t mem,
-                           size_t          size,
-                           size_t          offset,
-                           mona_addr_t     dest,
-                           uint8_t         dest_id,
-                           na_tag_t        tag);
+                           size_t            size,
+                           size_t            offset,
+                           mona_addr_t       dest,
+                           uint8_t           dest_id,
+                           na_tag_t          tag);
 
 /**
  * @see Non-blocking version of mona_usend_mem.
  */
-na_return_t mona_uisend_mem(mona_instance_t mona,
+na_return_t mona_uisend_mem(mona_instance_t   mona,
                             mona_mem_handle_t mem,
-                            size_t          size,
-                            size_t          offset,
-                            mona_addr_t     dest,
-                            uint8_t         dest_id,
-                            na_tag_t        tag,
-                            mona_request_t* req);
+                            size_t            size,
+                            size_t            offset,
+                            mona_addr_t       dest,
+                            uint8_t           dest_id,
+                            na_tag_t          tag,
+                            mona_request_t*   req);
 
 /**
  * @brief High-level blocking urecv function. This function will
@@ -1201,11 +1201,11 @@ na_return_t mona_mem_handle_create(mona_instance_t    mona,
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_mem_handle_create_segments(mona_instance_t      mona,
-                                            struct na_segment*   segments,
-                                            size_t               segment_count,
-                                            unsigned long        flags,
-                                            mona_mem_handle_t*   mem_handle);
+na_return_t mona_mem_handle_create_segments(mona_instance_t    mona,
+                                            struct na_segment* segments,
+                                            size_t             segment_count,
+                                            unsigned long      flags,
+                                            mona_mem_handle_t* mem_handle);
 
 /**
  * Free memory handle.
@@ -1228,7 +1228,8 @@ na_return_t mona_mem_handle_free(mona_instance_t   mona,
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_mem_register(mona_instance_t mona, mona_mem_handle_t mem_handle);
+na_return_t mona_mem_register(mona_instance_t   mona,
+                              mona_mem_handle_t mem_handle);
 
 /**
  * Unregister memory.
@@ -1238,7 +1239,7 @@ na_return_t mona_mem_register(mona_instance_t mona, mona_mem_handle_t mem_handle
  *
  * \return NA_SUCCESS or corresponding NA error code
  */
-na_return_t mona_mem_deregister(mona_instance_t mona,
+na_return_t mona_mem_deregister(mona_instance_t   mona,
                                 mona_mem_handle_t mem_handle);
 
 /**

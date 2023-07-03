@@ -125,7 +125,8 @@ na_return_t mona_comm_gatherv(mona_comm_t   comm,
             // recv from the other processes if the send account is not zero
             if (recvsizes[i] != 0) {
                 na_ret = mona_comm_irecv(comm, (char*)recvbuf + offsets[i],
-                                         recvsizes[i], i, tag, NULL, NULL, NULL, reqs + i);
+                                         recvsizes[i], i, tag, NULL, NULL, NULL,
+                                         reqs + i);
                 if (na_ret != NA_SUCCESS) { goto finish; }
             }
         }

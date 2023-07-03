@@ -13,8 +13,8 @@ static inline void mona_callback(const struct na_cb_info* info)
 
     if (na_ret == NA_SUCCESS && info->type == NA_CB_RECV_UNEXPECTED) {
         mona_addr_t source = info->info.recv_unexpected.source;
-        na_tag_t  tag      = info->info.recv_unexpected.tag;
-        size_t    size     = info->info.recv_unexpected.actual_buf_size;
+        na_tag_t    tag    = info->info.recv_unexpected.tag;
+        size_t      size   = info->info.recv_unexpected.actual_buf_size;
         if (req->source_addr) {
             mona_addr_dup(req->mona, source, req->source_addr);
         }

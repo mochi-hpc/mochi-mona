@@ -74,7 +74,7 @@ static void ibcast_thread(void* x)
 {
     ibcast_args* args   = (ibcast_args*)x;
     na_return_t  na_ret = mona_comm_bcast(args->comm, args->buf, args->size,
-                                         args->root, args->tag);
+                                          args->root, args->tag);
     ABT_eventual_set(args->req->eventual, &na_ret, sizeof(na_ret));
     free(args);
 }

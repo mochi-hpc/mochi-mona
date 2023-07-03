@@ -35,7 +35,7 @@ static void uisend_thread(void* x)
 {
     struct uisend_args* args = (struct uisend_args*)x;
     na_return_t na_ret       = mona_usend(args->mona, args->buf, args->buf_size,
-                                    args->dest, args->dest_id, args->tag);
+                                          args->dest, args->dest_id, args->tag);
     ABT_eventual_set(args->req->eventual, &na_ret, sizeof(na_ret));
     free(args);
 }
@@ -79,13 +79,13 @@ na_return_t mona_usend_nc(mona_instance_t    mona,
                           uint8_t            dest_id,
                           na_tag_t           tag)
 {
-    na_return_t     na_ret      = NA_SUCCESS;
-    mona_mem_handle_t mem_handle  = MONA_MEM_HANDLE_NULL;
-    size_t          header_size = mona_msg_get_unexpected_header_size(mona) + 1;
-    size_t          msg_size    = header_size;
-    size_t          data_size   = 0;
-    cached_msg_t    msg         = get_msg_from_cache(mona, false);
-    unsigned        i;
+    na_return_t       na_ret     = NA_SUCCESS;
+    mona_mem_handle_t mem_handle = MONA_MEM_HANDLE_NULL;
+    size_t       header_size = mona_msg_get_unexpected_header_size(mona) + 1;
+    size_t       msg_size    = header_size;
+    size_t       data_size   = 0;
+    cached_msg_t msg         = get_msg_from_cache(mona, false);
+    unsigned     i;
 
     for (i = 0; i < count; i++) { data_size += buf_sizes[i]; }
     msg_size += data_size;
@@ -199,13 +199,13 @@ na_return_t mona_uisend_nc(mona_instance_t    mona,
     return NA_SUCCESS;
 }
 
-na_return_t mona_usend_mem(mona_instance_t mona,
+na_return_t mona_usend_mem(mona_instance_t   mona,
                            mona_mem_handle_t mem,
-                           size_t          size,
-                           size_t          offset,
-                           mona_addr_t     dest,
-                           uint8_t         dest_id,
-                           na_tag_t        tag)
+                           size_t            size,
+                           size_t            offset,
+                           mona_addr_t       dest,
+                           uint8_t           dest_id,
+                           na_tag_t          tag)
 {
     na_return_t  na_ret   = NA_SUCCESS;
     size_t       msg_size = 0;
@@ -276,14 +276,14 @@ finish:
 }
 
 struct uisend_mem_args {
-    mona_instance_t mona;
+    mona_instance_t   mona;
     mona_mem_handle_t mem;
-    size_t          size;
-    size_t          offset;
-    mona_addr_t     dest;
-    uint8_t         dest_id;
-    na_tag_t        tag;
-    mona_request_t  req;
+    size_t            size;
+    size_t            offset;
+    mona_addr_t       dest;
+    uint8_t           dest_id;
+    na_tag_t          tag;
+    mona_request_t    req;
 };
 
 static void uisend_mem_thread(void* x)
@@ -296,14 +296,14 @@ static void uisend_mem_thread(void* x)
     free(args);
 }
 
-na_return_t mona_uisend_mem(mona_instance_t mona,
+na_return_t mona_uisend_mem(mona_instance_t   mona,
                             mona_mem_handle_t mem,
-                            size_t          size,
-                            size_t          offset,
-                            mona_addr_t     dest,
-                            uint8_t         dest_id,
-                            na_tag_t        tag,
-                            mona_request_t* req)
+                            size_t            size,
+                            size_t            offset,
+                            mona_addr_t       dest,
+                            uint8_t           dest_id,
+                            na_tag_t          tag,
+                            mona_request_t*   req)
 {
     struct uisend_mem_args* args
         = (struct uisend_mem_args*)malloc(sizeof(*args));
@@ -330,18 +330,20 @@ na_return_t mona_uisend_mem(mona_instance_t mona,
     return NA_SUCCESS;
 }
 
-// This function will search the queue for an unexpected message already received that
-// matches the src and tag. If such a message is found, the corresponding cached_msg_t
-// will be returned. Otherwise, NULL is returned.
-// If remove is set to true, the message will be removed from the queue.
-static cached_msg_t search_for_matching_unexpected_message(mona_instance_t mona,
-                                                           bool            remove,
-                                                           mona_addr_t     src,
-                                                           na_tag_t        tag,
-                                                           size_t*      actual_size,
-                                                           mona_addr_t* actual_src,
-                                                           na_tag_t*    actual_tag) {
-    cached_msg_t msg    = NULL; /* result */
+// This function will search the queue for an unexpected message already
+// received that matches the src and tag. If such a message is found, the
+// corresponding cached_msg_t will be returned. Otherwise, NULL is returned. If
+// remove is set to true, the message will be removed from the queue.
+static cached_msg_t
+search_for_matching_unexpected_message(mona_instance_t mona,
+                                       bool            remove,
+                                       mona_addr_t     src,
+                                       na_tag_t        tag,
+                                       size_t*         actual_size,
+                                       mona_addr_t*    actual_src,
+                                       na_tag_t*       actual_tag)
+{
+    cached_msg_t msg = NULL; /* result */
 
     pending_msg_t p_msg      = mona->unexpected.pending_msg_oldest;
     pending_msg_t p_prev_msg = NULL;
@@ -363,7 +365,8 @@ static cached_msg_t search_for_matching_unexpected_message(mona_instance_t mona,
         if (actual_tag) *actual_tag = p_msg->recv_tag;
         if (remove) {
             // remove it from the queue of pending messages
-            if (p_prev_msg) p_prev_msg->cached_msg->next = p_msg->cached_msg->next;
+            if (p_prev_msg)
+                p_prev_msg->cached_msg->next = p_msg->cached_msg->next;
             if (p_msg == mona->unexpected.pending_msg_oldest)
                 mona->unexpected.pending_msg_oldest = p_msg->cached_msg->next;
             if (p_msg == mona->unexpected.pending_msg_newest)
@@ -395,9 +398,10 @@ static cached_msg_t receive_new_unexpected_message(mona_instance_t mona,
                                                    bool            probe,
                                                    mona_addr_t     src,
                                                    na_tag_t        tag,
-                                                   size_t*      actual_size,
-                                                   mona_addr_t* actual_src,
-                                                   na_tag_t*    actual_tag) {
+                                                   size_t*         actual_size,
+                                                   mona_addr_t*    actual_src,
+                                                   na_tag_t*       actual_tag)
+{
     cached_msg_t msg      = NULL; /* result */
     size_t       msg_size = mona_msg_get_max_unexpected_size(mona);
     na_return_t  na_ret   = NA_SUCCESS;
@@ -407,38 +411,34 @@ static cached_msg_t receive_new_unexpected_message(mona_instance_t mona,
     na_tag_t    recv_tag  = 0;
 retry:
     // issue non-blocking unexpected recv
-    if(!mona->unexpected.prob_active) {
+    if (!mona->unexpected.prob_active) {
 
         mona->unexpected.prob_msg = get_msg_from_cache(mona, false);
         mona->unexpected.prob_id  = get_op_id_from_cache(mona);
         na_op_id_t* op_id         = mona->unexpected.prob_id->op_id;
 
-        na_ret = mona_msg_irecv_unexpected(mona,
-                mona->unexpected.prob_msg->buffer, msg_size,
-                mona->unexpected.prob_msg->plugin_data,
-                &mona->unexpected.prob_addr,
-                &mona->unexpected.prob_tag,
-                &mona->unexpected.prob_size,
-                op_id, &mona->unexpected.prob_req);
+        na_ret = mona_msg_irecv_unexpected(
+            mona, mona->unexpected.prob_msg->buffer, msg_size,
+            mona->unexpected.prob_msg->plugin_data, &mona->unexpected.prob_addr,
+            &mona->unexpected.prob_tag, &mona->unexpected.prob_size, op_id,
+            &mona->unexpected.prob_req);
 
         if (na_ret != NA_SUCCESS) {
             return_msg_to_cache(mona, mona->unexpected.prob_msg, false);
             return_op_id_to_cache(mona, mona->unexpected.prob_id);
             mona->unexpected.prob_msg = NULL;
-            mona->unexpected.prob_id = NULL;
+            mona->unexpected.prob_id  = NULL;
             goto error;
         }
 
         mona->unexpected.prob_active = true;
     }
 
-    if(probe) {
+    if (probe) {
         int flag = 0;
-        na_ret = mona_test(mona->unexpected.prob_req, &flag);
-        if(na_ret != NA_SUCCESS) {
-            goto error;
-        }
-        if(!flag) {
+        na_ret   = mona_test(mona->unexpected.prob_req, &flag);
+        if (na_ret != NA_SUCCESS) { goto error; }
+        if (!flag) {
             mona->unexpected.pending_msg_queue_active = false;
             return NULL;
         }
@@ -446,7 +446,7 @@ retry:
 
     na_ret = mona_wait(mona->unexpected.prob_req);
     return_op_id_to_cache(mona, mona->unexpected.prob_id);
-    mona->unexpected.prob_id = NULL;
+    mona->unexpected.prob_id     = NULL;
     mona->unexpected.prob_active = false;
 
     if (na_ret != NA_SUCCESS) {
@@ -455,7 +455,7 @@ retry:
         mona->unexpected.prob_req = MONA_REQUEST_NULL;
         goto error;
     } else {
-        msg = mona->unexpected.prob_msg;
+        msg                       = mona->unexpected.prob_msg;
         mona->unexpected.prob_msg = NULL;
         mona->unexpected.prob_req = MONA_REQUEST_NULL;
         // msg will be put back in the cache later
@@ -470,12 +470,14 @@ retry:
     mona->unexpected.prob_tag  = 0;
 
     // check is received message is matching and we are not just probing
-    if ((!probe) // not probbing
-     && (tag == MONA_ANY_TAG || recv_tag == tag) // matching tag
-     && (src == MONA_ANY_ADDR || mona_addr_cmp(mona, src, recv_addr))) // matching source
+    if ((!probe)                                    // not probbing
+        && (tag == MONA_ANY_TAG || recv_tag == tag) // matching tag
+        && (src == MONA_ANY_ADDR
+            || mona_addr_cmp(mona, src, recv_addr))) // matching source
     {
         // received message matches
-        // notify other threads that this thread won't be updating the queue anymore
+        // notify other threads that this thread won't be updating the queue
+        // anymore
         ABT_mutex_lock(mona->unexpected.pending_msg_mtx);
         mona->unexpected.pending_msg_queue_active = false;
         ABT_mutex_unlock(mona->unexpected.pending_msg_mtx);
@@ -508,12 +510,13 @@ retry:
             mona->unexpected.pending_msg_newest                   = p_msg;
         }
         // notify other threads that the queue has been updated
-        if(probe)
-            mona->unexpected.pending_msg_queue_active = false;
+        if (probe) mona->unexpected.pending_msg_queue_active = false;
         ABT_mutex_unlock(mona->unexpected.pending_msg_mtx);
         ABT_cond_broadcast(mona->unexpected.pending_msg_cv);
-        if (probe) return NULL;
-        else goto retry;
+        if (probe)
+            return NULL;
+        else
+            goto retry;
     }
     // error handling
 error:
@@ -523,23 +526,24 @@ error:
     return NULL;
 }
 
-
-static cached_msg_t check_for_matching_unexpected_message(mona_instance_t mona,
-                                                          bool            probe,
-                                                          mona_addr_t     src,
-                                                          na_tag_t        tag,
-                                                          size_t*      actual_size,
-                                                          mona_addr_t* actual_src,
-                                                          na_tag_t*    actual_tag)
+static cached_msg_t
+check_for_matching_unexpected_message(mona_instance_t mona,
+                                      bool            probe,
+                                      mona_addr_t     src,
+                                      na_tag_t        tag,
+                                      size_t*         actual_size,
+                                      mona_addr_t*    actual_src,
+                                      na_tag_t*       actual_tag)
 {
-    cached_msg_t msg      = NULL; /* result */
+    cached_msg_t msg = NULL; /* result */
 
     // lock the queue of pending messages
     ABT_mutex_lock(mona->unexpected.pending_msg_mtx);
 
     // search in the queue of pending messages for one matching
 search_in_queue:
-    msg = search_for_matching_unexpected_message(mona, !probe, src, tag, actual_size, actual_src, actual_tag);
+    msg = search_for_matching_unexpected_message(
+        mona, !probe, src, tag, actual_size, actual_src, actual_tag);
     if (msg) {
         ABT_mutex_unlock(mona->unexpected.pending_msg_mtx);
         return msg;
@@ -560,9 +564,8 @@ search_in_queue:
     mona->unexpected.pending_msg_queue_active = true;
     ABT_mutex_unlock(mona->unexpected.pending_msg_mtx);
 
-    return receive_new_unexpected_message(
-        mona, probe, src, tag, actual_size,
-        actual_src, actual_tag);
+    return receive_new_unexpected_message(mona, probe, src, tag, actual_size,
+                                          actual_src, actual_tag);
 }
 
 na_return_t mona_urecv(mona_instance_t mona,
@@ -646,22 +649,22 @@ na_return_t mona_urecv_nc(mona_instance_t mona,
                           na_tag_t*       actual_tag)
 {
 
-    na_return_t     na_ret          = NA_SUCCESS;
+    na_return_t       na_ret        = NA_SUCCESS;
     mona_mem_handle_t mem_handle    = MONA_MEM_HANDLE_NULL;
     mona_mem_handle_t remote_handle = MONA_MEM_HANDLE_NULL;
-    size_t          header_size     = mona_msg_get_unexpected_header_size(mona);
-    cached_msg_t    msg             = NULL;
-    size_t          recv_size       = 0;
-    mona_addr_t     recv_addr       = MONA_ADDR_NULL;
-    na_tag_t        recv_tag        = 0;
-    size_t          max_data_size   = 0;
-    unsigned        i;
+    size_t            header_size   = mona_msg_get_unexpected_header_size(mona);
+    cached_msg_t      msg           = NULL;
+    size_t            recv_size     = 0;
+    mona_addr_t       recv_addr     = MONA_ADDR_NULL;
+    na_tag_t          recv_tag      = 0;
+    size_t            max_data_size = 0;
+    unsigned          i;
 
     for (i = 0; i < count; i++) { max_data_size += buf_sizes[i]; }
 
     // wait for a matching unexpected message to come around
-    msg = check_for_matching_unexpected_message(mona, false, src, tag, &recv_size,
-                                               &recv_addr, &recv_tag);
+    msg = check_for_matching_unexpected_message(
+        mona, false, src, tag, &recv_size, &recv_addr, &recv_tag);
     if (!msg) return NA_PROTOCOL_ERROR;
 
     // At this point, we know msg is the message we are looking for
@@ -823,28 +826,28 @@ na_return_t mona_uirecv_nc(mona_instance_t mona,
     return NA_SUCCESS;
 }
 
-na_return_t mona_urecv_mem(mona_instance_t mona,
+na_return_t mona_urecv_mem(mona_instance_t   mona,
                            mona_mem_handle_t mem,
-                           size_t          size,
-                           size_t          offset,
-                           mona_addr_t     src,
-                           na_tag_t        tag,
-                           size_t*         actual_size,
-                           mona_addr_t*    actual_src,
-                           na_tag_t*       actual_tag)
+                           size_t            size,
+                           size_t            offset,
+                           mona_addr_t       src,
+                           na_tag_t          tag,
+                           size_t*           actual_size,
+                           mona_addr_t*      actual_src,
+                           na_tag_t*         actual_tag)
 {
 
-    na_return_t     na_ret        = NA_SUCCESS;
+    na_return_t       na_ret        = NA_SUCCESS;
     mona_mem_handle_t remote_handle = MONA_MEM_HANDLE_NULL;
-    size_t          header_size   = mona_msg_get_unexpected_header_size(mona);
-    cached_msg_t    msg           = NULL;
-    size_t          recv_size     = 0;
-    mona_addr_t     recv_addr     = MONA_ADDR_NULL;
-    na_tag_t        recv_tag      = 0;
+    size_t            header_size   = mona_msg_get_unexpected_header_size(mona);
+    cached_msg_t      msg           = NULL;
+    size_t            recv_size     = 0;
+    mona_addr_t       recv_addr     = MONA_ADDR_NULL;
+    na_tag_t          recv_tag      = 0;
 
     // wait for a matching unexpected message to come around
-    msg = check_for_matching_unexpected_message(mona, false, src, tag, &recv_size,
-                                                &recv_addr, &recv_tag);
+    msg = check_for_matching_unexpected_message(
+        mona, false, src, tag, &recv_size, &recv_addr, &recv_tag);
     if (!msg) return NA_PROTOCOL_ERROR;
 
     // At this point, we know msg is the message we are looking for
@@ -907,16 +910,16 @@ finish:
 }
 
 struct uirecv_mem_args {
-    mona_instance_t mona;
+    mona_instance_t   mona;
     mona_mem_handle_t mem;
-    size_t          size;
-    size_t          offset;
-    mona_addr_t     src;
-    na_tag_t        tag;
-    size_t*         actual_size;
-    mona_addr_t*    actual_src;
-    na_tag_t*       actual_tag;
-    mona_request_t  req;
+    size_t            size;
+    size_t            offset;
+    mona_addr_t       src;
+    na_tag_t          tag;
+    size_t*           actual_size;
+    mona_addr_t*      actual_src;
+    na_tag_t*         actual_tag;
+    mona_request_t    req;
 };
 
 static void uirecv_mem_thread(void* x)
@@ -929,16 +932,16 @@ static void uirecv_mem_thread(void* x)
     free(args);
 }
 
-na_return_t mona_uirecv_mem(mona_instance_t mona,
+na_return_t mona_uirecv_mem(mona_instance_t   mona,
                             mona_mem_handle_t mem,
-                            size_t          size,
-                            size_t          offset,
-                            mona_addr_t     src,
-                            na_tag_t        tag,
-                            size_t*         actual_size,
-                            mona_addr_t*    actual_src,
-                            na_tag_t*       actual_tag,
-                            mona_request_t* req)
+                            size_t            size,
+                            size_t            offset,
+                            mona_addr_t       src,
+                            na_tag_t          tag,
+                            size_t*           actual_size,
+                            mona_addr_t*      actual_src,
+                            na_tag_t*         actual_tag,
+                            mona_request_t*   req)
 {
     struct uirecv_mem_args* args
         = (struct uirecv_mem_args*)malloc(sizeof(*args));
@@ -975,18 +978,18 @@ na_return_t mona_uiprobe(mona_instance_t mona,
                          mona_addr_t*    actual_src,
                          na_tag_t*       actual_tag)
 {
-    cached_msg_t    msg           = NULL;
-    size_t          recv_size     = 0;
-    mona_addr_t     recv_addr     = MONA_ADDR_NULL;
-    na_tag_t        recv_tag      = 0;
-    size_t          header_size   = mona_msg_get_unexpected_header_size(mona);
+    cached_msg_t msg         = NULL;
+    size_t       recv_size   = 0;
+    mona_addr_t  recv_addr   = MONA_ADDR_NULL;
+    na_tag_t     recv_tag    = 0;
+    size_t       header_size = mona_msg_get_unexpected_header_size(mona);
 
     // wait for a matching unexpected message to come around
-    msg = check_for_matching_unexpected_message(mona, true, src, tag, &recv_size,
-                                                &recv_addr, &recv_tag);
+    msg = check_for_matching_unexpected_message(
+        mona, true, src, tag, &recv_size, &recv_addr, &recv_tag);
 
-    if(!msg) {
-        if(flag) *flag = 0;
+    if (!msg) {
+        if (flag) *flag = 0;
         ABT_thread_yield();
         return NA_SUCCESS;
     }
@@ -1005,10 +1008,10 @@ na_return_t mona_uiprobe(mona_instance_t mona,
         memcpy(&recv_size, p, sizeof(recv_size));
     }
 
-    if(flag) *flag = 1;
-    if(actual_size) *actual_size = recv_size;
-    if(actual_src) *actual_src = recv_addr;
-    if(actual_tag) *actual_tag = recv_tag;
+    if (flag) *flag = 1;
+    if (actual_size) *actual_size = recv_size;
+    if (actual_src) *actual_src = recv_addr;
+    if (actual_tag) *actual_tag = recv_tag;
     return NA_SUCCESS;
 }
 
@@ -1017,10 +1020,12 @@ na_return_t mona_uprobe(mona_instance_t mona,
                         na_tag_t        tag,
                         size_t*         actual_size,
                         mona_addr_t*    actual_src,
-                        na_tag_t*       actual_tag) {
-    int flag = 0;
-    na_return_t ret = NA_SUCCESS;
-    while(flag == 0 && ret == NA_SUCCESS)
-        ret = mona_uiprobe(mona, src, tag, &flag, actual_size, actual_src, actual_tag);
+                        na_tag_t*       actual_tag)
+{
+    int         flag = 0;
+    na_return_t ret  = NA_SUCCESS;
+    while (flag == 0 && ret == NA_SUCCESS)
+        ret = mona_uiprobe(mona, src, tag, &flag, actual_size, actual_src,
+                           actual_tag);
     return ret;
 }

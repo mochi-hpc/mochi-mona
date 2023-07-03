@@ -89,24 +89,22 @@ static na_return_t mona_comm_allgatherv_gather_bcast(mona_comm_t   comm,
     na_return_t na_ret;
     int         comm_size = comm->all.size;
     int         my_rank   = comm->all.rank;
-    char* tmp_buf = NULL;
+    char*       tmp_buf   = NULL;
 
     // start by doing a gatherv to rank 0
     na_ret = mona_comm_gatherv(comm, sendbuf, sendsize, recvbuf, recvsizes,
                                displs, 0, tag);
-    if(na_ret != NA_SUCCESS) goto finish;
+    if (na_ret != NA_SUCCESS) goto finish;
 
     // compute total size and allocate contiguous buffer
     size_t total_recv_size = 0;
-    for (int i=0; i < comm_size; i++) {
-        total_recv_size += recvsizes[i];
-    }
+    for (int i = 0; i < comm_size; i++) { total_recv_size += recvsizes[i]; }
     tmp_buf = (char*)malloc(total_recv_size);
 
     // now the data is fragmented in rank 0, copy into a contiguous buffer
-    if(my_rank == 0) {
+    if (my_rank == 0) {
         int position = 0;
-        for(int i=0; i < comm_size; i++) {
+        for (int i = 0; i < comm_size; i++) {
             memcpy(tmp_buf + position, recvbuf + displs[i], recvsizes[i]);
             position += recvsizes[i];
         }
@@ -117,10 +115,11 @@ static na_return_t mona_comm_allgatherv_gather_bcast(mona_comm_t   comm,
     if (na_ret != NA_SUCCESS) goto finish;
 
     // in non-0 ranks, copy back to recvbuf
-    if(my_rank != 0) {
+    if (my_rank != 0) {
         int position = 0;
-        for (int i=0; i < comm_size; i++) {
-            memcpy((char*)recvbuf + displs[i], tmp_buf+position, recvsizes[i]);
+        for (int i = 0; i < comm_size; i++) {
+            memcpy((char*)recvbuf + displs[i], tmp_buf + position,
+                   recvsizes[i]);
             position += recvsizes[i];
         }
     }
@@ -130,15 +129,16 @@ finish:
     return na_ret;
 }
 
-na_return_t mona_comm_allgatherv(mona_comm_t  comm,
-                                const void*   sendbuf,
-                                size_t        sendsize,
-                                void*         recvbuf,
-                                const size_t* recvsizes,
-                                const size_t* displs,
-                                na_tag_t      tag)
+na_return_t mona_comm_allgatherv(mona_comm_t   comm,
+                                 const void*   sendbuf,
+                                 size_t        sendsize,
+                                 void*         recvbuf,
+                                 const size_t* recvsizes,
+                                 const size_t* displs,
+                                 na_tag_t      tag)
 {
-    return mona_comm_allgatherv_gather_bcast(comm, sendbuf, sendsize, recvbuf, recvsizes, displs, tag);
+    return mona_comm_allgatherv_gather_bcast(comm, sendbuf, sendsize, recvbuf,
+                                             recvsizes, displs, tag);
 }
 
 typedef struct iallgatherv_args {
@@ -155,9 +155,9 @@ typedef struct iallgatherv_args {
 static void iallgatherv_thread(void* x)
 {
     iallgatherv_args* args   = (iallgatherv_args*)x;
-    na_return_t      na_ret = mona_comm_allgatherv(
-        args->comm, args->sendbuf, args->sendsize,
-        args->recvbuf, args->recvsizes, args->displs, args->tag);
+    na_return_t       na_ret = mona_comm_allgatherv(
+        args->comm, args->sendbuf, args->sendsize, args->recvbuf,
+        args->recvsizes, args->displs, args->tag);
     ABT_eventual_set(args->req->eventual, &na_ret, sizeof(na_ret));
     free(args);
 }
@@ -177,7 +177,7 @@ na_return_t mona_comm_iallgatherv(mona_comm_t     comm,
     args->sendsize  = sendsize;
     args->recvbuf   = recvbuf;
     args->recvsizes = recvsizes;
-    args->displs   = displs;
+    args->displs    = displs;
     args->tag       = tag;
     NB_OP_POST(iallgatherv_thread);
 }

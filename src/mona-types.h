@@ -100,8 +100,7 @@ typedef struct mona_request {
         ABT_EVENTUAL_NULL, NULL, NULL, NULL, NULL, NULL \
     }
 
-typedef enum hl_msg_type
-{
+typedef enum hl_msg_type {
     HL_MSG_SMALL,
     HL_MSG_LARGE
 } hl_msg_type;
